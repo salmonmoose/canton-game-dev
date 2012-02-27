@@ -8,12 +8,12 @@ import math
 voxel = [
         [[ 1, 1,-1],[-1, 1,-1],[-1, 1, 1],[ 1, 1, 1]],
         [[ 1,-1, 1],[-1,-1, 1],[-1,-1,-1],[ 1,-1,-1]],
-        [[ 1, 1, 1],[-1, 1, 1],[-1,-1, 1],[ 1,-1, 1]],
+        [[-1,-1, 1],[ 1,-1, 1],[ 1, 1, 1],[-1, 1, 1]],
         [[ 1,-1,-1],[-1,-1,-1],[-1, 1,-1],[ 1, 1,-1]],
-        [[-1, 1, 1],[-1, 1,-1],[-1,-1,-1],[-1,-1, 1]],
-        [[ 1, 1,-1],[ 1, 1, 1],[ 1,-1, 1],[ 1,-1,-1]]
+        [[-1,-1,-1],[-1,-1, 1],[-1, 1, 1],[-1, 1,-1]],
+        [[ 1,-1, 1],[ 1,-1,-1],[ 1, 1,-1],[ 1, 1, 1]]
 ]
-texCoords = [[1,0], [0,0], [0,1], [1,1]]
+texCoords = [[0,0], [1,0], [1,1], [0,1]]
 normals = [[ 1, 0, 0], [-1, 0, 0],[ 0, 1, 0],[ 0,-1, 0],[ 0, 0, 1],[ 0, 0,-1]]
 '''
  d888b   .d8b.  .88b  d88. d88888b 
@@ -25,23 +25,25 @@ normals = [[ 1, 0, 0], [-1, 0, 0],[ 0, 1, 0],[ 0,-1, 0],[ 0, 0, 1],[ 0, 0,-1]]
 '''
 class Game:
         def __init__(self):
-                screen = self.init_screen(1280,720)
+                self.screen = self.init_screen(320,240)
+                pygame.mouse.set_visible(False)
+                pygame.event.set_grab(True)
                 game_time = pygame.time.Clock()
-                self.run = True
+                self.running = True
                 self.debug = True
                 self.world = World(self)
-
+                self.ticks = pygame.time.get_ticks()
                 self.camera = Camera()
                 
                 self.world.add_child(self.camera)
                 
         def start(self):
-            self.run = True
-            while self.run:
+            self.running = True
+            while self.running:
+                self.ticks = pygame.time.get_ticks()
                 self.world.events()
                 self.world.update()
                 self.world.draw()
-                #self.run = False
 
         def init_screen(self, width, height):
                 pygame.init()
@@ -58,11 +60,13 @@ class Game:
                 glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
                 glMatrixMode(GL_PROJECTION)
                 glLoadIdentity()
-                gluPerspective(40.0, float(width)/float(height), 0.1, 5000.0)
+                gluPerspective(40.0, float(width)/float(height), 0.1, 50000.0)
                 glMatrixMode(GL_MODELVIEW)
                 glLoadIdentity()
         
                 return screen
+
+
 
 '''
  d888b   .d8b.  .88b  d88. d88888b  .d88b.  d8888b.    d88b d88888b  .o88b. d888888b 
@@ -77,9 +81,10 @@ class GameObject:
                 self.children = []
                 self.parent = None
                 self.game = game
-                self.offset = (0, 0, 0)
-
-
+                self.offset     = ( 0, 0, 0)
+                self.up         = ( 0, 1, 0)
+                self.direction  = ( 1, 0, 0)
+                self.scale      = ( 1, 1, 1)
                 
         def draw_axis(length=5.0):
                 glDisable(GL_LIGHTING)
@@ -96,14 +101,14 @@ class GameObject:
                 glEnd()
                 glEnable(GL_LIGHTING)
 
-        def draw_voxel(self, center_x, center_y, center_z, size):
+        def draw_voxel(self, center_x, center_y, center_z, size, faces):
                 """Draws a voxel"""
-                for face in range(6):
+                for face in faces:
                         self.draw_face(face, center_x, center_y, center_z, size)
               
         def draw_face(self, face, center_x, center_y, center_z, size):
                 """Draws a face for a voxel"""
-                glColor3f(1.0, 1.0, 1.0)
+                glColor4f(1.0, 1.0, 1.0, 0.02)
 
                 for vertex in range(4):
                         glNormal3f(
@@ -167,7 +172,7 @@ class GameObject:
                         child.update()
 
         def load_textures(self):
-                image = pygame.image.load('stone.png')
+                image = pygame.image.load('voxel.png')
                 image_x, image_y = image.get_width(), image.get_height()
                 image = pygame.image.tostring(image, 'RGBX', True)
 
@@ -201,45 +206,59 @@ Y8b  d8 88   88 88  88  88 88.     88 `88. 88   88
 class Camera(GameObject):
         def __init__(self, game=None):
                 GameObject.__init__(self, game)
-                self.offset = (2000,2000,2000)
-                self.lookat = ( 0, 0, 0)
+                self.offset = ( 0, 0, 0)
+                self.pitch = 0.0
+                self.yaw = 0.0
+                self.speed = 3.0
+                self.x_sensitivity = 0.1
+                self.keymap = {'forward': K_w, 'backward': K_s, 'left': K_a, 'right': K_d }
+                self.motion = {'forward': False, 'backward': False, 'left': False, 'right': False}
 
         def draw(self):
-                gluLookAt(
-                        self.x_pos(), self.y_pos(), self.z_pos(),
-                        self.look_x_pos(), self.look_y_pos(), self.look_z_pos(),
-                        0.0, 1.0, 0.0
-                        )
+                glRotatef(self.yaw,   1.0, 0.0, 0.0)
+                glRotatef(self.pitch, 0.0, 1.0, 0.0)
+
+                glTranslated(-self.offset[0], -self.offset[1], -self.offset[2])
 
                 GameObject.draw(self)
 
-        def look_x_pos(self):
-                if(self.parent):
-                        return self.parent.x_pos() + self.lookat[0]
-                else:
-                        return self.lookat[0]
+        def update(self):
+                GameObject.update(self)
 
-        def look_y_pos(self):
-                if(self.parent):
-                        return self.parent.y_pos() + self.lookat[1]
-                else:
-                        return self.lookat[1]
+                pitchRads = math.radians(self.pitch)
+                yawRads = math.radians(self.yaw)
 
-        def look_z_pos(self):
-                if(self.parent):
-                        return self.parent.z_pos() + self.lookat[2]
-                else:
-                        return self.lookat[2]
-
+                if self.motion['forward']:
+                        self.offset[0] += math.sin(pitchRads) * self.speed
+                        self.offset[2] -= math.cos(pitchRads) * self.speed
+                        self.offset[1] -= math.sin(yawRads) * self.speed
+                if self.motion['backward']:
+                        self.offset[0] -= math.sin(pitchRads) * self.speed
+                        self.offset[2] += math.cos(pitchRads) * self.speed
+                        self.offset[1] += math.sin(yawRads) * self.speed
+                if self.motion["left"]:
+                        self.offset[0] -= math.cos(pitchRads) * self.speed
+                        self.offset[2] -= math.sin(pitchRads) * self.speed
+                if self.motion["right"]:
+                        self.offset[0] += math.cos(pitchRads) * self.speed
+                        self.offset[2] += math.sin(pitchRads) * self.speed
+                
         def events(self, event=None):
                 GameObject.events(self, event)
 
-                if event and event.type == MOUSEMOTION:
-                        self.offset = (
-                                math.cos(event.pos[0]/100.0) * 2000,
-                                self.offset[1],
-                                math.sin(event.pos[0]/100.0) * 2000
-                                )
+                if event:
+                        if event.type == MOUSEMOTION:
+                                self.pitch += event.rel[0] * self.x_sensitivity
+                                self.yaw += event.rel[1] * self.x_sensitivity
+
+                        #FIXME This should be done at a higher level (probably at the Game level) and passed down to GameObjects
+                        if event.type == KEYDOWN or event.type == KEYUP:
+                                for key in self.keymap.keys():
+                                        if event.key == self.keymap[key]:
+                                                if event.type == KEYDOWN:
+                                                        self.motion[key] = True
+                                                else:
+                                                        self.motion[key] = False
                         
 '''
 db      d888888b  d888b  db   db d888888b 
@@ -276,12 +295,30 @@ class World(GameObject):
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
                 glLoadIdentity()
                 
+                glPushMatrix()
                 GameObject.draw(self)
+                glPopMatrix()
 
                 pygame.display.flip()
         
         def events(self, event=None):
                 GameObject.events(self, event)
                 
-                if event and event.type == pygame.QUIT:
-                        self.game.run = False
+                if event:
+                        if event.type == pygame.QUIT:
+                                self.game.running = False
+                        if event.type == pygame.KEYDOWN:
+                                if event.key == K_ESCAPE:
+                                        self.game.running = False
+
+'''
+db    db  .d88b.  db    db d88888b db      
+88    88 .8P  Y8. `8b  d8' 88'     88      
+Y8    8P 88    88  `8bd8'  88ooooo 88      
+`8b  d8' 88    88  .dPYb.  88~~~~~ 88      
+ `8bd8'  `8b  d8' .8P  Y8. 88.     88booo. 
+   YP     `Y88P'  YP    YP Y88888P Y88888P 
+'''
+class Voxel(GameObject):
+        def __init__(self, game = None):
+                pass
