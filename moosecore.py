@@ -25,7 +25,7 @@ normals = [[ 1, 0, 0], [-1, 0, 0],[ 0, 1, 0],[ 0,-1, 0],[ 0, 0, 1],[ 0, 0,-1]]
 '''
 class Game:
         def __init__(self):
-                self.screen = self.init_screen(320,240)
+                self.screen = self.init_screen(1280,720)
                 pygame.mouse.set_visible(False)
                 pygame.event.set_grab(True)
                 game_time = pygame.time.Clock()
@@ -41,6 +41,7 @@ class Game:
             self.running = True
             while self.running:
                 self.ticks = pygame.time.get_ticks()
+                #print(self.ticks)
                 self.world.events()
                 self.world.update()
                 self.world.draw()
@@ -206,7 +207,7 @@ Y8b  d8 88   88 88  88  88 88.     88 `88. 88   88
 class Camera(GameObject):
         def __init__(self, game=None):
                 GameObject.__init__(self, game)
-                self.offset = ( 0, 0, 0)
+                self.offset = [ 0, 2000, 0]
                 self.pitch = 0.0
                 self.yaw = 0.0
                 self.speed = 3.0
@@ -231,11 +232,11 @@ class Camera(GameObject):
                 if self.motion['forward']:
                         self.offset[0] += math.sin(pitchRads) * self.speed
                         self.offset[2] -= math.cos(pitchRads) * self.speed
-                        self.offset[1] -= math.sin(yawRads) * self.speed
+                        self.offset[1] -= math.sin(yawRads)   * self.speed
                 if self.motion['backward']:
                         self.offset[0] -= math.sin(pitchRads) * self.speed
                         self.offset[2] += math.cos(pitchRads) * self.speed
-                        self.offset[1] += math.sin(yawRads) * self.speed
+                        self.offset[1] += math.sin(yawRads)   * self.speed
                 if self.motion["left"]:
                         self.offset[0] -= math.cos(pitchRads) * self.speed
                         self.offset[2] -= math.sin(pitchRads) * self.speed

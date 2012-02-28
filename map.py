@@ -13,10 +13,14 @@ import noise
 
 import multiprocessing
 import logging
+import time
 
 BRANCHLOOKUP = {"3":0, "2":1, "-2":2, "-1":3, "1":4, "0":5, "-4":6, "-3":7}
 
 BRANCHMULTIPLIERS = [[ 1, 1, 1], [ 1, 1,-1], [ 1,-1, 1], [ 1,-1,-1], [-1, 1, 1], [-1, 1,-1], [-1,-1, 1], [-1,-1,-1]]
+
+logger = multiprocessing.log_to_stderr()
+logger.setLevel(multiprocessing.SUBDEBUG)
 
 '''
  .d88b.   .o88b. d888888b d8b   db  .d88b.  d8888b. d88888b 
@@ -49,6 +53,7 @@ class OctNode(GameObject):
     )
 
     def draw(self, size):
+        #print('node', self.data)
         '''Draw this OctNode, if size is smaller than node, draw sub-nodes'''
         if not self.isLeafNode and size < self.size:
             for leaf in self.branches:
@@ -106,13 +111,14 @@ class OctNode(GameObject):
         else:
             return self.parent.dataAtPoint(position)
 
-    def generate(self, resolution):
+    def generate(self, resolution, seed):
         if resolution == self.size:
             #if the size is the same, we must be looking this node up, if there is no data, we add some for LOD
-            self.data = self.tree.map.terrain.getValue(self.position[0], self.position[1], self.position[2])
+
+            self.data = Terrain.getValue(self.position[0], self.position[1], self.position[2], seed)
         elif self.size > resolution:
             if not any (self.branches):
-                over_4 = self.size/4
+                over_4 = self.size >> 2
                 for key, branch in enumerate(self.branches):
                     self.branches[key] = OctNode(
                         self.tree,
@@ -122,7 +128,7 @@ class OctNode(GameObject):
                             self.position[1] + over_4 * BRANCHMULTIPLIERS[key][1],
                             self.position[2] + over_4 * BRANCHMULTIPLIERS[key][2]
                         ), 
-                        self.size / 2,
+                        self.size >> 1,
                         0
                     )
                 self.isLeafNode = False
@@ -130,10 +136,43 @@ class OctNode(GameObject):
                     self.tree.resolution = resolution
 
             for key, branch in enumerate(self.branches):
-                self.branches[key].generate(resolution)
-        
-        
+                self.branches[key].generate(resolution, seed)
+    
+    def fromArray(self, dataMap, size):
+        if not any (self.branches):
+            over_4 = self.size >> 2
+            for key, branch in enumerate(self.branches):
+                self.branches[key] = OctNode(
+                    self.tree,
+                    self,
+                    (
+                        self.position[0] + over_4 * BRANCHMULTIPLIERS[key][0],
+                        self.position[1] + over_4 * BRANCHMULTIPLIERS[key][1],
+                        self.position[2] + over_4 * BRANCHMULTIPLIERS[key][2]
+                    ), 
+                    self.size >> 1,
+                    dataMap.pop(0)
+                )
+            self.isLeafNode = False
+            if size < self.tree.resolution or not self.tree.resolution:
+                self.tree.resolution = size
 
+        else:
+            for key, branch in enumerate(self.branches):
+                self.branches[key].fromArray(dataMap, size >> 1)
+    
+
+
+    def toArray(self, size):
+        '''Convert a tree to a 1D array'''
+        if size == self.size:
+            return [self.data]
+        else:
+            result = []
+            for branch in self.branches:
+
+                result.extend(branch.toArray(size))
+            return result
 
     def addNode(self, position, size, data):
         '''if the node we're adding is this one set the data to equal what we have.'''
@@ -190,14 +229,28 @@ class OctTree():
         ", tree:" + str(self.root)
         )
 
+    def toArray(self):
+        resolution = self.treesize
+        result = []
+        while resolution >= self.resolution:
+            result.extend(self.root.toArray(resolution))
+            resolution = resolution >> 1
+        return result
+
+    def fromArray(self, dataMap):
+        self.root = OctNode(self, self, self.position, self.treesize, dataMap.pop(0))
+        self.resolution = self.treesize
+        resolution = self.treesize >> 1
+        while len(dataMap) > 0:
+            self.root.fromArray(dataMap, resolution)
+
     def addNode(self, position, size, data):
         self.root.addNode(position, size, data)
 
-    def generate(self, resolution):
-        start = self.map.game.ticks
-        print('generating {} at {}'.format(resolution, start))
-        self.root.generate(resolution)
-        print('generated {} in {} ticks'.format(resolution, self.map.game.ticks - start))
+    def generate(self, resolution, seed):
+        #print('{} generating {} at {}'.format(id(self), resolution, start))
+        self.root.generate(resolution, seed)
+        #print('{} generated {} at {} started {}'.format(id(self), resolution, self.map.game.ticks, start))
 
     def updateList(self, size):
         callList = glGenLists(1)
@@ -212,6 +265,7 @@ class OctTree():
         #print('made calllist at {} units'.format(size))
 
     def draw(self, size):
+        #print(id(self), 'tree', self.resolution)
         resolution = self.resolution #Avoid a race-case in threads
         if not resolution:
             return
@@ -239,7 +293,7 @@ class Terrain():
         self.seed = seed
 
     '''return datavalue for a point in 3-space'''
-    def getValue(self,x,y,z):
+    def getValue3(self,x,y,z):
 
         x_pos = x / 1024.0
         y_pos = y / 1024.0
@@ -249,12 +303,31 @@ class Terrain():
         caveMap   = noise.octave_noise_4d(7, 0.5, 0.25, x_pos, z_pos, y_pos, self.seed)
 
         if heightMap > y_pos and heightMap > caveMap:
+            #print('returning landscape')
             return random.randint(1,255)
         else:
+            #print('returning void')
             return 0
+
+    def getValue(x, y, z, seed):
+        x_pos = x / 1024.0
+        y_pos = y / 1024.0
+        z_pos = z / 1024.0
+
+        heightMap = noise.octave_noise_3d(7, 0.5, 0.25, x_pos, z_pos, seed)
+        caveMap   = noise.octave_noise_4d(7, 0.5, 0.25, x_pos, z_pos, y_pos, seed)
+
+        if heightMap > y_pos and heightMap > caveMap:
+            #print('returning landscape')
+            return random.randint(1,255)
+        else:
+            #print('returning void')
+            return 0
+    getValue = staticmethod(getValue)        
 
 class MapThread(multiprocessing.Process):
     def __init__(self, worldMap):
+        print(id(worldMap))
         multiprocessing.Process.__init__(self)
         self.map = worldMap
 
@@ -274,13 +347,15 @@ class MapThread(multiprocessing.Process):
             #self.map.queue.task_done()
 
 
-def processMap(key, resolution):
-    print (key, resolution)
-    #worldMap = args[0]
-    #tree = worldMap[args[1]]
-    #resolution = args[2]
-    #tree.generate(resolution)
-    return
+def processMap(args):
+    logger.info('Building chunk at {} at a resolution of {} units'.format(args[1], args[2]))
+    position = args[0]
+    tree = OctTree(None, (position[0], position[1], position[2]), 1024, 0)
+    tree.generate(args[2], args[3])
+
+    return (tree.toArray(), args[1])
+
+
 
 '''
 .88b  d88.  .d8b.  d8888b. 
@@ -294,16 +369,14 @@ class Map(GameObject):
     def __init__(self, game = None):
         GameObject.__init__(self, game)
 
-        self.queue = multiprocessing.Queue()
-        self.logger = multiprocessing.log_to_stderr()
-        self.logger.setLevel(logging.INFO)
-
-        self.terrain = Terrain(self, 60)
+        #self.queue = multiprocessing.Queue()
+        
+        self.terrain = Terrain(self, 11)
 
         threading = True
 
-        map_z = 5
-        map_x = 5
+        map_z = 20
+        map_x = 20
 
         self.load_textures()
 
@@ -317,24 +390,24 @@ class Map(GameObject):
 
         resolution = 1024
         if threading:
+            self.pool = multiprocessing.Pool(processes=1)
             while resolution >= 128:
                 for key, tree in enumerate(self.worldMap):
-                    print('adding', key, resolution)
-                    self.queue.put((key, resolution))
+                    self.pool.apply_async(processMap, args=((self.worldMap[key].position, key, resolution, self.terrain.seed), ), callback=self.mapCallback)
                 resolution = resolution >> 1
+
+
         else:
-            while resolution >= 128:
-                for key, tree in enumerate(self.worldMap):
-                    tree.generate(resolution)
+            while resolution >= 16:
+                #for key, tree in enumerate(self.worldMap):
+                #    tree.generate(resolution)
+                self.worldMap[0].generate(resolution)
+
                 resolution = resolution >> 1
-
-        for i in range(2):
-            worker = MapThread(self)
-            worker.start()
-
-        #for i in range(2):
-         #   worker = MapThread(self)
-         #   worker.start()
+        
+    def mapCallback(self,args):
+        self.worldMap[args[1]].fromArray(args[0])
+    
 
     def update(self):
         pass
