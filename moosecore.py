@@ -5,16 +5,7 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import math
 
-voxel = [
-        [[ 1, 1,-1],[-1, 1,-1],[-1, 1, 1],[ 1, 1, 1]],
-        [[ 1,-1, 1],[-1,-1, 1],[-1,-1,-1],[ 1,-1,-1]],
-        [[-1,-1, 1],[ 1,-1, 1],[ 1, 1, 1],[-1, 1, 1]],
-        [[ 1,-1,-1],[-1,-1,-1],[-1, 1,-1],[ 1, 1,-1]],
-        [[-1,-1,-1],[-1,-1, 1],[-1, 1, 1],[-1, 1,-1]],
-        [[ 1,-1, 1],[ 1,-1,-1],[ 1, 1,-1],[ 1, 1, 1]]
-]
-texCoords = [[0,0], [1,0], [1,1], [0,1]]
-normals = [[ 1, 0, 0], [-1, 0, 0],[ 0, 1, 0],[ 0,-1, 0],[ 0, 0, 1],[ 0, 0,-1]]
+
 '''
  d888b   .d8b.  .88b  d88. d88888b 
 88' Y8b d8' `8b 88'YbdP`88 88'     
@@ -28,19 +19,23 @@ class Game:
                 self.screen = self.init_screen(1280,720)
                 pygame.mouse.set_visible(False)
                 pygame.event.set_grab(True)
-                game_time = pygame.time.Clock()
                 self.running = True
                 self.debug = True
                 self.world = World(self)
-                self.ticks = pygame.time.get_ticks()
+                self.deltaTime = 0
+                self.ticks = 0
                 self.camera = Camera()
-                
+                self.watermark = Text(20,20, 'PyMine')
+                self.world.add_child(Console(self))
+                self.world.add_child(self.watermark)
                 self.world.add_child(self.camera)
                 
         def start(self):
             self.running = True
             while self.running:
-                self.ticks = pygame.time.get_ticks()
+                self.deltaTime = pygame.time.get_ticks() - self.deltaTime
+                self.ticks += self.deltaTime
+
                 #print(self.ticks)
                 self.world.events()
                 self.world.update()
@@ -53,7 +48,7 @@ class Game:
                 glEnable(GL_COLOR_MATERIAL)
                 glEnable(GL_LIGHTING)
                 glEnable(GL_LIGHT0)
-                glClearColor(0.0, 0.0, 0.0, 0.0)
+                glClearColor(0.0, 0.5, 1.0, 0.0)
                 glClearDepth(1.0)
                 glDepthFunc(GL_LESS)
                 glEnable(GL_DEPTH_TEST)
@@ -173,7 +168,7 @@ class GameObject:
                         child.update()
 
         def load_textures(self):
-                image = pygame.image.load('voxel.png')
+                image = pygame.image.load('texturepack.png')
                 image_x, image_y = image.get_width(), image.get_height()
                 image = pygame.image.tostring(image, 'RGBX', True)
 
@@ -210,7 +205,7 @@ class Camera(GameObject):
                 self.offset = [ 0, 2000, 0]
                 self.pitch = 0.0
                 self.yaw = 0.0
-                self.speed = 3.0
+                self.speed = 0.005
                 self.x_sensitivity = 0.1
                 self.keymap = {'forward': K_w, 'backward': K_s, 'left': K_a, 'right': K_d }
                 self.motion = {'forward': False, 'backward': False, 'left': False, 'right': False}
@@ -230,19 +225,19 @@ class Camera(GameObject):
                 yawRads = math.radians(self.yaw)
 
                 if self.motion['forward']:
-                        self.offset[0] += math.sin(pitchRads) * self.speed
-                        self.offset[2] -= math.cos(pitchRads) * self.speed
-                        self.offset[1] -= math.sin(yawRads)   * self.speed
+                        self.offset[0] += math.sin(pitchRads) * self.speed * self.game.deltaTime
+                        self.offset[2] -= math.cos(pitchRads) * self.speed * self.game.deltaTime
+                        self.offset[1] -= math.sin(yawRads)   * self.speed * self.game.deltaTime
                 if self.motion['backward']:
-                        self.offset[0] -= math.sin(pitchRads) * self.speed
-                        self.offset[2] += math.cos(pitchRads) * self.speed
-                        self.offset[1] += math.sin(yawRads)   * self.speed
+                        self.offset[0] -= math.sin(pitchRads) * self.speed * self.game.deltaTime
+                        self.offset[2] += math.cos(pitchRads) * self.speed * self.game.deltaTime
+                        self.offset[1] += math.sin(yawRads)   * self.speed * self.game.deltaTime
                 if self.motion["left"]:
-                        self.offset[0] -= math.cos(pitchRads) * self.speed
-                        self.offset[2] -= math.sin(pitchRads) * self.speed
+                        self.offset[0] -= math.cos(pitchRads) * self.speed * self.game.deltaTime
+                        self.offset[2] -= math.sin(pitchRads) * self.speed * self.game.deltaTime
                 if self.motion["right"]:
-                        self.offset[0] += math.cos(pitchRads) * self.speed
-                        self.offset[2] += math.sin(pitchRads) * self.speed
+                        self.offset[0] += math.cos(pitchRads) * self.speed * self.game.deltaTime
+                        self.offset[2] += math.sin(pitchRads) * self.speed * self.game.deltaTime
                 
         def events(self, event=None):
                 GameObject.events(self, event)
@@ -312,6 +307,53 @@ class World(GameObject):
                                 if event.key == K_ESCAPE:
                                         self.game.running = False
 
+class UserInterface(GameObject):
+        def __init__(self, game=None):
+                GameObject.__init__(self, game)
+
+        def draw(self):
+                GameObject.draw(self)
+
+class Text(GameObject):
+        def __init__(self, x_pos, y_pos, value, game=None):
+                GameObject.__init__(self, game)
+                self.x_pos = x_pos
+                self.y_pos = y_pos
+                self.value = value
+
+        def draw(self):
+
+                glMatrixMode(GL_PROJECTION)
+
+                matrix = glGetDouble(GL_PROJECTION_MATRIX)
+
+                glLoadIdentity()
+                glOrtho(0.0, self.game.screen.get_width(), 0.0, self.game.screen.get_height(), -1.0, 1.0)
+                glMatrixMode(GL_MODELVIEW)
+                glPushMatrix()
+                glLoadIdentity()
+                glDisable(GL_LIGHTING)
+                glColor3f(1.0, 1.0, 1.0)
+                glRasterPos2i(self.x_pos, self.y_pos)
+                for character in self.value:
+                        if character == '\n':
+                                glRasterPos2i(self.x_pos, self.y_pos - (lines * 18))
+                        else:
+                                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(character))
+                glEnable(GL_LIGHTING)
+                glPopMatrix()
+                glMatrixMode(GL_PROJECTION)
+                glLoadMatrixd(matrix)
+                glMatrixMode(GL_MODELVIEW)
+
+class Console(Text):
+        def __init__(self, game=None):
+                Text.__init__(self, 20, 0, '>', game)
+                self.y_pos = self.game.screen.get_height() - 20
+
+
+
+
 '''
 db    db  .d88b.  db    db d88888b db      
 88    88 .8P  Y8. `8b  d8' 88'     88      
@@ -321,5 +363,47 @@ Y8    8P 88    88  `8bd8'  88ooooo 88
    YP     `Y88P'  YP    YP Y88888P Y88888P 
 '''
 class Voxel(GameObject):
-        def __init__(self, game = None):
-                pass
+        voxel = [
+                [[ 1, 1,-1],[-1, 1,-1],[-1, 1, 1],[ 1, 1, 1]],
+                [[ 1,-1, 1],[-1,-1, 1],[-1,-1,-1],[ 1,-1,-1]],
+                [[-1,-1, 1],[ 1,-1, 1],[ 1, 1, 1],[-1, 1, 1]],
+                [[ 1,-1,-1],[-1,-1,-1],[-1, 1,-1],[ 1, 1,-1]],
+                [[-1,-1,-1],[-1,-1, 1],[-1, 1, 1],[-1, 1,-1]],
+                [[ 1,-1, 1],[ 1,-1,-1],[ 1, 1,-1],[ 1, 1, 1]]
+        ]
+        texCoords = [[0,0], [1,0], [1,1], [0,1]]
+        normals = [[ 1, 0, 0], [-1, 0, 0],[ 0, 1, 0],[ 0,-1, 0],[ 0, 0, 1],[ 0, 0,-1]]
+
+
+        @staticmethod
+        def draw(center_x, center_y, center_z, size, faces, data):
+                """Draws a voxel"""
+                for face in faces:
+                        Voxel.face(face, center_x, center_y, center_z, size, data)
+        
+        @staticmethod
+        def face(face, center_x, center_y, center_z, size, data):
+                """Draws a face for a voxel"""
+                glColor4f(1.0, 1.0, 1.0, 0.02)
+
+                block_x = (data % 16) * 0.0625
+                block_y = (data / 16) * 0.0625
+
+                for vertex in range(4):
+                        glNormal3f(
+                                Voxel.normals[face][0],
+                                Voxel.normals[face][1],
+                                Voxel.normals[face][2]
+                        )
+
+                        glTexCoord2f(
+                                Voxel.texCoords[vertex][0] * 0.0625 + block_x,
+                                Voxel.texCoords[vertex][1] * 0.0625 + block_y
+                        )
+
+                        glVertex3f(
+                                center_x + Voxel.voxel[face][vertex][0] * (size / 2),
+                                center_y + Voxel.voxel[face][vertex][1] * (size / 2),
+                                center_z + Voxel.voxel[face][vertex][2] * (size / 2)
+                        )
+        
