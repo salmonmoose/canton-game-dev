@@ -7,15 +7,17 @@ d8888b. db    db .88b  d88. d888888b d8b   db d88888b
 88         YP    YP  YP  YP Y888888P VP   V8P Y88888P 
 '''
 from moosecore import Game
-import map
+import mooselog
+import gamemap
 
 def main():
         game = Game()
 
-        gameMap = map.Map(game)
+        gameMap = gamemap.Map(game)
 
         game.world.add_child(gameMap)
-        print('starting game')
+
+        mooselog.log.info('starting game')
         game.start()
 
         gameMap.pool.close()
