@@ -7,10 +7,9 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import math
 import random
-import noise
 #from threading import Thread
 #import Queue
-
+import noise
 import multiprocessing
 
 import time
@@ -49,18 +48,12 @@ class Terrain():
         caveMap   = noise.octave_noise_4d(7, 0.5, 0.25, x_pos, z_pos, y_pos, seed)
         dirtMap   = noise.octave_noise_3d(7, 0.5, 0.25, x_pos / 2, z_pos / 2, seed ** seed) / 1.02
 
-
-        mooselog.log.info(y_pos)
-
-        mooselog.log.info('{} {} {}'.format(heightMap, y_pos, y_pos**3))
-
         if y_pos < sin (heightMap):
             if y_pos < sin(heightMap) - dirtMap:
                 return 1
             else:
                 return 16
         else:
-            mooselog.log.info('returning void')
             return 0
 
 
@@ -75,16 +68,12 @@ YP  YP  YP YP   YP 88
 from octtree import OctTree
 
 def processMap(args):
-    log.info('Building chunk at {} at a resolution of {} units'.format(args[1], args[2]))
     tree = OctTree((args[0]), 1024)
     tree.fromArray(args[3])
     tree.generate(args[2], terrainCallback)
 
     result = (args[1], tree.toArray())
     return result
-
-def nonLocalCallback(args):
-    log.info('non-local args {}'.format(args))
 
 def terrainCallback(position):
     return Terrain.getValue(position[0], position[1], position[2], 11)
@@ -100,8 +89,8 @@ class Map(GameObject):
 
         threading = True
 
-        map_z = 10
-        map_x = 10
+        map_z = 50
+        map_x = 50
 
         self.load_textures()
 
@@ -153,7 +142,7 @@ class Map(GameObject):
         
 
         for tree in self.worldMap:
-            tree.draw(32)
+            tree.draw(16)
 
         glDisable(GL_TEXTURE_2D)
         glPopMatrix()

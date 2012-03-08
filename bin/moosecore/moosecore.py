@@ -5,6 +5,7 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import math
 
+import os.path
 
 '''
  d888b   .d8b.  .88b  d88. d88888b 
@@ -22,19 +23,24 @@ class Game:
                 self.running = True
                 self.debug = True
                 self.world = World(self)
+                self.clock = pygame.time.Clock()
                 self.deltaTime = 0
                 self.ticks = 0
                 self.camera = Camera()
                 self.watermark = Text(20,20, 'PyMine')
+                self.deltaTime_counter = Text(20,40, self.deltaTime)
                 self.world.add_child(Console(self))
                 self.world.add_child(self.watermark)
+                self.world.add_child(self.deltaTime_counter)
                 self.world.add_child(self.camera)
                 
         def start(self):
             self.running = True
             while self.running:
-                self.deltaTime = pygame.time.get_ticks() - self.deltaTime
-                self.ticks += self.deltaTime
+                self.clock.tick()
+                self.deltaTime = self.clock.get_time()
+
+                self.deltaTime_counter.value = str(self.deltaTime)
 
                 #print(self.ticks)
                 self.world.events()
@@ -168,7 +174,7 @@ class GameObject:
                         child.update()
 
         def load_textures(self):
-                image = pygame.image.load('texturepack.png')
+                image = pygame.image.load(os.path.join('resources', 'texturepack.png'))
                 image_x, image_y = image.get_width(), image.get_height()
                 image = pygame.image.tostring(image, 'RGBX', True)
 
@@ -205,7 +211,7 @@ class Camera(GameObject):
                 self.offset = [ 0, 2000, 0]
                 self.pitch = 0.0
                 self.yaw = 0.0
-                self.speed = 0.005
+                self.speed = 3
                 self.x_sensitivity = 0.1
                 self.keymap = {'forward': K_w, 'backward': K_s, 'left': K_a, 'right': K_d }
                 self.motion = {'forward': False, 'backward': False, 'left': False, 'right': False}
@@ -372,7 +378,7 @@ class Voxel(GameObject):
                 [[ 1,-1, 1],[ 1,-1,-1],[ 1, 1,-1],[ 1, 1, 1]]
         ]
         texCoords = [[0,0], [1,0], [1,1], [0,1]]
-        normals = [[ 1, 0, 0], [-1, 0, 0],[ 0, 1, 0],[ 0,-1, 0],[ 0, 0, 1],[ 0, 0,-1]]
+        normals = [[ 0, 1, 0],[ 0,-1, 0],[ 0, 0, 1],[ 0, 0,-1],[ 1, 0, 0],[-1, 0, 0]]
 
 
         @staticmethod
@@ -386,8 +392,8 @@ class Voxel(GameObject):
                 """Draws a face for a voxel"""
                 glColor4f(1.0, 1.0, 1.0, 0.02)
 
-                block_x = (data % 16) * 0.0625
-                block_y = (data / 16) * 0.0625
+                block_x = ((data*16) % 16) * 0.0625
+                block_y = ((data*16) / 16) * 0.0625
 
                 for vertex in range(4):
                         glNormal3f(

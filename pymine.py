@@ -13,11 +13,11 @@ import bin.moosecore.gamemap
 def main():
         game = Game()
 
-        gameMap = gamemap.Map(game)
+        gameMap = bin.moosecore.gamemap.Map(game)
 
         game.world.add_child(gameMap)
 
-        mooselog.log.info('starting game')
+        bin.moosecore.mooselog.log.info('starting game')
         game.start()
 
         gameMap.pool.close()
