@@ -23,8 +23,6 @@ class OctTree:
         self.glLists = {}
 
     def generate(self, blockSize, function):
-        mooselog.log.info('generate:blockSize {} resolution {}'.format(blockSize, self.resolution))
-
         if self.resolution > blockSize << 1:
             self.generate(blockSize << 1, function)
 
@@ -35,12 +33,9 @@ class OctTree:
         while (self.size>>count > blockSize):
             count += 1
 
-        mooselog.log.info('generate: count = {}'.format(count))
-
         for level in range (count+1):
             length = OctTree.getLength(level)
             start  = OctTree.getStart(level)
-            mooselog.log.info('generate: length {} start {}'.format(length, start))
             if(len(self.nodeList) <= start):
                 self.nodeList.extend([0 for node in range(length)])
 
@@ -48,19 +43,14 @@ class OctTree:
                 self.nodeList[index] = function(self.getPosition(index, level))
         if not self.resolution or self.resolution > blockSize:
             self.resolution = blockSize
-            mooselog.log.info('generate: resolution {} nodelist {}'.format(self.resolution, self.nodeList))
 
     def getPosition(self, index, level):
-        x = y = z = 0
-        for j in range(level):
-            x += (index>>(j*3)>>0 & 1)<<j
-            y += (index>>(j*3)>>1 & 1)<<j
-            z += (index>>(j*3)>>2 & 1)<<j
+        position = OctTree.deinterleave3(index - OctTree.getStart(level))
 
         return (
-            self.position[0] + (-self.size>>1) + (self.size>>(level+1)) + (x * self.size>>level),
-            self.position[1] + (-self.size>>1) + (self.size>>(level+1)) + (y * self.size>>level),
-            self.position[2] + (-self.size>>1) + (self.size>>(level+1)) + (z * self.size>>level)
+            self.position[0] + (-self.size>>1) + (self.size>>(level+1)) + (position[0] * self.size>>level),
+            self.position[1] + (-self.size>>1) + (self.size>>(level+1)) + (position[1] * self.size>>level),
+            self.position[2] + (-self.size>>1) + (self.size>>(level+1)) + (position[2] * self.size>>level)
             )
 
     def getResolution(self):
@@ -84,9 +74,16 @@ class OctTree:
             start += OctTree.getLength(i)
         return start
 
+    @staticmethod
+    def getLevel(size):
+        count = 0
+        while (self.size >> count > size):
+            count += 1
+
+        return count
+
     def getRange(self, size):
         count = 0
-        start = 0
         while (self.size>>count > size):
             count += 1
 
@@ -122,11 +119,11 @@ class OctTree:
 
     @staticmethod
     def interleave2(x, y):
-        return part1by1(x) | (part1by1(y) << 1)
+        return OctTree.part1by1(x) | (OctTree.part1by1(y) << 1)
 
     @staticmethod
     def deinterleave2(n):
-        return unpart1by1(n), unpart1by1(n >> 1)
+        return OctTree.unpart1by1(n), OctTree.unpart1by1(n >> 1)
 
     @staticmethod
     def part1by2(n):
@@ -148,32 +145,32 @@ class OctTree:
 
     @staticmethod
     def interleave3(x, y, z):
-        return part1by2(x) | (part1by2(y) << 1) | (part1by2(z) << 2)
+        return OctTree.part1by2(x) | (OctTree.part1by2(y) << 1) | (OctTree.part1by2(z) << 2)
 
     @staticmethod
     def deinterleave3(n):
-        return unpart1by2(n), unpart1by2(n >> 1), unpart1by2(n >> 2)
+        return OctTree.unpart1by2(n), OctTree.unpart1by2(n >> 1), OctTree.unpart1by2(n >> 2)
 
     @staticmethod
     def getNeighbours2(n):
-        position = deinterleave2(n)
-        up    = interleave2(position[0],   position[1]-1)
-        down  = interleave2(position[0],   position[1]+1)
-        left  = interleave2(position[0]-1, position[1]  )
-        right = interleave2(position[0]+1, position[1]  )
+        position = OctTree.deinterleave2(n)
+        up    = OctTree.interleave2(position[0],   position[1]-1)
+        down  = OctTree.interleave2(position[0],   position[1]+1)
+        left  = OctTree.interleave2(position[0]-1, position[1]  )
+        right = OctTree.interleave2(position[0]+1, position[1]  )
 
         return up, down, left, right
 
     @staticmethod
     def getNeighbours3(n):
-        position = deinterleave3(n)
+        position = OctTree.deinterleave3(n)
 
-        up    = interleave3(position[0],   position[1]-1, position[2]  )
-        down  = interleave3(position[0],   position[1]+1, position[2]  )
-        left  = interleave3(position[0]-1, position[1],   position[2]  )
-        right = interleave3(position[0]+1, position[1],   position[2]  )
-        front = interleave3(position[0],   position[1],   position[2]-1)
-        back  = interleave3(position[0],   position[1],   position[2]+1)
+        up    = OctTree.interleave3(position[0],   position[1]+1, position[2]  )
+        down  = OctTree.interleave3(position[0],   position[1]-1, position[2]  )
+        left  = OctTree.interleave3(position[0],   position[1],   position[2]+1)
+        right = OctTree.interleave3(position[0],   position[1],   position[2]-1)
+        front = OctTree.interleave3(position[0]-1,   position[1],   position[2])
+        back  = OctTree.interleave3(position[0]+1,   position[1],   position[2])
 
         return [up, down, left, right, front, back]
 
@@ -193,11 +190,20 @@ class OctTree:
 
         return self.branches[index].bitwiseSearch(position)
 
-    def outside(self, key):
-        return [0,1,2,3,4,5]
+    def outside(self, size, index):
+        dataRange = self.getRange(size)
+
+        faces = []
+
+        for key, neighbour in enumerate(OctTree.getNeighbours3(index - dataRange[0])):
+            if neighbour > dataRange[1]-dataRange[0]-1:
+                faces.append(key)
+            elif self.nodeList[neighbour+dataRange[0]] == 0:
+                faces.append(key)
+
+        return faces
 
     def updateList(self, size):
-        mooselog.log.info('building a glList')
         callList = glGenLists(1)
 
         glNewList(callList, GL_COMPILE)
@@ -217,7 +223,7 @@ class OctTree:
                     position[1],
                     position[2],
                     size,
-                    self.outside(data),
+                    self.outside(size, data),
                     self.nodeList[data]
                 )
         glEnd()
