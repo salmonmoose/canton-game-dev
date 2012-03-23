@@ -4,7 +4,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import math
-
+import multiprocessing
 import os.path
 
 '''
@@ -17,9 +17,12 @@ import os.path
 '''
 class Game:
         def __init__(self):
-                self.screen = self.init_screen(1280,720)
+                self.screen = self.init_screen(320,240)
                 pygame.mouse.set_visible(False)
                 pygame.event.set_grab(True)
+
+                self.statemanager = StateManager(self)
+
                 self.running = True
                 self.debug = True
                 self.world = World(self)
@@ -208,7 +211,7 @@ Y8b  d8 88   88 88  88  88 88.     88 `88. 88   88
 class Camera(GameObject):
         def __init__(self, game=None):
                 GameObject.__init__(self, game)
-                self.offset = [ 0, 2000, 0]
+                self.offset = [ 0, 0, 0]
                 self.pitch = 0.0
                 self.yaw = 0.0
                 self.speed = 3
@@ -312,14 +315,14 @@ class World(GameObject):
                         if event.type == pygame.KEYDOWN:
                                 if event.key == K_ESCAPE:
                                         self.game.running = False
-
-class UserInterface(GameObject):
-        def __init__(self, game=None):
-                GameObject.__init__(self, game)
-
-        def draw(self):
-                GameObject.draw(self)
-
+'''
+d888888b d88888b db    db d888888b 
+`~~88~~' 88'     `8b  d8' `~~88~~' 
+   88    88ooooo  `8bd8'     88    
+   88    88~~~~~  .dPYb.     88    
+   88    88.     .8P  Y8.    88    
+   YP    Y88888P YP    YP    YP 
+'''
 class Text(GameObject):
         def __init__(self, x_pos, y_pos, value, game=None):
                 GameObject.__init__(self, game)
@@ -352,13 +355,113 @@ class Text(GameObject):
                 glLoadMatrixd(matrix)
                 glMatrixMode(GL_MODELVIEW)
 
+'''
+ .o88b.  .d88b.  d8b   db .d8888.  .d88b.  db      d88888b 
+d8P  Y8 .8P  Y8. 888o  88 88'  YP .8P  Y8. 88      88'     
+8P      88    88 88V8o 88 `8bo.   88    88 88      88ooooo 
+8b      88    88 88 V8o88   `Y8b. 88    88 88      88~~~~~ 
+Y8b  d8 `8b  d8' 88  V888 db   8D `8b  d8' 88booo. 88.     
+ `Y88P'  `Y88P'  VP   V8P `8888Y'  `Y88P'  Y88888P Y88888P 
+'''                                                                
 class Console(Text):
         def __init__(self, game=None):
                 Text.__init__(self, 20, 0, '>', game)
                 self.y_pos = self.game.screen.get_height() - 20
 
 
+'''
+.d8888. d888888b  .d8b.  d888888b d88888b .88b  d88.  .d8b.  d8b   db  .d8b.   d888b  d88888b d8888b. 
+88'  YP `~~88~~' d8' `8b `~~88~~' 88'     88'YbdP`88 d8' `8b 888o  88 d8' `8b 88' Y8b 88'     88  `8D 
+`8bo.      88    88ooo88    88    88ooooo 88  88  88 88ooo88 88V8o 88 88ooo88 88      88ooooo 88oobY' 
+  `Y8b.    88    88~~~88    88    88~~~~~ 88  88  88 88~~~88 88 V8o88 88~~~88 88  ooo 88~~~~~ 88`8b   
+db   8D    88    88   88    88    88.     88  88  88 88   88 88  V888 88   88 88. ~8~ 88.     88 `88. 
+`8888Y'    YP    YP   YP    YP    Y88888P YP  YP  YP YP   YP VP   V8P YP   YP  Y888P  Y88888P 88   YD 
+'''
+class StateManager:
+        def __init__(self, game):
+                self.game = game
+                self.states = []
 
+        def push(state):
+                self.states.append(state)
+
+        def events():
+                self.states[len(self.states)-1].events()
+
+        def update():
+                self.states[len(self.states)-1].update()
+
+        def draw():
+                self.states[len(self.states)-1].draw()
+
+
+
+
+
+'''
+.d8888. d888888b  .d8b.  d888888b d88888b 
+88'  YP `~~88~~' d8' `8b `~~88~~' 88'     
+`8bo.      88    88ooo88    88    88ooooo 
+  `Y8b.    88    88~~~88    88    88~~~~~ 
+db   8D    88    88   88    88    88.     
+`8888Y'    YP    YP   YP    YP    Y88888P 
+'''                                                        
+class State:
+        def __init__(self, stateManager):
+                self.stateManager = stateManager
+                self.initialized = False
+
+        def initialize(self):
+                self.initialized = True
+
+        def events():
+                pass
+
+        def update():
+                pass
+
+        def draw():
+                pass
+
+
+'''
+.88b  d88. d88888b d8b   db db    db .d8888. d888888b  .d8b.  d888888b d88888b 
+88'YbdP`88 88'     888o  88 88    88 88'  YP `~~88~~' d8' `8b `~~88~~' 88'     
+88  88  88 88ooooo 88V8o 88 88    88 `8bo.      88    88ooo88    88    88ooooo 
+88  88  88 88~~~~~ 88 V8o88 88    88   `Y8b.    88    88~~~88    88    88~~~~~ 
+88  88  88 88.     88  V888 88b  d88 db   8D    88    88   88    88    88.     
+YP  YP  YP Y88888P VP   V8P ~Y8888P' `8888Y'    YP    YP   YP    YP    Y88888P 
+'''                                                                                    
+class MenuState(State):
+        def __init__(self, stateManager, options):
+                State.__init__(self, stateManager)
+                self.options = options
+                self.selected = 0
+
+        def initialize(self):
+                State.initialize(self)
+
+        def events(self):
+
+                pass
+
+        def update(self):
+                pass
+
+        def draw(self):
+                pass
+
+'''
+.d8888. d8888b. d8888b. d888888b d888888b d88888b 
+88'  YP 88  `8D 88  `8D   `88'   `~~88~~' 88'     
+`8bo.   88oodD' 88oobY'    88       88    88ooooo 
+  `Y8b. 88~~~   88`8b      88       88    88~~~~~ 
+db   8D 88      88 `88.   .88.      88    88.     
+`8888Y' 88      88   YD Y888888P    YP    Y88888P 
+'''
+class Sprite(GameObject):
+        def __init__(self, game=None):
+                self.tree = OctTree()
 
 '''
 db    db  .d88b.  db    db d88888b db      
@@ -368,7 +471,7 @@ Y8    8P 88    88  `8bd8'  88ooooo 88
  `8bd8'  `8b  d8' .8P  Y8. 88.     88booo. 
    YP     `Y88P'  YP    YP Y88888P Y88888P 
 '''
-class Voxel(GameObject):
+class Voxel:
         voxel = [
                 [[ 1, 1,-1],[-1, 1,-1],[-1, 1, 1],[ 1, 1, 1]],
                 [[ 1,-1, 1],[-1,-1, 1],[-1,-1,-1],[ 1,-1,-1]],
@@ -392,8 +495,8 @@ class Voxel(GameObject):
                 """Draws a face for a voxel"""
                 glColor4f(1.0, 1.0, 1.0, 0.02)
 
-                block_x = ((data*16) % 16) * 0.0625
-                block_y = ((data*16) / 16) * 0.0625
+                block_x = ((data) / 16) * 0.0625
+                block_y = ((data) % 16) * 0.0625
 
                 for vertex in range(4):
                         glNormal3f(
@@ -412,4 +515,127 @@ class Voxel(GameObject):
                                 center_y + Voxel.voxel[face][vertex][1] * (size / 2),
                                 center_z + Voxel.voxel[face][vertex][2] * (size / 2)
                         )
-        
+
+'''
+marchingcubes
+'''
+class MarchingCubes:
+    pass
+
+
+'''
+.d8888. .88b  d88.  .d88b.   .d88b.  d888888b db   db db    db  .d88b.  db    db 
+88'  YP 88'YbdP`88 .8P  Y8. .8P  Y8. `~~88~~' 88   88 88    88 .8P  Y8. `8b  d8' 
+`8bo.   88  88  88 88    88 88    88    88    88ooo88 Y8    8P 88    88  `8bd8'  
+  `Y8b. 88  88  88 88    88 88    88    88    88~~~88 `8b  d8' 88    88  .dPYb.  
+db   8D 88  88  88 `8b  d8' `8b  d8'    88    88   88  `8bd8'  `8b  d8' .8P  Y8. 
+`8888Y' YP  YP  YP  `Y88P'   `Y88P'     YP    YP   YP    YP     `Y88P'  YP    YP 
+'''
+class SmoothVox:
+
+    looseNormals = [
+        [-1,-1,-1],[-1,-1, 1],
+        [-1, 1,-1],[-1, 1, 1],
+        [ 1,-1,-1],[ 1,-1, 1],
+        [ 1, 1,-1],[ 1, 1, 1],
+
+        [-1, 0, 0],[ 1, 0, 0],
+        [ 0,-1, 0],[ 0, 1, 0],
+        [ 0, 0,-1],[ 0, 0, 1],
+
+        [-1,-1, 0], [-1, 1, 0], [ 1,-1, 0], [ 1, 1, 0], 
+        [-1, 0,-1], [-1, 0, 1], [ 1, 0,-1], [ 1, 0, 1],
+        [ 0,-1,-1], [ 0,-1, 1], [ 0, 1,-1], [ 0, 1, 1]
+    ]
+
+    normals = [[ 0, 1, 0],[ 0,-1, 0],[ 0, 0, 1],[ 0, 0,-1],[ 1, 0, 0],[-1, 0, 0]]
+
+    texCoords = [
+        [[  0,  0], [0.5,  0], [0.5,0.5], [  0,0.5]],
+        [[  0,0.5], [0.5,0.5], [0.5,  1], [  0,  1]],
+        [[0.5,  0], [  1,  0], [  1,0.5], [0.5,0.5]],
+        [[0.5,0.5], [  1,0.5], [  1,  1], [0.5,  1]]
+
+    ]
+
+
+    loosePoints = [
+    #0 -> corners
+        [-0.85, -0.85, -0.85], [-0.85,-0.85, 0.85],
+        [-0.85,  0.85, -0.85], [-0.85, 0.85, 0.85],
+        [ 0.85, -0.85, -0.85], [ 0.85,-0.85, 0.85],
+        [ 0.85,  0.85, -0.85], [ 0.85, 0.85, 0.85],
+    #8 -> faces
+        [-1, 0, 0], [ 1, 0, 0],
+        [ 0,-1, 0], [ 0, 1, 0],
+        [ 0, 0,-1], [ 0, 0, 1],
+    #14 -> edges
+        [-1,-1, 0], [-1, 1, 0], [ 1,-1, 0], [ 1, 1, 0], 
+        [-1, 0,-1], [-1, 0, 1], [ 1, 0,-1], [ 1, 0, 1],
+        [ 0,-1,-1], [ 0,-1, 1], [ 0, 1,-1], [ 0, 1, 1]
+    ]
+
+    tightPoints = [
+    #0 -> corners
+        [-1,-1,-1], [-1,-1, 1],
+        [-1, 1,-1], [-1, 1, 1],
+        [ 1,-1,-1], [ 1,-1, 1],
+        [ 1, 1,-1], [ 1, 1, 1],
+    #8 -> faces     
+        [-1, 0, 0], [ 1, 0, 0],
+        [ 0,-1, 0], [ 0, 1, 0],
+        [ 0, 0,-1], [ 0, 0, 1],
+    #14 -> edges
+        [-1,-1, 0], [-1, 1, 0], [ 1,-1, 0], [ 1, 1, 0], 
+        [-1, 0,-1], [-1, 0, 1], [ 1, 0,-1], [ 1, 0, 1],
+        [ 0,-1,-1], [ 0,-1, 1], [ 0, 1,-1], [ 0, 1, 1]
+    ]
+
+    faces = [
+        [[ 2,15,11,24],[ 3,15,11,25],[ 6,17,11,24],[ 7,17,11,25]], #top 
+        [[ 0,14,10,22],[ 1,14,10,23],[ 4,16,10,22],[ 5,16,10,23]], #bottom
+        [[ 1,19,13,23],[ 3,19,13,25],[ 5,21,13,23],[ 7,21,13,25]], #left 
+        [[ 0,18,12,22],[ 2,18,12,24],[ 4,20,12,22],[ 6,20,12,24]], #right
+        [[ 0,14, 8,18],[ 1,14, 8,19],[ 2,15, 8,18],[ 3,15, 8,19]], #front 
+        [[ 4,16, 9,20],[ 5,16, 9,21],[ 6,17, 9,20],[ 7,17, 9,21]]  #back
+    ]        
+
+    reflection = [
+        [1,3,4],[1,2,4],[0,3,4],[0,2,4],[1,3,5],[1,2,5],[0,3,5],[0,2,5]
+    ]
+
+    @staticmethod
+    def draw(center_x, center_y, center_z, size, faces, data):
+        """Draws a voxel"""
+        glColor4f(1.0, 1.0, 1.0, 0.02)
+
+        block_x = ((data) / 16) * 0.0625
+        block_y = ((data) % 16) * 0.0625
+
+        for face in faces:
+            for quad in range(4):
+                for vert in range(4):
+                    vertIndex = SmoothVox.faces[face][quad][vert];
+
+                    vertSet = SmoothVox.tightPoints
+
+                    if vertIndex < 8: #this is a corner
+                        if len(set(SmoothVox.reflection[vertIndex]).intersection(faces)) == 3:
+                            vertSet = SmoothVox.loosePoints
+                
+                    glNormal3f(
+                        SmoothVox.looseNormals[vertIndex][0],
+                        SmoothVox.looseNormals[vertIndex][1],
+                        SmoothVox.looseNormals[vertIndex][2]
+                    )
+
+                    glTexCoord2f(
+                        SmoothVox.texCoords[quad][vert][0] * 0.0625 + block_x,
+                        SmoothVox.texCoords[quad][vert][1] * 0.0625 + block_y
+                    )
+
+                    glVertex3f(
+                        center_x + vertSet[vertIndex][0] * (size / 2),
+                        center_y + vertSet[vertIndex][1] * (size / 2),
+                        center_z + vertSet[vertIndex][2] * (size / 2)
+                    )
