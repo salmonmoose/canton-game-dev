@@ -19,18 +19,29 @@ def print_timing(func):
 
 
 '''
- .d8b.  d8888b. d8888b.  .d8b.  db    db d8888b. d8888b. 
-d8' `8b 88  `8D 88  `8D d8' `8b `8b  d8' VP  `8D 88  `8D 
-88ooo88 88oobY' 88oobY' 88ooo88  `8bd8'    oooY' 88   88 
-88~~~88 88`8b   88`8b   88~~~88    88      ~~~b. 88   88 
-88   88 88 `88. 88 `88. 88   88    88    db   8D 88  .8D 
-YP   YP 88   YD 88   YD YP   YP    YP    Y8888P' Y8888D' 
+      .o.                                                 .oooo.   oooooooooo.   
+     .888.                                              .dP""Y88b  `888'   `Y8b  
+    .8"888.     oooo d8b oooo d8b  .oooo.   oooo    ooo       ]8P'  888      888 
+   .8' `888.    `888""8P `888""8P `P  )88b   `88.  .8'      <88b.   888      888 
+  .88ooo8888.    888      888      .oP"888    `88..8'        `88b.  888      888 
+ .8'     `888.   888      888     d8(  888     `888'    o.   .88P   888     d88' 
+o88o     o8888o d888b    d888b    `Y888""8o     .8'     `8bd88P'   o888bood8P'   
+                                            .o..P'                               
+                                            `Y8P'                                
 '''
 
 '''Store Nodes in a 3 dimensional z-curve'''
 
 '''
 How Neighbours Look:
+*------*------*------*
+|      |      |      |
+|      |      |      |
+|      |      |      |
+*------*------*------*
+|      |      |      |
+|      |      |      |
+|      |      |      |
 *------*------*------*
 |      |      |      |
 |      |      |      |

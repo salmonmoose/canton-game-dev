@@ -1,5 +1,5 @@
 import random
-from moosecore import GameObject, Voxel, SmoothVox
+from moosecore import GameObject, Voxel, SmoothVox, FacingVox
 import pygame
 from pygame.locals import *
 from OpenGL.GL import *
@@ -20,12 +20,13 @@ log = multiprocessing.log_to_stderr()
 log.setLevel(multiprocessing.SUBDEBUG)
 
 '''
-d888888b d88888b d8888b. d8888b.  .d8b.  d888888b d8b   db 
-`~~88~~' 88'     88  `8D 88  `8D d8' `8b   `88'   888o  88 
-   88    88ooooo 88oobY' 88oobY' 88ooo88    88    88V8o 88 
-   88    88~~~~~ 88`8b   88`8b   88~~~88    88    88 V8o88 
-   88    88.     88 `88. 88 `88. 88   88   .88.   88  V888 
-   YP    Y88888P 88   YD 88   YD YP   YP Y888888P VP   V8P
+ooooooooooooo                                        o8o              
+8'   888   `8                                        `"'              
+     888       .ooooo.  oooo d8b oooo d8b  .oooo.   oooo  ooo. .oo.   
+     888      d88' `88b `888""8P `888""8P `P  )88b  `888  `888P"Y88b  
+     888      888ooo888  888      888      .oP"888   888   888   888  
+     888      888    .o  888      888     d8(  888   888   888   888  
+    o888o     `Y8bod8P' d888b    d888b    `Y888""8o o888o o888o o888o 
 '''
 
 from math import sin
@@ -60,12 +61,15 @@ class Terrain():
 
 
 '''
-.88b  d88.  .d8b.  d8888b. 
-88'YbdP`88 d8' `8b 88  `8D 
-88  88  88 88ooo88 88oodD' 
-88  88  88 88~~~88 88~~~   
-88  88  88 88   88 88      
-YP  YP  YP YP   YP 88    
+ooo        ooooo                      
+`88.       .888'                      
+ 888b     d'888   .oooo.   oo.ooooo.  
+ 8 Y88. .P  888  `P  )88b   888' `88b 
+ 8  `888'   888   .oP"888   888   888 
+ 8    Y     888  d8(  888   888   888 
+o8o        o888o `Y888""8o  888bod8P' 
+                            888       
+                           o888o      
 '''
 from array3d import Array3D
 
@@ -131,15 +135,8 @@ class Map(GameObject):
 
 
     def draw(self):
-        glPushMatrix()
-        glEnable(GL_TEXTURE_2D)
-        
-
         for tree in self.worldMap:
             tree.draw(128)
-
-        glDisable(GL_TEXTURE_2D)
-        glPopMatrix()
         GameObject.draw(self)
 
 '''
@@ -158,15 +155,30 @@ class MapTree:
         self.size = size
         self.resolution = None
         self.glLists = {}
+        self.drawFunction = FacingVox.draw
+        self.dynamic = True
 
     def draw(self, size):
         '''Draw this OctNode, if size is smaller than node, draw sub-nodes'''
-        if not len(self.tree.nodeList):
-            return
+        if self.dynamic:
+            for index, value in enumerate(self.tree.nodeList):
+                if self.tree.nodeList[index]:
+                    position = self.getPosition(index, size)
+                    self.drawFunction(
+                        position[0],
+                        position[1],
+                        position[2],
+                        size,
+                        self.tree.outside(index),
+                        self.tree.nodeList[index]
+                    )
+        else:
+            if not len(self.tree.nodeList):
+                return
 
-        if size not in self.glLists:
-            self.updateList(size)
-        glCallList(self.glLists[size])
+            if size not in self.glLists:
+                self.updateList(size)
+            glCallList(self.glLists[size])
 
     def getRange(self, size):
         count = 0
@@ -176,15 +188,10 @@ class MapTree:
         return (Array3D.getStart(count), Array3D.getStart(count) + Array3D.getLength(count))
 
     def updateList(self, dimension):
-        callList = glGenLists(1)
-
-        glNewList(callList, GL_COMPILE)
-        glBegin(GL_QUADS)
-
         for index, value in enumerate(self.tree.nodeList):
             if self.tree.nodeList[index]:
                 position = self.getPosition(index, dimension)
-                SmoothVox.draw(
+                self.drawFunction(
                     position[0],
                     position[1],
                     position[2],
@@ -192,10 +199,6 @@ class MapTree:
                     self.tree.outside(index),
                     self.tree.nodeList[index]
                 )
-        glEnd()
-        glEndList()
-
-        self.glLists[dimension] = callList
 
     def toArray(self):
         return self.tree.toArray()
@@ -207,9 +210,6 @@ class MapTree:
         for z in range(dimension):
             for x in range(dimension):
                 height_map = Terrain.getHeight(x,z,11)
-                
-
-
 
         for index in range(((self.size / dimension) ** 3)):
             self.tree.nodeList[index] = function(self.getPosition(index, dimension))
