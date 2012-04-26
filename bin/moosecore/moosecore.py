@@ -1,11 +1,81 @@
+from ctypes import *
+import sys
+
 import pygame
 from pygame.locals import *
-from OpenGL.GL import *
-from OpenGL.GLU import *
-from OpenGL.GLUT import *
+
 import math
 import multiprocessing
 import os.path
+
+from OpenGL.GL import *
+from OpenGL.GLU import *
+from OpenGL.GLUT import *
+
+from OpenGL.GL.ARB.shader_objects import *
+from OpenGL.GL.ARB.vertex_shader import *
+from OpenGL.GL.ARB.fragment_shader import *
+
+OpenGL.ERROR_CHECKING = True
+OpenGL.ERROR_LOGGING = True
+OpenGL.FULL_LOGGING = True
+OpenGL.ERROR_ON_COPY = True
+
+
+GL_FRAGMENT_SHADER = 0x8B30
+GL_VERTEX_SHADER = 0x8B31
+GL_COMPILE_STATUS = 0x8B81
+GL_LINK_STATUS = 0x8B82
+GL_INFO_LOG_LENGTH = 0x8B84
+
+program = None
+
+'''
+ d888b  db      d888888b  .d88b.   .d88b.  db      .d8888. 
+88' Y8b 88      `~~88~~' .8P  Y8. .8P  Y8. 88      88'  YP 
+88      88         88    88    88 88    88 88      `8bo.   
+88  ooo 88         88    88    88 88    88 88        `Y8b. 
+88. ~8~ 88booo.    88    `8b  d8' `8b  d8' 88booo. db   8D 
+ Y888P  Y88888P    YP     `Y88P'   `Y88P'  Y88888P `8888Y' 
+                                                               
+'''
+class GLTools:
+    @staticmethod
+    def compileShader(source, shaderType):
+        shader = glCreateShaderObjectARB(shaderType)
+        print "glShaderSourceARB:", bool(glShaderSourceARB)
+        glShaderSourceARB (shader, source)
+        glCompileShaderARB (shader)
+        return shader
+
+    @staticmethod
+    def compileProgram(vertexSource=None, fragmentSource=None):
+        program = glCreateProgramObjectARB()
+        print ('program: {}'.format(program))
+
+        if vertexSource:
+            vertexShader = GLTools.compileShader(vertexSource, GL_VERTEX_SHADER_ARB)
+            glAttachObjectARB(program, vertexShader)
+        else:
+            vertexShader = None
+        if fragmentSource:
+            fragmentShader = GLTools.compileShader(fragmentShader, GL_FRAGMENT_SHADER_ARB)
+            glAttachObjectARB(program, fragmentShader)
+        else:
+            fragmentShader = None
+
+        glValidateProgramARB(program)
+        glLinkProgramARB(program)
+
+        if vertexShader:
+            glDeleteObjectARB(vertexShader)
+        if fragmentShader:
+            glDeleteObjectARB(fragmentShader)
+
+        print ('program: {}'.format(program))
+
+        return program
+
 
 '''
  d888b   .d8b.  .88b  d88. d88888b 
@@ -17,7 +87,7 @@ import os.path
 '''
 class Game:
         def __init__(self):
-                self.screen = self.init_screen(320,240)
+                self.screen = self.init_screen(1280,720)
                 pygame.mouse.set_visible(False)
                 pygame.event.set_grab(True)
 
@@ -53,24 +123,33 @@ class Game:
         def init_screen(self, width, height):
                 pygame.init()
                 glutInit([],[])
-                screen = pygame.display.set_mode((width, height), OPENGL|DOUBLEBUF|RESIZABLE)
-                glEnable(GL_COLOR_MATERIAL)
-                glEnable(GL_LIGHTING)
-                glEnable(GL_LIGHT0)
+
+                screen = pygame.display.set_mode((width, height), OPENGL|DOUBLEBUF)
+
                 glClearColor(0.0, 0.5, 1.0, 0.0)
                 glClearDepth(1.0)
                 glDepthFunc(GL_LESS)
                 glEnable(GL_DEPTH_TEST)
                 glShadeModel(GL_SMOOTH)
-                glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+
                 glMatrixMode(GL_PROJECTION)
                 glLoadIdentity()
-                gluPerspective(40.0, float(width)/float(height), 0.1, 50000.0)
-                glMatrixMode(GL_MODELVIEW)
-                glLoadIdentity()
-        
-                return screen
 
+                gluPerspective(40.0, float(width)/float(height), 0.1, 50000.0)
+
+                glMatrixMode(GL_MODELVIEW)
+
+                if not glInitShaderObjectsARB():
+                    print 'Missing Shader Objects!'
+                    sys.exit(1)
+                if not glInitVertexShaderARB():
+                    print 'Missing Vertex Shader!'
+                    sys.exit(1)
+                if not glInitFragmentShaderARB():
+                    print 'Missing Fragment Shader!'
+                    sys.exit(1)
+
+                return screen
 
 
 '''
@@ -92,46 +171,8 @@ class GameObject:
                 self.scale      = ( 1, 1, 1)
                 
         def draw_axis(length=5.0):
-                glDisable(GL_LIGHTING)
-                glBegin(GL_LINES)
-                glColor3f ( 1.0, 0.0, 0.0)
-                glVertex3f( 0.0, 0.0, 0.0)
-                glVertex3f( 1.0, 0.0, 0.0)
-                glColor3f ( 0.0, 1.0, 0.0)
-                glVertex3f( 0.0, 0.0, 0.0)
-                glVertex3f( 0.0, 1.0, 0.0)
-                glColor3f ( 0.0, 0.0, 1.0)
-                glVertex3f( 0.0, 0.0, 0.0)
-                glVertex3f( 0.0, 0.0, 1.0)
-                glEnd()
-                glEnable(GL_LIGHTING)
+            pass
 
-        def draw_voxel(self, center_x, center_y, center_z, size, faces):
-                """Draws a voxel"""
-                for face in faces:
-                        self.draw_face(face, center_x, center_y, center_z, size)
-              
-        def draw_face(self, face, center_x, center_y, center_z, size):
-                """Draws a face for a voxel"""
-                glColor4f(1.0, 1.0, 1.0, 0.02)
-
-                for vertex in range(4):
-                        glNormal3f(
-                                normals[face][0],
-                                normals[face][1],
-                                normals[face][2]
-                        )
-
-                        glTexCoord2f(
-                                texCoords[vertex][0],
-                                texCoords[vertex][1]
-                        )
-
-                        glVertex3f(
-                                center_x + voxel[face][vertex][0] * (size / 2),
-                                center_y + voxel[face][vertex][1] * (size / 2),
-                                center_z + voxel[face][vertex][2] * (size / 2)
-                        )
 
         def add_child(self, child):
                 self.children.append(child)
@@ -192,13 +233,10 @@ class GameObject:
                 glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
 
         def draw(self):
-                glPushMatrix()
-                glTranslate(self.offset[0], self.offset[1], self.offset[2])
                 if self.game.debug:
                         self.draw_axis()
                 for child in self.children:
                         child.draw()
-                glPopMatrix()
 
 '''
  .o88b.  .d8b.  .88b  d88. d88888b d8888b.  .d8b.  
@@ -220,10 +258,10 @@ class Camera(GameObject):
                 self.motion = {'forward': False, 'backward': False, 'left': False, 'right': False}
 
         def draw(self):
-                glRotatef(self.yaw,   1.0, 0.0, 0.0)
-                glRotatef(self.pitch, 0.0, 1.0, 0.0)
+                #glRotatef(self.yaw,   1.0, 0.0, 0.0)
+                #glRotatef(self.pitch, 0.0, 1.0, 0.0)
 
-                glTranslated(-self.offset[0], -self.offset[1], -self.offset[2])
+                #glTranslated(-self.offset[0], -self.offset[1], -self.offset[2])
 
                 GameObject.draw(self)
 
@@ -296,13 +334,10 @@ Y8   I8I   88 88    88 88`8b   88      88   88
 '''
 class World(GameObject):
         def draw(self):
-                glEnable(GL_LIGHTING)
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-                glLoadIdentity()
+                #glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+                #glLoadIdentity()
                 
-                glPushMatrix()
                 GameObject.draw(self)
-                glPopMatrix()
 
                 pygame.display.flip()
         
@@ -331,30 +366,7 @@ class Text(GameObject):
                 self.value = value
 
         def draw(self):
-
-                glMatrixMode(GL_PROJECTION)
-
-                matrix = glGetDouble(GL_PROJECTION_MATRIX)
-
-                glLoadIdentity()
-                glOrtho(0.0, self.game.screen.get_width(), 0.0, self.game.screen.get_height(), -1.0, 1.0)
-                glMatrixMode(GL_MODELVIEW)
-                glPushMatrix()
-                glLoadIdentity()
-                glDisable(GL_LIGHTING)
-                glColor3f(1.0, 1.0, 1.0)
-                glRasterPos2i(self.x_pos, self.y_pos)
-                for character in self.value:
-                        if character == '\n':
-                                glRasterPos2i(self.x_pos, self.y_pos - (lines * 18))
-                        else:
-                                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(character))
-                glEnable(GL_LIGHTING)
-                glPopMatrix()
-                glMatrixMode(GL_PROJECTION)
-                glLoadMatrixd(matrix)
-                glMatrixMode(GL_MODELVIEW)
-
+            pass
 '''
  .o88b.  .d88b.  d8b   db .d8888.  .d88b.  db      d88888b 
 d8P  Y8 .8P  Y8. 888o  88 88'  YP .8P  Y8. 88      88'     
@@ -522,6 +534,66 @@ marchingcubes
 class MarchingCubes:
     pass
 
+
+'''
+d88888b  .d8b.   .o88b. d888888b d8b   db  d888b  db    db  .d88b.  db    db 
+88'     d8' `8b d8P  Y8   `88'   888o  88 88' Y8b 88    88 .8P  Y8. `8b  d8' 
+88ooo   88ooo88 8P         88    88V8o 88 88      Y8    8P 88    88  `8bd8'  
+88~~~   88~~~88 8b         88    88 V8o88 88  ooo `8b  d8' 88    88  .dPYb.  
+88      88   88 Y8b  d8   .88.   88  V888 88. ~8~  `8bd8'  `8b  d8' .8P  Y8. 
+YP      YP   YP  `Y88P' Y888888P VP   V8P  Y888P     YP     `Y88P'  YP    YP 
+'''
+class FacingVox:
+
+    voxel = [[-1,-1, 0], [ 1, -1, 0], [ 1, 1, 0], [-1, 1, 0]]
+    texCoords = [[0,0], [1,0], [1,1], [0,1]]
+
+    program = None
+
+    shaderCode = (
+        [
+            '''
+            varying vec3 normal;
+            void main() {
+                normal = gl_NormalMatrix * gl_Normal;
+                gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+            }
+            ''',
+        ], 
+        [
+            '''
+            varying vec3 normal;
+            void main() {
+                float intensity;
+                vec4 color;
+                vec3 n = normalize(normal);
+                vec3 l = normalize(gl_LightSource[0].position).xyz;
+            
+                // quantize to 5 steps (0, .25, .5, .75 and 1)
+                intensity = (floor(dot(l, n) * 4.0) + 1.0)/4.0;
+                color = vec4(intensity*1.0, intensity*0.5, intensity*0.5,
+                    intensity*1.0);
+            
+                gl_FragColor = color;
+            }
+            ''',
+        ]
+    )
+
+    @staticmethod
+    def draw(center_x, center_y, center_z, size, faces, data):
+        if not program:
+            program = GLTools.compileProgram(FacingVox.shaderCode)
+
+        block_x = ((data) / 16) * 0.0625
+        block_y = ((data) % 16) * 0.0625
+
+        #glTranslate(float(center_x), float(center_y), float(center_z))
+
+        if program:
+            glUseProgramObjectARB(program)
+
+        glutSolidCube(1024.0)
 
 '''
 .d8888. .88b  d88.  .d88b.   .d88b.  d888888b db   db db    db  .d88b.  db    db 
