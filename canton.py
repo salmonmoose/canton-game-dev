@@ -5,54 +5,28 @@ from direct.gui.DirectGui import *
 from direct.task import Task
 from panda3d.core import *
 
-#import numpy
+import numpy
 
-lemmingData = [
-    [[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]],
-    [[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,255,  0,  0,255,  0,  0,  0],[  0,  0,255,  0,  0,  0,  0,255,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]],
-    [[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0, 11,  0,  0, 11,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]],
-    [[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0, 11, 11,  0,  0,  0,  0],[  0,  0,  0, 11, 11, 11, 11,  0,  0,  0],[  0,  0,  0,  0, 11, 11,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]],
-    [[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0, 11, 11,  0,  0,  0,  0],[  0,  0,  0,  0, 11, 11,  0,  0,  0,  0],[  0,  0,  0,  0, 11, 11,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]],
-    [[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0, 11, 11,  0,  0,  0,  0],[  0,  0,  0,  0, 11, 11,  0,  0,  0,  0],[  0,  0,  0,  0, 11, 11,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]],
-    [[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0, 11, 11,  0,  0,  0,  0],[255,255,255,255, 11, 11,255,255,255,255],[  0,  0,  0,  0, 11, 11,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]],
-    [[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0,255,255,  0,  0,  0,  0],[255,  0,  0,  0,255,255,  0,  0,  0,255],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]],
-    [[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0, 35, 35, 35, 35, 35,  0,  0,  0],[  0,  0, 35, 35,255,255, 35,  0,  0,  0],[  0,  0,  0,  0,  0,255,255,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]],
-    [[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0, 35, 35, 35, 35, 35,  0,  0,  0],[  0,  0, 35, 35, 35, 35, 35,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]],
-    [[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0, 35, 35, 35,  0,  0,  0,  0],[  0,  0,  0, 35, 35, 35,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]],
-    [[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]]
+points = [
+    [0,0,0],
+    [1,0,0],
+    [1,0,1],
+    [0,0,1],
+    [0,1,0],
+    [1,1,0],
+    [1,1,1],
+    [0,1,1]
 ]
 
-
-singlePointData = [
-    [[0,0,0],[0,0,0],[0,0,0]],
-    [[0,0,0],[0,1,0],[0,0,0]],
-    [[0,0,0],[0,0,0],[0,0,0]]
-]
-
-boxData = [
-    [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]],
-    [[1,0,0,0,0,0,1],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[1,0,0,0,0,0,1]],
-    [[0,0,0,0,0,0,0],[0,1,1,1,1,1,0],[0,1,0,0,0,1,0],[0,1,0,0,0,1,0],[0,1,1,1,1,1,0],[0,0,0,0,0,0,0]],
-    [[0,0,0,0,0,0,0],[0,1,0,0,0,1,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,1,0,0,0,1,0],[0,0,0,0,0,0,0]],
-    [[0,0,0,0,0,0,0],[0,1,0,0,0,1,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,1,0,0,0,1,0],[0,0,0,0,0,0,0]],
-    [[0,0,0,0,0,0,0],[0,1,0,0,0,1,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,1,0,0,0,1,0],[0,0,0,0,0,0,0]],
-    [[0,0,0,0,0,0,0],[0,1,1,1,1,1,0],[0,1,0,0,0,1,0],[0,1,0,0,0,1,0],[0,1,1,1,1,1,0],[0,0,0,0,0,0,0]],
-    [[1,0,0,0,0,0,1],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[1,0,0,0,0,0,1]]
-]
-
-cubeEdges = [
-    [ 0,-1,-1],
-    [ 1,-1, 0],
-    [ 0,-1, 1],
-    [-1,-1, 0],
-    [ 0, 1,-1],
-    [ 1, 1, 0],
-    [ 0, 1, 1],
-    [-1, 1, 0],
-    [-1, 0,-1],
-    [ 1, 0,-1],
-    [ 1, 0, 1],
-    [-1, 0, 1],
+vertNormal = [
+    [ 1.0, 1.0, 1.0],
+    [-1.0, 1.0, 1.0],
+    [-1.0, 1.0,-1.0],
+    [ 1.0, 1.0,-1.0],
+    [ 1.0,-1.0, 1.0],
+    [-1.0,-1.0, 1.0],
+    [-1.0,-1.0,-1.0],
+    [ 1.0,-1.0,-1.0],
 ]
 
 edgeNormal = [
@@ -344,7 +318,15 @@ cubeTris = [
     []
 ]
 
-
+'''
+      .oooooo.                             .                         
+     d8P'  `Y8b                          .o8                         
+    888           .oooo.   ooo. .oo.   .o888oo  .ooooo.  ooo. .oo.   
+    888          `P  )88b  `888P"Y88b    888   d88' `88b `888P"Y88b  
+    888           .oP"888   888   888    888   888   888  888   888  
+    `88b    ooo  d8(  888   888   888    888 . 888   888  888   888  
+     `Y8bood8P'  `Y888""8o o888o o888o   "888" `Y8bod8P' o888o o888o 
+'''                                                                  
 class Canton(ShowBase):
     
     def __init__(self):
@@ -356,21 +338,100 @@ class Canton(ShowBase):
 
         render.ls()
 
+        base.useDrive()
+        myFog = Fog("Fog Name")
+        myFog.setColor(0.33,0.33,0.33)
+        myFog.setExpDensity(0.02)
+        render.setFog(myFog)
         self.cube = Voxel()
         plight = PointLight('plight')
         plight.setColor(VBase4(1,1,1,1))
         self.plnp = self.render.attachNewNode(plight)
         render.setLight(self.plnp)
-        self.taskMgr.add(self.spinCameraTask, "spinCameraTask")
+        #self.taskMgr.add(self.spinCameraTask, "spinCameraTask")
 
     def spinCameraTask(self, task):
         angleDegrees = task.time * 100.0
         angleRadians = angleDegrees * (pi / 180.0)
-        self.camera.setPos(20 * sin(angleRadians), -20 * cos(angleRadians), 0)
+        self.camera.setPos(100 * sin(angleRadians), -100 * cos(angleRadians), 15)
         self.plnp.setPos(20 * sin(angleRadians), -20 * cos(angleRadians), 0)
-        self.camera.setHpr(angleDegrees, 0, 0)
+        self.camera.setHpr(angleDegrees, -20, 0)
         return Task.cont
 
+'''                                                                                                                                                                                          
+    ooooooooooooo                                        o8o              
+    8'   888   `8                                        `"'              
+         888       .ooooo.  oooo d8b oooo d8b  .oooo.   oooo  ooo. .oo.   
+         888      d88' `88b `888""8P `888""8P `P  )88b  `888  `888P"Y88b  
+         888      888ooo888  888      888      .oP"888   888   888   888  
+         888      888    .o  888      888     d8(  888   888   888   888  
+        o888o     `Y8bod8P' d888b    d888b    `Y888""8o o888o o888o o888o 
+'''                                                                       
+class Terrain:
+    chunkSize = 16
+
+    def __init__(self):
+        self.terrainMap = {}
+        self.heightMap = PerlinNoise2(16,16)
+        self.noise = PerlinNoise3(16,16,16)
+
+    def __call__(self, x_pos, y_pos, z_pos):
+        return self.getCachePoint(x_pos, y_pos, z_pos)
+
+    def __getitem__(self, x_pos, y_pos, z_pos):
+        return self.getCachePoint(x_pos, y_pos, z_pos)
+
+    def cutChunk(self, x_pos, y_pos, z_pos):
+        pass
+
+    def pushChunk(self, x_pos, y_pos, z_pos):
+        pass
+
+
+    def getCachePoint(self, x_pos, y_pos, z_pos):
+        mapRef = (x_pos/Terrain.chunkSize, y_pos/Terrain.chunkSize, z_pos/Terrain.chunkSize)
+        if mapRef in self.terrainMap:
+            value = self.terrainMap[mapRef][x_pos % Terrain.chunkSize, y_pos % Terrain.chunkSize, z_pos % Terrain.chunkSize]
+            return value
+        else:
+            return self.getDatabasePoint(x_pos, y_pos, z_pos)
+
+    def getDatabasePoint(self, x_pos, y_pos, z_pos):
+        mapRef = (x_pos/Terrain.chunkSize, y_pos/Terrain.chunkSize, z_pos/Terrain.chunkSize)
+
+        #if mapRef in database, load, and add to terrainCache, else, generate it
+
+        chunkData = numpy.zeros((Terrain.chunkSize, Terrain.chunkSize, Terrain.chunkSize), float)
+
+        print 'Building chunk at {0}'.format(mapRef)
+
+        for x in range(Terrain.chunkSize):
+            for y in range(Terrain.chunkSize):
+                for z in range(Terrain.chunkSize):
+                    value = self.getGeneratedPoint((mapRef[0]*16) + x, (mapRef[1]*16) + y, (mapRef[2]* 16) + z)
+                    chunkData[x,y,z] = value
+
+        self.terrainMap[mapRef] = chunkData
+
+        return chunkData[x_pos % Terrain.chunkSize, y_pos % Terrain.chunkSize, z_pos % Terrain.chunkSize]
+
+    def getGeneratedPoint(self, x_pos, y_pos, z_pos):
+        density =  cmp(-z_pos, 0)
+        density+=  self.noise(x_pos / 5.0, y_pos / 5.0, z_pos / 5.0) * 2
+        density+=  self.noise(x_pos, y_pos, z_pos) * 2
+        density+=  self.noise(x_pos * 3, y_pos * 3, z_pos * 2) * 2
+        return density
+
+'''
+    oooooo     oooo                                 oooo      
+     `888.     .8'                                  `888      
+      `888.   .8'    .ooooo.  oooo    ooo  .ooooo.   888      
+       `888. .8'    d88' `88b  `88b..8P'  d88' `88b  888      
+        `888.8'     888   888    Y888'    888ooo888  888  o8o 
+         `888'      888   888  .o8"'88b   888    .o  888  `"' 
+          `8'       `Y8bod8P' o88'   888o `Y8bod8P' o888o o8o 
+                                                          `"' 
+'''                                                       
 class Voxel:
     vertexMap = [
         [[ 1, 1,-1],[-1, 1,-1],[-1, 1, 1],[ 1, 1, 1]],
@@ -388,6 +449,32 @@ class Voxel:
         [0.0,0.0],
         [1.0,0.0],
         [1.0,1.0]
+    ]
+
+    points = [
+        [0,0,0],
+        [1,0,0],
+        [1,0,1],
+        [0,0,1],
+        [0,1,0],
+        [1,1,0],
+        [1,1,1],
+        [0,1,1]
+    ]
+
+    edges = [
+        [0,1],
+        [1,2],
+        [2,3],
+        [3,0],
+        [4,5],
+        [5,6],
+        [6,7],
+        [7,4],
+        [0,4],
+        [1,5],
+        [2,6],
+        [3,7]
     ]
 
     cubeColors = [
@@ -408,7 +495,10 @@ class Voxel:
     def __init__(self):
         faces = (0,1,2,3,4,5)
 
-        Voxel.marchingCube(lemmingData, Voxel.pointSprite,0.5)
+        worldSize = (64,64,32)
+
+        self.world = Terrain()
+        Voxel.marchingCube(self.world, worldSize,0.5)
         #Voxel.buildChunk(lemmingData, Voxel.pointSprite,0.5)
         #Voxel.buildChunk(lemmingData, Voxel.culledCube, 0.5)
 
@@ -435,13 +525,24 @@ class Voxel:
 
         return (r * 85 / 255.0, g * 85 / 255.0, b * 85 / 255.0, a * 85 / 255.0)
 
+    '''
+    ooo        ooooo                              oooo         o8o                              .oooooo.                .o8                          
+    `88.       .888'                              `888         `"'                             d8P'  `Y8b              "888                          
+     888b     d'888   .oooo.   oooo d8b  .ooooo.   888 .oo.   oooo  ooo. .oo.    .oooooooo    888          oooo  oooo   888oooo.   .ooooo.   .oooo.o 
+     8 Y88. .P  888  `P  )88b  `888""8P d88' `"Y8  888P"Y88b  `888  `888P"Y88b  888' `88b     888          `888  `888   d88' `88b d88' `88b d88(  "8 
+     8  `888'   888   .oP"888   888     888        888   888   888   888   888  888   888     888           888   888   888   888 888ooo888 `"Y88b.  
+     8    Y     888  d8(  888   888     888   .o8  888   888   888   888   888  `88bod8P'     `88b    ooo   888   888   888   888 888    .o o.  )88b 
+    o8o        o888o `Y888""8o d888b    `Y8bod8P' o888o o888o o888o o888o o888o `8oooooo.      `Y8bood8P'   `V88V"V8P'  `Y8bod8P' `Y8bod8P' 8""888P' 
+                                                                                d"     YD                                                            
+                                                                                "Y88888P'                                                            
+    '''                                                                                                                                                  
     @staticmethod
-    def marchingCube(chunkData, renderMode, scale):
+    def marchingCube(chunkData, size, scale):
         snode = GeomNode('chunk')
 
-        z_count = len(chunkData)
-        y_count = len(chunkData[0])
-        x_count = len(chunkData[0][0])
+        x_count = size[0]
+        y_count = size[1]
+        z_count = size[2]
 
         #self.nodeList = numpy.zeros(dimension ** 3)
 
@@ -457,62 +558,99 @@ class Voxel:
 
         tris = GeomTriangles(Geom.UHDynamic)
 
-        for z in range(z_count-1):
-            for y in range(y_count-1):
-                for x in range(x_count-1):
+        pointHash = {}
+
+        triVerts = [0,0,0]
+
+        pointVals = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+        for z in range(-(z_count/2), z_count):
+            for y in range(y_count):
+                for x in range(x_count):
                         value = 0
-                        if(chunkData[z+0][y+0][x+0] > 0): value |= 1
-                        if(chunkData[z+0][y+0][x+1] > 0): value |= 2
-                        if(chunkData[z+1][y+0][x+1] > 0): value |= 4
-                        if(chunkData[z+1][y+0][x+0] > 0): value |= 8
-                        if(chunkData[z+0][y+1][x+0] > 0): value |= 16
-                        if(chunkData[z+0][y+1][x+1] > 0): value |= 32
-                        if(chunkData[z+1][y+1][x+1] > 0): value |= 64
-                        if(chunkData[z+1][y+1][x+0] > 0): value |= 128
-                        
-                        for vert in cubeTris[value]:
-                            colorData = Voxel.color8to32(value)
+                        isolevel = 0
+                        for i in range(8):
+                            pointVals[i] = chunkData(x + Voxel.points[i][0], y + Voxel.points[i][1], z + Voxel.points[i][2])
+                            if(pointVals[i] > isolevel): 
+                                value |= (2 ** i)
 
-                            vertex.addData3f(
-                                ((0 - ((x_count-1)/2.0) + x) * scale) + (cubeEdges[vert][0] / 2.0) * scale,
-                                ((0 - ((y_count-1)/2.0) + y) * scale) + (cubeEdges[vert][1] / 2.0) * scale,
-                                ((0 - ((z_count-1)/2.0) + z) * scale) + (cubeEdges[vert][2] / 2.0) * scale
-                            )
+                        for tri in range(0, len(cubeTris[value])-1, 3):
+                            for vert in range(3):
+                                if value is not 0 and value is not 255:
+                                    edge = cubeTris[value][tri+vert]
+                                    if((x,y,z,tri+vert) in pointHash):
+                                        triVerts[vert] = pointHash[(x,y,z,tri+vert)]
+                                    else:                            
+                                        point = Voxel.VertexInterp(
+                                            isolevel, 
+                                            Voxel.points[Voxel.edges[edge][0]], 
+                                            Voxel.points[Voxel.edges[edge][1]], 
+                                            pointVals[Voxel.edges[edge][0]], 
+                                            pointVals[Voxel.edges[edge][1]]
+                                        )
+                                        row = vertex.getWriteRow()
+                                        vertex.addData3f(x+point[0], y+point[1], z+point[2])
 
-                            normal.addData3f(
-                                edgeNormal[vert][0],
-                                edgeNormal[vert][1],
-                                edgeNormal[vert][2]
-                                )
+                                        color.addData4f(abs(x) * 2.0 / x_count,abs(y) * 2.0 / y_count, abs(z) * 2.0 / z_count,1.0)
 
-                            color.addData4f(0.5, 0.5, 0.5, 1.0)
+                                        normal.addData3f(1.0,1.0,1.0)
 
-                            texcoord.addData2f(
-                                edgeUVW[vert][0] * 0.0625,
-                                edgeUVW[vert][1] * 0.0625
-                                )
+                                        pointHash[(x,y,z,tri+vert)] = row #save this vertex for later.... mmmm
 
-                            tris.addNextVertices(1)
+                                        triVerts[vert] = row #add this vertex to triangle
+
+                            tris.addVertices(triVerts[0], triVerts[1], triVerts[2])
+
+        #traverse triangles, add triangle normal to each vertex
+
+        #normalize all vertices
 
         cube.addPrimitive(tris)
         snode.addGeom(cube)
 
         chunk = render.attachNewNode(snode)
         
-        '''
-        texture = loader.loadTexture('resources/texturepack.png')
-        texture.setMagfilter(Texture.FTNearest)
-        texture.setMinfilter(Texture.FTLinear)
-        chunk.setTexture(texture)
-        '''
-
         shader = loader.loadShader('bin/moosecore/triplanar.sha')
         chunk.setShader(shader)
 
-        
-
         chunk.setTwoSided(False)
+    '''
+    oooooo     oooo                        .                            ooooo                 .                                           oooo                .    o8o                        
+     `888.     .8'                       .o8                            `888'               .o8                                           `888              .o8    `"'                        
+      `888.   .8'    .ooooo.  oooo d8b .o888oo  .ooooo.  oooo    ooo     888  ooo. .oo.   .o888oo  .ooooo.  oooo d8b oo.ooooo.   .ooooo.   888   .oooo.   .o888oo oooo   .ooooo.  ooo. .oo.   
+       `888. .8'    d88' `88b `888""8P   888   d88' `88b  `88b..8P'      888  `888P"Y88b    888   d88' `88b `888""8P  888' `88b d88' `88b  888  `P  )88b    888   `888  d88' `88b `888P"Y88b  
+        `888.8'     888ooo888  888       888   888ooo888    Y888'        888   888   888    888   888ooo888  888      888   888 888   888  888   .oP"888    888    888  888   888  888   888  
+         `888'      888    .o  888       888 . 888    .o  .o8"'88b       888   888   888    888 . 888    .o  888      888   888 888   888  888  d8(  888    888 .  888  888   888  888   888  
+          `8'       `Y8bod8P' d888b      "888" `Y8bod8P' o88'   888o    o888o o888o o888o   "888" `Y8bod8P' d888b     888bod8P' `Y8bod8P' o888o `Y888""8o   "888" o888o `Y8bod8P' o888o o888o 
+                                                                                                                      888                                                                     
+                                                                                                                     o888o                                                                    
+    '''
+    @staticmethod
+    def VertexInterp(isolevel, p1, p2, valp1, valp2):
+        if(abs(isolevel - valp1) < 0.00001):
+            return (p1)
+        if(abs(isolevel - valp2) < 0.00001):
+            return (p2)
+        if(abs(valp1 - valp2) < 0.00001):
+            return (p1)
+        mu = (isolevel - valp1) / (valp2 - valp1)
 
+        return [
+            p1[0] + mu * (p2[0] - p1[0]),
+            p1[1] + mu * (p2[1] - p1[1]),
+            p1[2] + mu * (p2[2] - p1[2])
+        ]
+
+    '''
+    ooooooooo.              o8o                  .       .oooooo..o                      o8o      .                      
+    `888   `Y88.            `"'                .o8      d8P'    `Y8                      `"'    .o8                      
+     888   .d88'  .ooooo.  oooo  ooo. .oo.   .o888oo    Y88bo.      oo.ooooo.  oooo d8b oooo  .o888oo  .ooooo.   .oooo.o 
+     888ooo88P'  d88' `88b `888  `888P"Y88b    888       `"Y8888o.   888' `88b `888""8P `888    888   d88' `88b d88(  "8 
+     888         888   888  888   888   888    888           `"Y88b  888   888  888      888    888   888ooo888 `"Y88b.  
+     888         888   888  888   888   888    888 .    oo     .d8P  888   888  888      888    888 . 888    .o o.  )88b 
+    o888o        `Y8bod8P' o888o o888o o888o   "888"    8""88888P'   888bod8P' d888b    o888o   "888" `Y8bod8P' 8""888P' 
+                                                                     888                                                 
+                                                                    o888o                                                
+    '''                                                                                                                      
     @staticmethod
     def pointSprite(center_x, center_y, center_z, size, faces, data):
         snode = GeomNode('point')
@@ -544,7 +682,17 @@ class Voxel:
 
             pc.setRenderModeThickness((size / 2.0) * 1.5)
             pc.setRenderModePerspective(True)
-
+    '''
+      .oooooo.               oooo  oooo                  .o8       .oooooo.                .o8                          
+     d8P'  `Y8b              `888  `888                 "888      d8P'  `Y8b              "888                          
+    888          oooo  oooo   888   888   .ooooo.   .oooo888     888          oooo  oooo   888oooo.   .ooooo.   .oooo.o 
+    888          `888  `888   888   888  d88' `88b d88' `888     888          `888  `888   d88' `88b d88' `88b d88(  "8 
+    888           888   888   888   888  888ooo888 888   888     888           888   888   888   888 888ooo888 `"Y88b.  
+    `88b    ooo   888   888   888   888  888    .o 888   888     `88b    ooo   888   888   888   888 888    .o o.  )88b 
+     `Y8bood8P'   `V88V"V8P' o888o o888o `Y8bod8P' `Y8bod88P"     `Y8bood8P'   `V88V"V8P'  `Y8bod8P' `Y8bod8P' 8""888P' 
+                                                                                                                        
+                                                                                                                        
+    '''                                                                                                                        
     @staticmethod
     def culledCube(center_x, center_y, center_z, size, faces, data):
         snode = GeomNode('cube')
