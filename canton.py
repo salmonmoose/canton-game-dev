@@ -643,9 +643,9 @@ class Voxel:
 
                                         writeRow = vertex.getWriteRow()
 
-                            #This is slow, but it fixes a bug in Panda3D
-                            vertexReader = GeomVertexReader(vdata, 'vertex')
-                            normalReader = GeomVertexReader(vdata, 'normal')
+                            if 'vertexReader' not in locals():
+                                vertexReader = GeomVertexReader(vdata, 'vertex')
+                                normalReader = GeomVertexReader(vdata, 'normal')
 
                             if (vertexReader.hasColumn()):
                                 vertexReader.setRow(triVerts[2])
