@@ -348,14 +348,16 @@ class Canton(ShowBase):
         plight.setColor(VBase4(1,1,1,1))
         self.plnp = self.render.attachNewNode(plight)
         render.setLight(self.plnp)
-        #self.taskMgr.add(self.spinCameraTask, "spinCameraTask")
+
+        self.camera.setPos(0,0,18)
+        self.taskMgr.add(self.spinCameraTask, "spinCameraTask")
 
     def spinCameraTask(self, task):
         angleDegrees = task.time * 100.0
         angleRadians = angleDegrees * (pi / 180.0)
-        self.camera.setPos(100 * sin(angleRadians), -100 * cos(angleRadians), 15)
+        #self.camera.setPos(100 * sin(angleRadians), -100 * cos(angleRadians), 15)
         self.plnp.setPos(20 * sin(angleRadians), -20 * cos(angleRadians), 0)
-        self.camera.setHpr(angleDegrees, -20, 0)
+        #self.camera.setHpr(angleDegrees, -20, 0)
         return Task.cont
 
 '''                                                                                                                                                                                          
@@ -369,11 +371,12 @@ class Canton(ShowBase):
 '''                                                                       
 class Terrain:
     chunkSize = 16
+    seaLevel = 8
 
     def __init__(self):
         self.terrainMap = {}
-        self.heightMap = PerlinNoise2(16,16)
-        self.noise = PerlinNoise3(16,16,16)
+        self.heightMap = PerlinNoise2(16.0,16.0, 256, 122011)
+        self.noise = PerlinNoise3(16.0,16.0,16.0, 256, 122011)
 
     def __call__(self, x_pos, y_pos, z_pos):
         return self.getCachePoint(x_pos, y_pos, z_pos)
@@ -387,36 +390,40 @@ class Terrain:
     def pushChunk(self, x_pos, y_pos, z_pos):
         pass
 
-
-    def getCachePoint(self, x_pos, y_pos, z_pos):
-        mapRef = (x_pos/Terrain.chunkSize, y_pos/Terrain.chunkSize, z_pos/Terrain.chunkSize)
-        if mapRef in self.terrainMap:
-            value = self.terrainMap[mapRef][x_pos % Terrain.chunkSize, y_pos % Terrain.chunkSize, z_pos % Terrain.chunkSize]
-            return value
-        else:
-            return self.getDatabasePoint(x_pos, y_pos, z_pos)
-
-    def getDatabasePoint(self, x_pos, y_pos, z_pos):
+    def getCacheGroup(self, x_pos, y_pos, z_pos):
         mapRef = (x_pos/Terrain.chunkSize, y_pos/Terrain.chunkSize, z_pos/Terrain.chunkSize)
 
-        #if mapRef in database, load, and add to terrainCache, else, generate it
+        if mapRef not in self.terrainMap:
+            self.loadChunk(mapRef)
 
-        chunkData = numpy.zeros((Terrain.chunkSize, Terrain.chunkSize, Terrain.chunkSize), float)
+        return [
+            self.terrainMap[mapRef][(x_pos + 0) % Terrain.chunkSize, (y_pos + 0) % Terrain.chunkSize, (z_pos + 0) % Terrain.chunkSize],
+            self.terrainMap[mapRef][(x_pos + 1) % Terrain.chunkSize, (y_pos + 0) % Terrain.chunkSize, (z_pos + 0) % Terrain.chunkSize],
+            self.terrainMap[mapRef][(x_pos + 1) % Terrain.chunkSize, (y_pos + 0) % Terrain.chunkSize, (z_pos + 1) % Terrain.chunkSize],
+            self.terrainMap[mapRef][(x_pos + 0) % Terrain.chunkSize, (y_pos + 0) % Terrain.chunkSize, (z_pos + 1) % Terrain.chunkSize],
+            self.terrainMap[mapRef][(x_pos + 0) % Terrain.chunkSize, (y_pos + 1) % Terrain.chunkSize, (z_pos + 0) % Terrain.chunkSize],
+            self.terrainMap[mapRef][(x_pos + 1) % Terrain.chunkSize, (y_pos + 1) % Terrain.chunkSize, (z_pos + 0) % Terrain.chunkSize],
+            self.terrainMap[mapRef][(x_pos + 1) % Terrain.chunkSize, (y_pos + 1) % Terrain.chunkSize, (z_pos + 1) % Terrain.chunkSize],
+            self.terrainMap[mapRef][(x_pos + 0) % Terrain.chunkSize, (y_pos + 1) % Terrain.chunkSize, (z_pos + 1) % Terrain.chunkSize]
+        ]
+        
+    def loadChunk(self, mapRef):
+        self.generateChunk(mapRef)
 
-        print 'Building chunk at {0}'.format(mapRef)
+    def generateChunk(self, mapRef):
+        self.terrainMap[mapRef] = numpy.zeros((Terrain.chunkSize + 1, Terrain.chunkSize + 1, Terrain.chunkSize + 1), float)
 
-        for x in range(Terrain.chunkSize):
-            for y in range(Terrain.chunkSize):
-                for z in range(Terrain.chunkSize):
-                    value = self.getGeneratedPoint((mapRef[0]*16) + x, (mapRef[1]*16) + y, (mapRef[2]* 16) + z)
-                    chunkData[x,y,z] = value
-
-        self.terrainMap[mapRef] = chunkData
-
-        return chunkData[x_pos % Terrain.chunkSize, y_pos % Terrain.chunkSize, z_pos % Terrain.chunkSize]
+        for x in range(Terrain.chunkSize + 1):
+            for y in range(Terrain.chunkSize + 1):
+                for z in range(Terrain.chunkSize + 1):
+                    self.terrainMap[mapRef][x,y,z] = self.getGeneratedPoint(
+                        (mapRef[0] * Terrain.chunkSize) + x,
+                        (mapRef[1] * Terrain.chunkSize) + y,
+                        (mapRef[2] * Terrain.chunkSize) + z
+                        )
 
     def getGeneratedPoint(self, x_pos, y_pos, z_pos):
-        density =  cmp(-z_pos, 0)
+        density =  cmp(z_pos, Terrain.seaLevel)
         density+=  self.noise(x_pos / 5.0, y_pos / 5.0, z_pos / 5.0) * 2
         density+=  self.noise(x_pos, y_pos, z_pos) * 2
         density+=  self.noise(x_pos * 3, y_pos * 3, z_pos * 2) * 2
@@ -495,7 +502,7 @@ class Voxel:
     def __init__(self):
         faces = (0,1,2,3,4,5)
 
-        worldSize = (64,64,32)
+        worldSize = (32,32,16)
 
         self.world = Terrain()
         Voxel.marchingCube(self.world, worldSize,0.5)
@@ -552,9 +559,22 @@ class Voxel:
         cube = Geom(vdata)
 
         vertex = GeomVertexWriter(vdata, 'vertex')
+        
+
         normal = GeomVertexWriter(vdata, 'normal')
+        
+
         color  = GeomVertexWriter(vdata, 'color')
+
         texcoord = GeomVertexWriter(vdata, 'texcoord')
+
+        #vertex.addData3f(0.0,0.0,0.0)
+        #normal.addData3f(0.0,0.0,0.0)
+        #vertex.setRow(0)
+        #normal.setRow(0)
+
+        vertexReader = GeomVertexReader(vdata, 'vertex')
+        normalReader = GeomVertexReader(vdata, 'normal')
 
         tris = GeomTriangles(Geom.UHDynamic)
 
@@ -562,14 +582,16 @@ class Voxel:
 
         triVerts = [0,0,0]
 
-        pointVals = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
-        for z in range(-(z_count/2), z_count):
+        isolevel = 0
+
+        for z in range(z_count):
             for y in range(y_count):
                 for x in range(x_count):
                         value = 0
-                        isolevel = 0
+
+                        pointVals = chunkData.getCacheGroup(x,y,z)
+
                         for i in range(8):
-                            pointVals[i] = chunkData(x + Voxel.points[i][0], y + Voxel.points[i][1], z + Voxel.points[i][2])
                             if(pointVals[i] > isolevel): 
                                 value |= (2 ** i)
 
@@ -577,68 +599,92 @@ class Voxel:
                             for vert in range(3):
                                 if value is not 0 and value is not 255:
                                     edge = cubeTris[value][tri+vert]
-                                    if((x,y,z,tri+vert) in pointHash):
-                                        triVerts[vert] = pointHash[(x,y,z,tri+vert)]
-                                    else:                            
-                                        point = Voxel.VertexInterp(
-                                            isolevel, 
-                                            Voxel.points[Voxel.edges[edge][0]], 
-                                            Voxel.points[Voxel.edges[edge][1]], 
-                                            pointVals[Voxel.edges[edge][0]], 
-                                            pointVals[Voxel.edges[edge][1]]
-                                        )
+                                    #are these points hashed?
+                                    p1 = Voxel.points[Voxel.edges[edge][0]]
+                                    p2 = Voxel.points[Voxel.edges[edge][1]]
+                                    p1val = pointVals[Voxel.edges[edge][0]]
+                                    p2val = pointVals[Voxel.edges[edge][1]]
+
+                                    if((
+                                        p1[0] + x, p1[1] + y, p1[2] + z,
+                                        p2[0] + x, p2[1] + y, p2[2] + z
+                                    ) in pointHash):
+                                        print ("cache hit")
+                                        triVerts[vert] = pointHash[(
+                                            p1[0] + x, p1[1] + y, p1[2] + z,
+                                            p2[0] + x, p2[1] + y, p2[2] + z
+                                        )]
+                                    else:
+                                        if(abs(isolevel - p1val) < 0.00001):
+                                            point = p1
+                                        if(abs(isolevel - p2val) < 0.00001):
+                                            point = p2
+                                        if(abs(p1val - p2val) < 0.00001):
+                                            point = p1
+                                        mu = (isolevel - p1val) / (p2val - p1val)
+
+                                        point = [
+                                            p1[0] + mu * (p2[0] - p1[0]),
+                                            p1[1] + mu * (p2[1] - p1[1]),
+                                            p1[2] + mu * (p2[2] - p1[2])
+                                        ]
+
                                         row = vertex.getWriteRow()
-                                        vertex.addData3f(x+point[0], y+point[1], z+point[2])
 
-                                        color.addData4f(abs(x) * 2.0 / x_count,abs(y) * 2.0 / y_count, abs(z) * 2.0 / z_count,1.0)
+                                        vertex.addData3f(x+point[0],y+point[1],z+point[2])
+                                        normal.addData3f(0.0,0.0,0.0)
+                                        color.addData4f(1.0,1.0,1.0,1.0)
 
-                                        normal.addData3f(1.0,1.0,1.0)
+                                        pointHash[(
+                                            p1[0] + x, p1[1] + y, p1[2] + z,
+                                            p2[0] + x, p2[1] + y, p2[2] + z
+                                        )] = row
+                                        triVerts[vert] = row
 
-                                        pointHash[(x,y,z,tri+vert)] = row #save this vertex for later.... mmmm
+                                        writeRow = vertex.getWriteRow()
 
-                                        triVerts[vert] = row #add this vertex to triangle
+                            #This is slow, but it fixes a bug in Panda3D
+                            vertexReader = GeomVertexReader(vdata, 'vertex')
+                            normalReader = GeomVertexReader(vdata, 'normal')
 
+                            if (vertexReader.hasColumn()):
+                                vertexReader.setRow(triVerts[2])
+                                vert1 = vertexReader.getData3f()
+                                vertexReader.setRow(triVerts[1])
+                                vert2 = vertexReader.getData3f()
+                                vertexReader.setRow(triVerts[0])
+                                vert3 = vertexReader.getData3f()
+
+                                v1 = vert2 - vert1
+                                v2 = vert1 - vert3
+
+                                triNormal = v1.cross(v2)
+
+                                for i in range(3):
+                                    normalReader.setRow(triVerts[i])
+                                    newNormal = normalReader.getData3f() + triNormal
+                                    newNormal.normalize()
+                                    normal.setRow(triVerts[i])
+                                    normal.setData3f(newNormal)
+                                    color.setRow(triVerts[i])
+                                    color.setData4f(abs(newNormal[0]), abs(newNormal[1]), abs(newNormal[2]), 1.0)
+                            
                             tris.addVertices(triVerts[0], triVerts[1], triVerts[2])
 
-        #traverse triangles, add triangle normal to each vertex
-
-        #normalize all vertices
+                            vertex.setRow(writeRow)
+                            normal.setRow(writeRow)
+                            color.setRow(writeRow)
 
         cube.addPrimitive(tris)
         snode.addGeom(cube)
 
         chunk = render.attachNewNode(snode)
         
-        shader = loader.loadShader('bin/moosecore/triplanar.sha')
-        chunk.setShader(shader)
+        #shader = loader.loadShader('bin/moosecore/triplanar.sha')
+        #chunk.setShader(shader)
 
-        chunk.setTwoSided(False)
-    '''
-    oooooo     oooo                        .                            ooooo                 .                                           oooo                .    o8o                        
-     `888.     .8'                       .o8                            `888'               .o8                                           `888              .o8    `"'                        
-      `888.   .8'    .ooooo.  oooo d8b .o888oo  .ooooo.  oooo    ooo     888  ooo. .oo.   .o888oo  .ooooo.  oooo d8b oo.ooooo.   .ooooo.   888   .oooo.   .o888oo oooo   .ooooo.  ooo. .oo.   
-       `888. .8'    d88' `88b `888""8P   888   d88' `88b  `88b..8P'      888  `888P"Y88b    888   d88' `88b `888""8P  888' `88b d88' `88b  888  `P  )88b    888   `888  d88' `88b `888P"Y88b  
-        `888.8'     888ooo888  888       888   888ooo888    Y888'        888   888   888    888   888ooo888  888      888   888 888   888  888   .oP"888    888    888  888   888  888   888  
-         `888'      888    .o  888       888 . 888    .o  .o8"'88b       888   888   888    888 . 888    .o  888      888   888 888   888  888  d8(  888    888 .  888  888   888  888   888  
-          `8'       `Y8bod8P' d888b      "888" `Y8bod8P' o88'   888o    o888o o888o o888o   "888" `Y8bod8P' d888b     888bod8P' `Y8bod8P' o888o `Y888""8o   "888" o888o `Y8bod8P' o888o o888o 
-                                                                                                                      888                                                                     
-                                                                                                                     o888o                                                                    
-    '''
-    @staticmethod
-    def VertexInterp(isolevel, p1, p2, valp1, valp2):
-        if(abs(isolevel - valp1) < 0.00001):
-            return (p1)
-        if(abs(isolevel - valp2) < 0.00001):
-            return (p2)
-        if(abs(valp1 - valp2) < 0.00001):
-            return (p1)
-        mu = (isolevel - valp1) / (valp2 - valp1)
+        chunk.setTwoSided(True)
 
-        return [
-            p1[0] + mu * (p2[0] - p1[0]),
-            p1[1] + mu * (p2[1] - p1[1]),
-            p1[2] + mu * (p2[2] - p1[2])
-        ]
 
     '''
     ooooooooo.              o8o                  .       .oooooo..o                      o8o      .                      
