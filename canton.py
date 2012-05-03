@@ -330,7 +330,10 @@ cubeTris = [
 class Canton(ShowBase):
     
     def __init__(self):
+        loadPrcFile('canton.prc')
         ShowBase.__init__(self)
+
+        
 
         self.title = OnscreenText(
             text='Canton indev',
@@ -424,9 +427,9 @@ class Terrain:
 
     def getGeneratedPoint(self, x_pos, y_pos, z_pos):
         density =  cmp(z_pos, Terrain.seaLevel)
-        density+=  self.noise(x_pos / 5.0, y_pos / 5.0, z_pos / 5.0) * 2
-        density+=  self.noise(x_pos, y_pos, z_pos) * 2
-        density+=  self.noise(x_pos * 3, y_pos * 3, z_pos * 2) * 2
+        #density+=  self.noise(x_pos / 5.0, y_pos / 5.0, z_pos / 5.0) * 2
+        #density+=  self.noise(x_pos, y_pos, z_pos) * 2
+        #density+=  self.noise(x_pos * 3, y_pos * 3, z_pos * 2) * 2
         return density
 
 '''
@@ -502,7 +505,7 @@ class Voxel:
     def __init__(self):
         faces = (0,1,2,3,4,5)
 
-        worldSize = (32,32,16)
+        worldSize = (32,32,32)
 
         self.world = Terrain()
         Voxel.marchingCube(self.world, worldSize,0.5)
@@ -560,21 +563,11 @@ class Voxel:
 
         vertex = GeomVertexWriter(vdata, 'vertex')
         
-
         normal = GeomVertexWriter(vdata, 'normal')
-        
 
         color  = GeomVertexWriter(vdata, 'color')
 
         texcoord = GeomVertexWriter(vdata, 'texcoord')
-
-        #vertex.addData3f(0.0,0.0,0.0)
-        #normal.addData3f(0.0,0.0,0.0)
-        #vertex.setRow(0)
-        #normal.setRow(0)
-
-        vertexReader = GeomVertexReader(vdata, 'vertex')
-        normalReader = GeomVertexReader(vdata, 'normal')
 
         tris = GeomTriangles(Geom.UHDynamic)
 
@@ -609,7 +602,6 @@ class Voxel:
                                         p1[0] + x, p1[1] + y, p1[2] + z,
                                         p2[0] + x, p2[1] + y, p2[2] + z
                                     ) in pointHash):
-                                        print ("cache hit")
                                         triVerts[vert] = pointHash[(
                                             p1[0] + x, p1[1] + y, p1[2] + z,
                                             p2[0] + x, p2[1] + y, p2[2] + z
@@ -641,40 +633,34 @@ class Voxel:
                                         )] = row
                                         triVerts[vert] = row
 
-                                        writeRow = vertex.getWriteRow()
-
-                            if 'vertexReader' not in locals():
-                                vertexReader = GeomVertexReader(vdata, 'vertex')
-                                normalReader = GeomVertexReader(vdata, 'normal')
-
-                            if (vertexReader.hasColumn()):
-                                vertexReader.setRow(triVerts[2])
-                                vert1 = vertexReader.getData3f()
-                                vertexReader.setRow(triVerts[1])
-                                vert2 = vertexReader.getData3f()
-                                vertexReader.setRow(triVerts[0])
-                                vert3 = vertexReader.getData3f()
-
-                                v1 = vert2 - vert1
-                                v2 = vert1 - vert3
-
-                                triNormal = v1.cross(v2)
-
-                                for i in range(3):
-                                    normalReader.setRow(triVerts[i])
-                                    newNormal = normalReader.getData3f() + triNormal
-                                    newNormal.normalize()
-                                    normal.setRow(triVerts[i])
-                                    normal.setData3f(newNormal)
-                                    color.setRow(triVerts[i])
-                                    color.setData4f(abs(newNormal[0]), abs(newNormal[1]), abs(newNormal[2]), 1.0)
-                            
                             tris.addVertices(triVerts[0], triVerts[1], triVerts[2])
+        
+        vertexReader = GeomVertexReader(vdata, 'vertex')
+        normalReader = GeomVertexReader(vdata, 'normal')
 
-                            vertex.setRow(writeRow)
-                            normal.setRow(writeRow)
-                            color.setRow(writeRow)
+        for tri in range(tris.getNumPrimitives()):
+            vIndex = tris.getPrimitiveStart(tri)
 
+            vertexReader.setRow(tris.getVertex(vIndex))
+            vert1 = vertexReader.getData3f()
+            vertexReader.setRow(tris.getVertex(vIndex + 1))
+            vert2 = vertexReader.getData3f()
+            vertexReader.setRow(tris.getVertex(vIndex + 2))
+            vert3 = vertexReader.getData3f()
+            v1 = vert2 - vert1
+            v2 = vert1 - vert3
+
+            triNormal = v1.cross(v2)
+            
+            for i in range(3):
+                normalReader.setRow(tris.getVertex(vIndex + i))
+                newNormal = normalReader.getData3f() + triNormal
+                newNormal.normalize()
+                normal.setRow(tris.getVertex(vIndex + i))
+                normal.setData3f(newNormal)
+                color.setRow(tris.getVertex(vIndex + i))
+                color.setData4f(abs(newNormal[0]), abs(newNormal[1]), abs(newNormal[2]), 1.0)
+            
         cube.addPrimitive(tris)
         snode.addGeom(cube)
 
