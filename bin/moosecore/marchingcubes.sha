@@ -1,0 +1,51 @@
+//Cg
+
+void vshader(
+	in float4	vtx_position : POSITION,
+	in float3	vtx_normal : NORMAL,
+
+	uniform float4x4 tps_projection,
+	uniform float4x4 mat_modelproj,
+
+	out float4 	l_position : POSITION,
+	out float4	l_texcoord0 : TEXCOORD0,
+	out float3	l_texcoord1 : TEXCOORD1
+)
+{   
+	l_position = mul(mat_modelproj, vtx_position);
+	l_texcoord1 = vtx_normal;
+	l_texcoord0 = mul(tps_projection, vtx_position);
+}
+
+void fshader(
+	float3 l_texcoord0 : TEXCOORD0,
+	float4 l_texcoord1 : TEXCOORD1,
+
+	uniform sampler2D tex_0 : TEXUNIT0,
+
+	out float4 o_color : COLOR
+)
+{ 
+	float4 blend_weights = abs(l_texcoord1);
+	blend_weights = (blend_weights - 1) * 7;
+	blend_weights = max(blend_weights, 1);
+	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z).xxxx;
+
+	float4 blended_color;
+	float tex_scale = 1.0/8.0;
+	
+	float2 coord1 = l_texcoord0.yz * tex_scale;
+	float2 coord2 = l_texcoord0.zx * tex_scale;
+	float2 coord3 = l_texcoord0.xy * tex_scale;
+
+	float4 col1 = tex2D(tex_0, coord1);
+	float4 col2 = tex2D(tex_0, coord2);
+	float4 col3 = tex2D(tex_0, coord3);
+
+	blended_color = 
+		col1.xyzw * blend_weights.xxxx +
+		col2.xyzw * blend_weights.yyyy +
+		col3.xyzw * blend_weights.zzzz;
+	
+	o_color = blended_color;
+}

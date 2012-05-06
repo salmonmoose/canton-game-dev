@@ -333,8 +333,6 @@ class Canton(ShowBase):
         loadPrcFile('canton.prc')
         ShowBase.__init__(self)
 
-        
-
         self.title = OnscreenText(
             text='Canton indev',
             style=1, fg=(1,1,1,1), pos=(0.5, -0.95), scale = .07)
@@ -348,9 +346,13 @@ class Canton(ShowBase):
         render.setFog(myFog)
         self.cube = Voxel()
         plight = PointLight('plight')
-        plight.setColor(VBase4(1,1,1,1))
+        plight.setColor(VBase4(1,1,1,.5))
         self.plnp = self.render.attachNewNode(plight)
         render.setLight(self.plnp)
+        plight = PointLight('plight')
+        plight.setColor(VBase4(1,1,1,.5))
+        self.plnp2 = self.render.attachNewNode(plight)
+        render.setLight(self.plnp2)
 
         self.camera.setPos(0,0,18)
         self.taskMgr.add(self.spinCameraTask, "spinCameraTask")
@@ -359,7 +361,8 @@ class Canton(ShowBase):
         angleDegrees = task.time * 100.0
         angleRadians = angleDegrees * (pi / 180.0)
         #self.camera.setPos(100 * sin(angleRadians), -100 * cos(angleRadians), 15)
-        self.plnp.setPos(20 * sin(angleRadians), -20 * cos(angleRadians), 0)
+        self.plnp.setPos(16 * sin(angleRadians) + 16, -16 * cos(angleRadians)+ 16, 16)
+        self.plnp2.setPos(-16 * sin(angleRadians * 2) + 16, 16 * cos(angleRadians * 2) + 16, 16)
         #self.camera.setHpr(angleDegrees, -20, 0)
         return Task.cont
 
@@ -427,9 +430,9 @@ class Terrain:
 
     def getGeneratedPoint(self, x_pos, y_pos, z_pos):
         density =  cmp(z_pos, Terrain.seaLevel)
-        #density+=  self.noise(x_pos / 5.0, y_pos / 5.0, z_pos / 5.0) * 2
-        #density+=  self.noise(x_pos, y_pos, z_pos) * 2
-        #density+=  self.noise(x_pos * 3, y_pos * 3, z_pos * 2) * 2
+        density+=  self.noise(x_pos / 5.0, y_pos / 5.0, z_pos / 5.0) * 2
+        density+=  self.noise(x_pos, y_pos, z_pos) * 2
+        density+=  self.noise(x_pos * 3, y_pos * 3, z_pos * 2) * 2
         return density
 
 '''
@@ -556,9 +559,22 @@ class Voxel:
 
         #self.nodeList = numpy.zeros(dimension ** 3)
 
-        format=GeomVertexFormat.getV3n3cpt2()
-        vdata=GeomVertexData('strip', format, Geom.UHDynamic)
+        array = GeomVertexArrayFormat()
+        array.addColumn(InternalName.make('vertex'), 3, Geom.NTFloat32, Geom.CPoint)
+        array.addColumn(InternalName.make('normal'), 3, Geom.NTFloat32, Geom.CPoint)
+        array.addColumn(InternalName.make('color'), 4, Geom.NTFloat32, Geom.CPoint)
+        array.addColumn(InternalName.make('texcoord'), 4, Geom.NTFloat32, Geom.CPoint)
+        
+        format = GeomVertexFormat()
+        format.addArray(array)
+        format = GeomVertexFormat.registerFormat(format)
 
+        '''
+        format=GeomVertexFormat.getV3n3cpt2()
+        '''
+        
+        vdata=GeomVertexData('strip', format, Geom.UHDynamic)
+        
         cube = Geom(vdata)
 
         vertex = GeomVertexWriter(vdata, 'vertex')
@@ -598,14 +614,10 @@ class Voxel:
                                     p1val = pointVals[Voxel.edges[edge][0]]
                                     p2val = pointVals[Voxel.edges[edge][1]]
 
-                                    if((
-                                        p1[0] + x, p1[1] + y, p1[2] + z,
-                                        p2[0] + x, p2[1] + y, p2[2] + z
-                                    ) in pointHash):
-                                        triVerts[vert] = pointHash[(
-                                            p1[0] + x, p1[1] + y, p1[2] + z,
-                                            p2[0] + x, p2[1] + y, p2[2] + z
-                                        )]
+                                    location = (p1[0]+x, p1[1]+y, p1[2] +z, p2[0] + x, p2[1] + y, p2[2] + z)
+
+                                    if(location in pointHash):
+                                        triVerts[vert] = pointHash[location]
                                     else:
                                         if(abs(isolevel - p1val) < 0.00001):
                                             point = p1
@@ -624,13 +636,11 @@ class Voxel:
                                         row = vertex.getWriteRow()
 
                                         vertex.addData3f(x+point[0],y+point[1],z+point[2])
+                                        texcoord.addData3f(point[0],point[1],point[2])
                                         normal.addData3f(0.0,0.0,0.0)
                                         color.addData4f(1.0,1.0,1.0,1.0)
 
-                                        pointHash[(
-                                            p1[0] + x, p1[1] + y, p1[2] + z,
-                                            p2[0] + x, p2[1] + y, p2[2] + z
-                                        )] = row
+                                        pointHash[location] = row
                                         triVerts[vert] = row
 
                             tris.addVertices(triVerts[0], triVerts[1], triVerts[2])
@@ -638,6 +648,7 @@ class Voxel:
         vertexReader = GeomVertexReader(vdata, 'vertex')
         normalReader = GeomVertexReader(vdata, 'normal')
 
+        #sum up all normals
         for tri in range(tris.getNumPrimitives()):
             vIndex = tris.getPrimitiveStart(tri)
 
@@ -647,29 +658,45 @@ class Voxel:
             vert2 = vertexReader.getData3f()
             vertexReader.setRow(tris.getVertex(vIndex + 2))
             vert3 = vertexReader.getData3f()
-            v1 = vert2 - vert1
-            v2 = vert1 - vert3
 
-            triNormal = v1.cross(v2)
-            
+            triNormal = (vert2-vert1).cross(vert1-vert3)
+            triNormal.normalize()
+
             for i in range(3):
                 normalReader.setRow(tris.getVertex(vIndex + i))
                 newNormal = normalReader.getData3f() + triNormal
-                newNormal.normalize()
                 normal.setRow(tris.getVertex(vIndex + i))
                 normal.setData3f(newNormal)
                 color.setRow(tris.getVertex(vIndex + i))
                 color.setData4f(abs(newNormal[0]), abs(newNormal[1]), abs(newNormal[2]), 1.0)
+        
+        #normalize all normals
+        for vIndex in range(tris.getNumVertices()):
+            normalReader.setRow(tris.getVertex(vIndex))
+            normal.setRow(tris.getVertex(vIndex))
+            color.setRow(tris.getVertex(vIndex))
+
+            normalized = normalReader.getData3f() + 0
+            normalized.normalize()
+
+            normal.setData3f(normalized)
+
+            color.setData4f(abs(normalized[0]), abs(normalized[1]), abs(normalized[2]), 1.0)
             
+
         cube.addPrimitive(tris)
         snode.addGeom(cube)
 
         chunk = render.attachNewNode(snode)
         
-        #shader = loader.loadShader('bin/moosecore/triplanar.sha')
-        #chunk.setShader(shader)
+        shader = loader.loadShader('bin/moosecore/marchingcubes.sha')
+        chunk.setShader(shader)
 
-        chunk.setTwoSided(True)
+        numbers = loader.loadTexture('resources/rock.jpg')
+
+        chunk.setTexture(numbers)
+
+        chunk.setTwoSided(False)
 
 
     '''
