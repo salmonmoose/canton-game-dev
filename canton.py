@@ -333,6 +333,8 @@ class Canton(ShowBase):
         loadPrcFile('canton.prc')
         ShowBase.__init__(self)
 
+        
+
         self.title = OnscreenText(
             text='Canton indev',
             style=1, fg=(1,1,1,1), pos=(0.5, -0.95), scale = .07)
@@ -430,9 +432,9 @@ class Terrain:
 
     def getGeneratedPoint(self, x_pos, y_pos, z_pos):
         density =  cmp(z_pos, Terrain.seaLevel)
-        density+=  self.noise(x_pos / 5.0, y_pos / 5.0, z_pos / 5.0) * 2
-        density+=  self.noise(x_pos, y_pos, z_pos) * 2
-        density+=  self.noise(x_pos * 3, y_pos * 3, z_pos * 2) * 2
+        #density+=  self.noise(x_pos / 5.0, y_pos / 5.0, z_pos / 5.0) * 2
+        #density+=  self.noise(x_pos, y_pos, z_pos) * 2
+        #density+=  self.noise(x_pos * 3, y_pos * 3, z_pos * 2) * 2
         return density
 
 '''
@@ -614,10 +616,21 @@ class Voxel:
                                     p1val = pointVals[Voxel.edges[edge][0]]
                                     p2val = pointVals[Voxel.edges[edge][1]]
 
+<<<<<<< HEAD
                                     location = (p1[0]+x, p1[1]+y, p1[2] +z, p2[0] + x, p2[1] + y, p2[2] + z)
 
                                     if(location in pointHash):
                                         triVerts[vert] = pointHash[location]
+=======
+                                    if((
+                                        p1[0] + x, p1[1] + y, p1[2] + z,
+                                        p2[0] + x, p2[1] + y, p2[2] + z
+                                    ) in pointHash):
+                                        triVerts[vert] = pointHash[(
+                                            p1[0] + x, p1[1] + y, p1[2] + z,
+                                            p2[0] + x, p2[1] + y, p2[2] + z
+                                        )]
+>>>>>>> f7588a1f2ea0b8e456a9c608f2d0119f6d99ec8e
                                     else:
                                         if(abs(isolevel - p1val) < 0.00001):
                                             point = p1
@@ -647,6 +660,7 @@ class Voxel:
         
         vertexReader = GeomVertexReader(vdata, 'vertex')
         normalReader = GeomVertexReader(vdata, 'normal')
+<<<<<<< HEAD
 
         #sum up all normals
         for tri in range(tris.getNumPrimitives()):
@@ -683,7 +697,32 @@ class Voxel:
 
             color.setData4f(abs(normalized[0]), abs(normalized[1]), abs(normalized[2]), 1.0)
             
+=======
 
+        for tri in range(tris.getNumPrimitives()):
+            vIndex = tris.getPrimitiveStart(tri)
+>>>>>>> f7588a1f2ea0b8e456a9c608f2d0119f6d99ec8e
+
+            vertexReader.setRow(tris.getVertex(vIndex))
+            vert1 = vertexReader.getData3f()
+            vertexReader.setRow(tris.getVertex(vIndex + 1))
+            vert2 = vertexReader.getData3f()
+            vertexReader.setRow(tris.getVertex(vIndex + 2))
+            vert3 = vertexReader.getData3f()
+            v1 = vert2 - vert1
+            v2 = vert1 - vert3
+
+            triNormal = v1.cross(v2)
+            
+            for i in range(3):
+                normalReader.setRow(tris.getVertex(vIndex + i))
+                newNormal = normalReader.getData3f() + triNormal
+                newNormal.normalize()
+                normal.setRow(tris.getVertex(vIndex + i))
+                normal.setData3f(newNormal)
+                color.setRow(tris.getVertex(vIndex + i))
+                color.setData4f(abs(newNormal[0]), abs(newNormal[1]), abs(newNormal[2]), 1.0)
+            
         cube.addPrimitive(tris)
         snode.addGeom(cube)
 
