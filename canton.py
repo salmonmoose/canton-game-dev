@@ -342,30 +342,32 @@ class Canton(ShowBase):
         render.ls()
 
         base.useDrive()
-        myFog = Fog("Fog Name")
-        myFog.setColor(0.33,0.33,0.33)
-        myFog.setExpDensity(0.02)
-        render.setFog(myFog)
         self.cube = Voxel()
-        plight = PointLight('plight')
-        plight.setColor(VBase4(1,1,1,.5))
-        self.plnp = self.render.attachNewNode(plight)
-        render.setLight(self.plnp)
-        plight = PointLight('plight')
-        plight.setColor(VBase4(1,1,1,.5))
-        self.plnp2 = self.render.attachNewNode(plight)
-        render.setLight(self.plnp2)
+
+        self.sun = DirectionalLight('sun')
+
+        self.sun.setColor(VBase4(1.0,0.5,0.5,1))
+        self.dlnp = render.attachNewNode(self.sun)
+        render.setLight(self.dlnp)
+        render.setShaderInput("sun", self.dlnp)
+
+        self.ambient = AmbientLight('amient')
+        self.ambient.setColor(VBase4(0.0,0.0,0.5,1))
+        self.alnp = render.attachNewNode(self.ambient)
+        render.setLight(self.alnp)
+        render.setShaderInput("ambient", self.alnp)
 
         self.camera.setPos(0,0,18)
         self.taskMgr.add(self.spinCameraTask, "spinCameraTask")
 
     def spinCameraTask(self, task):
-        angleDegrees = task.time * 100.0
+        angleDegrees = task.time * 20.0
         angleRadians = angleDegrees * (pi / 180.0)
-        #self.camera.setPos(100 * sin(angleRadians), -100 * cos(angleRadians), 15)
-        self.plnp.setPos(16 * sin(angleRadians) + 16, -16 * cos(angleRadians)+ 16, 16)
-        self.plnp2.setPos(-16 * sin(angleRadians * 2) + 16, 16 * cos(angleRadians * 2) + 16, 16)
-        #self.camera.setHpr(angleDegrees, -20, 0)
+        self.camera.setPos(40 * sin(angleRadians) + 16, -40 * cos(angleRadians) + 16, 20)
+        self.dlnp.setPos(16,16,16)
+        self.dlnp.setHpr(angleDegrees * 4, 45, 0)
+        self.camera.setHpr(angleDegrees, -10, 0)
+
         return Task.cont
 
 '''                                                                                                                                                                                          
@@ -378,7 +380,7 @@ class Canton(ShowBase):
         o888o     `Y8bod8P' d888b    d888b    `Y888""8o o888o o888o o888o 
 '''                                                                       
 class Terrain:
-    chunkSize = 16
+    chunkSize = 32
     seaLevel = 8
 
     def __init__(self):
@@ -432,9 +434,12 @@ class Terrain:
 
     def getGeneratedPoint(self, x_pos, y_pos, z_pos):
         density =  cmp(z_pos, Terrain.seaLevel)
-        #density+=  self.noise(x_pos / 5.0, y_pos / 5.0, z_pos / 5.0) * 2
-        #density+=  self.noise(x_pos, y_pos, z_pos) * 2
-        #density+=  self.noise(x_pos * 3, y_pos * 3, z_pos * 2) * 2
+        density+=  self.noise(x_pos / 5.0, y_pos / 5.0, z_pos / 5.0) * 2
+        density+=  self.noise(x_pos, y_pos, z_pos) * 2
+        density+=  self.noise(x_pos * 3, y_pos * 3, z_pos * 3) * 2
+
+        
+        #if(density > 0): density = 0
         return density
 
 '''
@@ -570,10 +575,6 @@ class Voxel:
         format = GeomVertexFormat()
         format.addArray(array)
         format = GeomVertexFormat.registerFormat(format)
-
-        '''
-        format=GeomVertexFormat.getV3n3cpt2()
-        '''
         
         vdata=GeomVertexData('strip', format, Geom.UHDynamic)
         
@@ -603,7 +604,7 @@ class Voxel:
                         pointVals = chunkData.getCacheGroup(x,y,z)
 
                         for i in range(8):
-                            if(pointVals[i] > isolevel): 
+                            if(pointVals[i] < isolevel): 
                                 value |= (2 ** i)
 
                         for tri in range(0, len(cubeTris[value])-1, 3):
@@ -616,21 +617,11 @@ class Voxel:
                                     p1val = pointVals[Voxel.edges[edge][0]]
                                     p2val = pointVals[Voxel.edges[edge][1]]
 
-<<<<<<< HEAD
+
                                     location = (p1[0]+x, p1[1]+y, p1[2] +z, p2[0] + x, p2[1] + y, p2[2] + z)
 
                                     if(location in pointHash):
                                         triVerts[vert] = pointHash[location]
-=======
-                                    if((
-                                        p1[0] + x, p1[1] + y, p1[2] + z,
-                                        p2[0] + x, p2[1] + y, p2[2] + z
-                                    ) in pointHash):
-                                        triVerts[vert] = pointHash[(
-                                            p1[0] + x, p1[1] + y, p1[2] + z,
-                                            p2[0] + x, p2[1] + y, p2[2] + z
-                                        )]
->>>>>>> f7588a1f2ea0b8e456a9c608f2d0119f6d99ec8e
                                     else:
                                         if(abs(isolevel - p1val) < 0.00001):
                                             point = p1
@@ -653,16 +644,14 @@ class Voxel:
                                         normal.addData3f(0.0,0.0,0.0)
                                         color.addData4f(1.0,1.0,1.0,1.0)
 
-                                        pointHash[location] = row
+                                        #pointHash[location] = row
                                         triVerts[vert] = row
 
                             tris.addVertices(triVerts[0], triVerts[1], triVerts[2])
         
         vertexReader = GeomVertexReader(vdata, 'vertex')
         normalReader = GeomVertexReader(vdata, 'normal')
-<<<<<<< HEAD
 
-        #sum up all normals
         for tri in range(tris.getNumPrimitives()):
             vIndex = tris.getPrimitiveStart(tri)
 
@@ -673,46 +662,7 @@ class Voxel:
             vertexReader.setRow(tris.getVertex(vIndex + 2))
             vert3 = vertexReader.getData3f()
 
-            triNormal = (vert2-vert1).cross(vert1-vert3)
-            triNormal.normalize()
-
-            for i in range(3):
-                normalReader.setRow(tris.getVertex(vIndex + i))
-                newNormal = normalReader.getData3f() + triNormal
-                normal.setRow(tris.getVertex(vIndex + i))
-                normal.setData3f(newNormal)
-                color.setRow(tris.getVertex(vIndex + i))
-                color.setData4f(abs(newNormal[0]), abs(newNormal[1]), abs(newNormal[2]), 1.0)
-        
-        #normalize all normals
-        for vIndex in range(tris.getNumVertices()):
-            normalReader.setRow(tris.getVertex(vIndex))
-            normal.setRow(tris.getVertex(vIndex))
-            color.setRow(tris.getVertex(vIndex))
-
-            normalized = normalReader.getData3f() + 0
-            normalized.normalize()
-
-            normal.setData3f(normalized)
-
-            color.setData4f(abs(normalized[0]), abs(normalized[1]), abs(normalized[2]), 1.0)
-            
-=======
-
-        for tri in range(tris.getNumPrimitives()):
-            vIndex = tris.getPrimitiveStart(tri)
->>>>>>> f7588a1f2ea0b8e456a9c608f2d0119f6d99ec8e
-
-            vertexReader.setRow(tris.getVertex(vIndex))
-            vert1 = vertexReader.getData3f()
-            vertexReader.setRow(tris.getVertex(vIndex + 1))
-            vert2 = vertexReader.getData3f()
-            vertexReader.setRow(tris.getVertex(vIndex + 2))
-            vert3 = vertexReader.getData3f()
-            v1 = vert2 - vert1
-            v2 = vert1 - vert3
-
-            triNormal = v1.cross(v2)
+            triNormal = (vert2 - vert1).cross(vert1 - vert3)
             
             for i in range(3):
                 normalReader.setRow(tris.getVertex(vIndex + i))
@@ -720,8 +670,6 @@ class Voxel:
                 newNormal.normalize()
                 normal.setRow(tris.getVertex(vIndex + i))
                 normal.setData3f(newNormal)
-                color.setRow(tris.getVertex(vIndex + i))
-                color.setData4f(abs(newNormal[0]), abs(newNormal[1]), abs(newNormal[2]), 1.0)
             
         cube.addPrimitive(tris)
         snode.addGeom(cube)
@@ -731,12 +679,19 @@ class Voxel:
         shader = loader.loadShader('bin/moosecore/marchingcubes.sha')
         chunk.setShader(shader)
 
-        numbers = loader.loadTexture('resources/rock.jpg')
 
-        chunk.setTexture(numbers)
+        rock = loader.loadTexture('resources/rock.jpg')
+        stageRock = TextureStage("Rock")
+        stageRock.setSort(1)
+
+        grass = loader.loadTexture('resources/grass.jpg')
+        stageGrass = TextureStage("Grass")
+        stageGrass.setSort(2)
+
+        chunk.setTexture(stageGrass, grass)
+        chunk.setTexture(stageRock, rock)
 
         chunk.setTwoSided(False)
-
 
     '''
     ooooooooo.              o8o                  .       .oooooo..o                      o8o      .                      

@@ -18,17 +18,20 @@ void vshader(
 }
 
 void fshader(
-	float3 l_texcoord0 : TEXCOORD0,
-	float4 l_texcoord1 : TEXCOORD1,
+	in float3 l_texcoord0 : TEXCOORD0,
+	in float4 l_texcoord1 : TEXCOORD1,
 
-	uniform sampler2D tex_0 : TEXUNIT0,
+	uniform sampler2D tex_0,
+	uniform sampler2D tex_1,
+
+	uniform float4x4 dlight_sun_rel_view,
 
 	out float4 o_color : COLOR
 )
 { 
 	float4 blend_weights = abs(l_texcoord1);
-	blend_weights = (blend_weights - 1) * 7;
-	blend_weights = max(blend_weights, 1);
+	blend_weights = (blend_weights - 0.3) * 9;
+	blend_weights = max(blend_weights, 0);
 	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z).xxxx;
 
 	float4 blended_color;
@@ -40,12 +43,35 @@ void fshader(
 
 	float4 col1 = tex2D(tex_0, coord1);
 	float4 col2 = tex2D(tex_0, coord2);
-	float4 col3 = tex2D(tex_0, coord3);
+	float4 col3 = tex2D(tex_1, coord3);
 
 	blended_color = 
 		col1.xyzw * blend_weights.xxxx +
 		col2.xyzw * blend_weights.yyyy +
 		col3.xyzw * blend_weights.zzzz;
-	
-	o_color = blended_color;
+	float4 lcolor, lspec, lvec, lpoint, latten, ldir, leye, lhalf;
+
+	float4 tot_ambient  = float4(0,0,0,0);
+	float4 tot_diffuse  = float4(0,0,0,0);
+	float4 tot_specular = float4(0,0,0,0);
+	float4 result       = float4(0,0,0,0);
+
+	lcolor = dlight_sun_rel_view[0];
+	lspec  = dlight_sun_rel_view[1];
+	lvec   = dlight_sun_rel_view[2];
+
+	lcolor *= saturate(dot(l_texcoord0, lvec.xyz));
+	tot_diffuse += lcolor;
+	lhalf = dlight_sun_rel_view[3];
+	lspec *= pow(saturate(dot(l_texcoord0, lhalf.xyz)), 0);
+	tot_specular += lspec;
+
+	result += tot_ambient;
+	result += tot_diffuse * lcolor;
+	result = saturate(result);
+
+	result.rgb = result.rgb + tot_specular.rgb;
+
+
+	o_color = result * blended_color;// * blend_weights;
 }
