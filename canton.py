@@ -342,7 +342,7 @@ class Canton(ShowBase):
         render.ls()
 
         base.useDrive()
-        self.cube = Voxel()
+        self.worldMap = WorldMap(16,8,122011)
 
         self.sun = DirectionalLight('sun')
 
@@ -359,18 +359,115 @@ class Canton(ShowBase):
 
         self.camera.setPos(0,0,18)
         self.taskMgr.add(self.spinCameraTask, "spinCameraTask")
+        self.taskMgr.add(self.drawLandscapeTask, "drawLandscapeTask")
+
+    def drawLandscapeTask(self, task):
+        playerPos = (0.0,0.0,0.0)
+        self.worldMap.update(playerPos)
+
 
     def spinCameraTask(self, task):
         angleDegrees = task.time * 20.0
         angleRadians = angleDegrees * (pi / 180.0)
-        self.camera.setPos(64 * sin(angleRadians) + 32, -64 * cos(angleRadians) + 32, 32)
+        self.camera.setPos(64 * sin(angleRadians), -64 * cos(angleRadians), 32)
         self.dlnp.setPos(16,16,16)
         self.dlnp.setHpr(angleDegrees * 4, 45, 0)
-        self.camera.setHpr(angleDegrees, -10, 0)
+        self.camera.setHpr(angleDegrees, -20, 0)
 
         return Task.cont
+'''
+    oooooo   oooooo     oooo                    oooo        .o8  ooo        ooooo                      
+     `888.    `888.     .8'                     `888       "888  `88.       .888'                      
+      `888.   .8888.   .8'    .ooooo.  oooo d8b  888   .oooo888   888b     d'888   .oooo.   oo.ooooo.  
+       `888  .8'`888. .8'    d88' `88b `888""8P  888  d88' `888   8 Y88. .P  888  `P  )88b   888' `88b 
+        `888.8'  `888.8'     888   888  888      888  888   888   8  `888'   888   .oP"888   888   888 
+         `888'    `888'      888   888  888      888  888   888   8    Y     888  d8(  888   888   888 
+          `8'      `8'       `Y8bod8P' d888b    o888o `Y8bod88P" o8o        o888o `Y888""8o  888bod8P' 
+                                                                                             888       
+                                                                                            o888o      
+'''
+class WorldMap:
 
-'''                                                                                                                                                                                          
+    def __init__(self, chunkSize, seaLevel, seed):
+        self.chunkSize = chunkSize
+        self.seaLevel = seaLevel
+        self.terrainGen = Terrain(chunkSize,seaLevel,seed)
+        self.chunks = {}
+        self.geomNodes = {}
+        self.shader = loader.loadShader('bin/moosecore/marchingcubes.sha')
+        self.rock = loader.loadTexture('resources/rock.jpg')
+        self.stageRock = TextureStage("Rock")
+        self.stageRock.setSort(1)
+        self.grass = loader.loadTexture('resources/grass.jpg')
+        self.stageGrass = TextureStage("Grass")
+        self.stageGrass.setSort(2)
+
+    def update(self, playerPos):
+        #generate chunks near player
+        nodeLoc = (
+            (int) (playerPos[0] / self.chunkSize),
+            (int) (playerPos[1] / self.chunkSize), 
+            (int) (playerPos[2] / self.chunkSize)
+            )
+
+        for x in range(-1, 2):
+            for y in range(-1, 2):
+                self.updateChunk((
+                    nodeLoc[0] + x,
+                    nodeLoc[1] + y,
+                    nodeLoc[2]
+                    ))
+
+    def updateChunk(self, location):
+        if location not in self.chunks:
+            self.loadChunk(location)
+        self.geomNodes[location] = render.attachNewNode(Voxel.marchingCubes(
+            self, 
+            (self.chunkSize, self.chunkSize, self.chunkSize),
+            (location[0] * self.chunkSize, location[1] * self.chunkSize, location[2] * self.chunkSize),
+            0.5)
+        )
+        self.geomNodes[location].setShader(self.shader)
+        self.geomNodes[location].setTexture(self.stageGrass, self.grass)
+        self.geomNodes[location].setTexture(self.stageRock, self.rock)
+        self.geomNodes[location].setTwoSided(False)
+
+
+    def getCacheGroup(self, x_pos, y_pos, z_pos):
+        mapRef = (x_pos/self.chunkSize, y_pos/self.chunkSize, z_pos/self.chunkSize)
+
+        if mapRef not in self.chunks:
+            self.loadChunk(mapRef)
+
+        #This order is stupid fixing requires regenerating Magic Numbers :(
+        return [
+            self.chunks[mapRef][(x_pos % self.chunkSize) + 0, (y_pos % self.chunkSize) + 0, (z_pos % self.chunkSize) + 0],
+            self.chunks[mapRef][(x_pos % self.chunkSize) + 1, (y_pos % self.chunkSize) + 0, (z_pos % self.chunkSize) + 0],
+            self.chunks[mapRef][(x_pos % self.chunkSize) + 1, (y_pos % self.chunkSize) + 0, (z_pos % self.chunkSize) + 1],
+            self.chunks[mapRef][(x_pos % self.chunkSize) + 0, (y_pos % self.chunkSize) + 0, (z_pos % self.chunkSize) + 1],
+            self.chunks[mapRef][(x_pos % self.chunkSize) + 0, (y_pos % self.chunkSize) + 1, (z_pos % self.chunkSize) + 0],
+            self.chunks[mapRef][(x_pos % self.chunkSize) + 1, (y_pos % self.chunkSize) + 1, (z_pos % self.chunkSize) + 0],
+            self.chunks[mapRef][(x_pos % self.chunkSize) + 1, (y_pos % self.chunkSize) + 1, (z_pos % self.chunkSize) + 1],
+            self.chunks[mapRef][(x_pos % self.chunkSize) + 0, (y_pos % self.chunkSize) + 1, (z_pos % self.chunkSize) + 1]
+        ]
+        
+    def loadChunk(self, mapRef):
+        self.generateChunk(mapRef)
+
+    def generateChunk(self, mapRef):
+        self.chunks[mapRef] = numpy.zeros((self.chunkSize + 1, self.chunkSize + 1, self.chunkSize + 1), float)
+
+        for x in range(self.chunkSize + 1):
+            for y in range(self.chunkSize + 1):
+                for z in range(self.chunkSize + 1):
+                    point = (
+                        (mapRef[0] * self.chunkSize) + x,
+                        (mapRef[1] * self.chunkSize) + y,
+                        (mapRef[2] * self.chunkSize) + z
+                        )
+                    self.chunks[mapRef][x,y,z] = self.terrainGen.getGeneratedPoint(point)
+
+'''
     ooooooooooooo                                        o8o              
     8'   888   `8                                        `"'              
          888       .ooooo.  oooo d8b oooo d8b  .oooo.   oooo  ooo. .oo.   
@@ -380,65 +477,20 @@ class Canton(ShowBase):
         o888o     `Y8bod8P' d888b    d888b    `Y888""8o o888o o888o o888o 
 '''                                                                       
 class Terrain:
-    chunkSize = 16
-    seaLevel = 8
 
-    def __init__(self):
-        self.terrainMap = {}
-        self.heightMap = PerlinNoise2(16.0,16.0, 256, 122011)
-        self.noise = PerlinNoise3(16.0,16.0,16.0, 256, 122011)
-
-    def __call__(self, x_pos, y_pos, z_pos):
-        return self.getCachePoint(x_pos, y_pos, z_pos)
-
-    def __getitem__(self, x_pos, y_pos, z_pos):
-        return self.getCachePoint(x_pos, y_pos, z_pos)
-
-    def cutChunk(self, x_pos, y_pos, z_pos):
-        pass
-
-    def pushChunk(self, x_pos, y_pos, z_pos):
-        pass
-
-    def getCacheGroup(self, x_pos, y_pos, z_pos):
-        mapRef = (x_pos/Terrain.chunkSize, y_pos/Terrain.chunkSize, z_pos/Terrain.chunkSize)
-
-        if mapRef not in self.terrainMap:
-            self.loadChunk(mapRef)
-
-        #This order is stupid.
-        return [
-            self.terrainMap[mapRef][(x_pos % Terrain.chunkSize) + 0, (y_pos % Terrain.chunkSize) + 0, (z_pos % Terrain.chunkSize) + 0],
-            self.terrainMap[mapRef][(x_pos % Terrain.chunkSize) + 1, (y_pos % Terrain.chunkSize) + 0, (z_pos % Terrain.chunkSize) + 0],
-            self.terrainMap[mapRef][(x_pos % Terrain.chunkSize) + 1, (y_pos % Terrain.chunkSize) + 0, (z_pos % Terrain.chunkSize) + 1],
-            self.terrainMap[mapRef][(x_pos % Terrain.chunkSize) + 0, (y_pos % Terrain.chunkSize) + 0, (z_pos % Terrain.chunkSize) + 1],
-            self.terrainMap[mapRef][(x_pos % Terrain.chunkSize) + 0, (y_pos % Terrain.chunkSize) + 1, (z_pos % Terrain.chunkSize) + 0],
-            self.terrainMap[mapRef][(x_pos % Terrain.chunkSize) + 1, (y_pos % Terrain.chunkSize) + 1, (z_pos % Terrain.chunkSize) + 0],
-            self.terrainMap[mapRef][(x_pos % Terrain.chunkSize) + 1, (y_pos % Terrain.chunkSize) + 1, (z_pos % Terrain.chunkSize) + 1],
-            self.terrainMap[mapRef][(x_pos % Terrain.chunkSize) + 0, (y_pos % Terrain.chunkSize) + 1, (z_pos % Terrain.chunkSize) + 1]
-        ]
-        
-    def loadChunk(self, mapRef):
-        self.generateChunk(mapRef)
-
-    def generateChunk(self, mapRef):
-        self.terrainMap[mapRef] = numpy.zeros((Terrain.chunkSize + 1, Terrain.chunkSize + 1, Terrain.chunkSize + 1), float)
-
-        for x in range(Terrain.chunkSize + 1):
-            for y in range(Terrain.chunkSize + 1):
-                for z in range(Terrain.chunkSize + 1):
-                    point = (
-                        (mapRef[0] * Terrain.chunkSize) + x,
-                        (mapRef[1] * Terrain.chunkSize) + y,
-                        (mapRef[2] * Terrain.chunkSize) + z
-                        )
-
-                    self.terrainMap[mapRef][x,y,z] = self.getGeneratedPoint(point)
+    def __init__(self, chunkSize, seaLevel, seed):
+        self.chunkSize = chunkSize
+        self.seaLevel = seaLevel
+        self.heightMap = PerlinNoise2(16.0,16.0, 256, seed)
+        self.noise = PerlinNoise3(4.0,4.0,16.0, 256, seed)
 
     def getGeneratedPoint(self, point):
-        density =  cmp(point[2], Terrain.seaLevel)
-        density+=  self.noise(point[0] * 2.0, point[1] * 3.0, point[2] * 5.0) * 2
-        #density+=  self.noise(point[0] * 5.0, point[1] * 3.0, point[2] * 2.0) * 2
+        density =  cmp(point[2], self.seaLevel)
+        density+=  self.noise(point[0] / 2.0, point[1] / 2.0, point[2] / 2.0) * 2
+        density+=  self.noise(point[0] / 2.0, point[1] / 2.0, point[2] / 2.0) * 2
+
+        density+= (float(point[2]) / 2) / self.seaLevel
+
         #if(density > 0): density = 0
         return density
 
@@ -557,7 +609,7 @@ class Voxel:
                                                                                 "Y88888P'                                                            
     '''                                                                                                                                                  
     @staticmethod
-    def marchingCube(chunkData, size, scale):
+    def marchingCubes(chunkData, size, offset, scale):
         snode = GeomNode('chunk')
 
         x_count = size[0]
@@ -599,7 +651,7 @@ class Voxel:
                 for x in range(x_count):
                         value = 0
 
-                        pointVals = chunkData.getCacheGroup(x,y,z)
+                        pointVals = chunkData.getCacheGroup(x + offset[0], y + offset[1], z + offset[2])
                         for i in range(8):
                             if(pointVals[i] < isolevel): 
                                 value |= (2 ** i)
@@ -636,7 +688,7 @@ class Voxel:
 
                                         row = vertex.getWriteRow()
 
-                                        vertex.addData3f(x+point[0],y+point[1],z+point[2])
+                                        vertex.addData3f(x+point[0]+offset[0],y+point[1]+offset[1],z+point[2]+offset[2])
                                         texcoord.addData3f(point[0],point[1],point[2])
                                         normal.addData3f(0.0,0.0,0.0)
                                         color.addData4f(1.0,1.0,1.0,1.0)
@@ -671,24 +723,7 @@ class Voxel:
         cube.addPrimitive(tris)
         snode.addGeom(cube)
 
-        chunk = render.attachNewNode(snode)
-        
-        shader = loader.loadShader('bin/moosecore/marchingcubes.sha')
-        chunk.setShader(shader)
-
-
-        rock = loader.loadTexture('resources/rock.jpg')
-        stageRock = TextureStage("Rock")
-        stageRock.setSort(1)
-
-        grass = loader.loadTexture('resources/grass.jpg')
-        stageGrass = TextureStage("Grass")
-        stageGrass.setSort(2)
-
-        chunk.setTexture(stageGrass, grass)
-        chunk.setTexture(stageRock, rock)
-
-        chunk.setTwoSided(True)
+        return snode
 
     '''
     ooooooooo.              o8o                  .       .oooooo..o                      o8o      .                      

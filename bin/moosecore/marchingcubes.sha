@@ -62,10 +62,10 @@ void fshader(
 	lspec  = dlight_sun_rel_view[1];
 	lvec   = dlight_sun_rel_view[2];
 
-	lcolor *= saturate(dot(l_texcoord0, lvec.xyz));
+	lcolor *= saturate(dot(l_texcoord1, lvec.xyz));
 	tot_diffuse += lcolor;
 	lhalf = dlight_sun_rel_view[3];
-	lspec *= pow(saturate(dot(l_texcoord0, lhalf.xyz)), 0);
+	lspec *= pow(saturate(dot(l_texcoord1, lhalf.xyz)), 0);
 	tot_specular += lspec;
 
 	result += tot_ambient;

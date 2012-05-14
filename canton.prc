@@ -1,3 +1,3 @@
 load-display pandagl
-win-size 640 480
+win-size 1024 768
 window-title Canton InDev
