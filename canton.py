@@ -363,7 +363,7 @@ class Canton(ShowBase):
     def spinCameraTask(self, task):
         angleDegrees = task.time * 20.0
         angleRadians = angleDegrees * (pi / 180.0)
-        self.camera.setPos(40 * sin(angleRadians) + 16, -40 * cos(angleRadians) + 16, 20)
+        self.camera.setPos(64 * sin(angleRadians) + 32, -64 * cos(angleRadians) + 32, 32)
         self.dlnp.setPos(16,16,16)
         self.dlnp.setHpr(angleDegrees * 4, 45, 0)
         self.camera.setHpr(angleDegrees, -10, 0)
@@ -380,7 +380,7 @@ class Canton(ShowBase):
         o888o     `Y8bod8P' d888b    d888b    `Y888""8o o888o o888o o888o 
 '''                                                                       
 class Terrain:
-    chunkSize = 32
+    chunkSize = 16
     seaLevel = 8
 
     def __init__(self):
@@ -406,15 +406,16 @@ class Terrain:
         if mapRef not in self.terrainMap:
             self.loadChunk(mapRef)
 
+        #This order is stupid.
         return [
-            self.terrainMap[mapRef][(x_pos + 0) % Terrain.chunkSize, (y_pos + 0) % Terrain.chunkSize, (z_pos + 0) % Terrain.chunkSize],
-            self.terrainMap[mapRef][(x_pos + 1) % Terrain.chunkSize, (y_pos + 0) % Terrain.chunkSize, (z_pos + 0) % Terrain.chunkSize],
-            self.terrainMap[mapRef][(x_pos + 1) % Terrain.chunkSize, (y_pos + 0) % Terrain.chunkSize, (z_pos + 1) % Terrain.chunkSize],
-            self.terrainMap[mapRef][(x_pos + 0) % Terrain.chunkSize, (y_pos + 0) % Terrain.chunkSize, (z_pos + 1) % Terrain.chunkSize],
-            self.terrainMap[mapRef][(x_pos + 0) % Terrain.chunkSize, (y_pos + 1) % Terrain.chunkSize, (z_pos + 0) % Terrain.chunkSize],
-            self.terrainMap[mapRef][(x_pos + 1) % Terrain.chunkSize, (y_pos + 1) % Terrain.chunkSize, (z_pos + 0) % Terrain.chunkSize],
-            self.terrainMap[mapRef][(x_pos + 1) % Terrain.chunkSize, (y_pos + 1) % Terrain.chunkSize, (z_pos + 1) % Terrain.chunkSize],
-            self.terrainMap[mapRef][(x_pos + 0) % Terrain.chunkSize, (y_pos + 1) % Terrain.chunkSize, (z_pos + 1) % Terrain.chunkSize]
+            self.terrainMap[mapRef][(x_pos % Terrain.chunkSize) + 0, (y_pos % Terrain.chunkSize) + 0, (z_pos % Terrain.chunkSize) + 0],
+            self.terrainMap[mapRef][(x_pos % Terrain.chunkSize) + 1, (y_pos % Terrain.chunkSize) + 0, (z_pos % Terrain.chunkSize) + 0],
+            self.terrainMap[mapRef][(x_pos % Terrain.chunkSize) + 1, (y_pos % Terrain.chunkSize) + 0, (z_pos % Terrain.chunkSize) + 1],
+            self.terrainMap[mapRef][(x_pos % Terrain.chunkSize) + 0, (y_pos % Terrain.chunkSize) + 0, (z_pos % Terrain.chunkSize) + 1],
+            self.terrainMap[mapRef][(x_pos % Terrain.chunkSize) + 0, (y_pos % Terrain.chunkSize) + 1, (z_pos % Terrain.chunkSize) + 0],
+            self.terrainMap[mapRef][(x_pos % Terrain.chunkSize) + 1, (y_pos % Terrain.chunkSize) + 1, (z_pos % Terrain.chunkSize) + 0],
+            self.terrainMap[mapRef][(x_pos % Terrain.chunkSize) + 1, (y_pos % Terrain.chunkSize) + 1, (z_pos % Terrain.chunkSize) + 1],
+            self.terrainMap[mapRef][(x_pos % Terrain.chunkSize) + 0, (y_pos % Terrain.chunkSize) + 1, (z_pos % Terrain.chunkSize) + 1]
         ]
         
     def loadChunk(self, mapRef):
@@ -426,19 +427,18 @@ class Terrain:
         for x in range(Terrain.chunkSize + 1):
             for y in range(Terrain.chunkSize + 1):
                 for z in range(Terrain.chunkSize + 1):
-                    self.terrainMap[mapRef][x,y,z] = self.getGeneratedPoint(
+                    point = (
                         (mapRef[0] * Terrain.chunkSize) + x,
                         (mapRef[1] * Terrain.chunkSize) + y,
                         (mapRef[2] * Terrain.chunkSize) + z
                         )
 
-    def getGeneratedPoint(self, x_pos, y_pos, z_pos):
-        density =  cmp(z_pos, Terrain.seaLevel)
-        density+=  self.noise(x_pos / 5.0, y_pos / 5.0, z_pos / 5.0) * 2
-        density+=  self.noise(x_pos, y_pos, z_pos) * 2
-        density+=  self.noise(x_pos * 3, y_pos * 3, z_pos * 3) * 2
+                    self.terrainMap[mapRef][x,y,z] = self.getGeneratedPoint(point)
 
-        
+    def getGeneratedPoint(self, point):
+        density =  cmp(point[2], Terrain.seaLevel)
+        density+=  self.noise(point[0] * 2.0, point[1] * 3.0, point[2] * 5.0) * 2
+        #density+=  self.noise(point[0] * 5.0, point[1] * 3.0, point[2] * 2.0) * 2
         #if(density > 0): density = 0
         return density
 
@@ -515,7 +515,7 @@ class Voxel:
     def __init__(self):
         faces = (0,1,2,3,4,5)
 
-        worldSize = (32,32,32)
+        worldSize = (64,64,16)
 
         self.world = Terrain()
         Voxel.marchingCube(self.world, worldSize,0.5)
@@ -564,8 +564,6 @@ class Voxel:
         y_count = size[1]
         z_count = size[2]
 
-        #self.nodeList = numpy.zeros(dimension ** 3)
-
         array = GeomVertexArrayFormat()
         array.addColumn(InternalName.make('vertex'), 3, Geom.NTFloat32, Geom.CPoint)
         array.addColumn(InternalName.make('normal'), 3, Geom.NTFloat32, Geom.CPoint)
@@ -602,7 +600,6 @@ class Voxel:
                         value = 0
 
                         pointVals = chunkData.getCacheGroup(x,y,z)
-
                         for i in range(8):
                             if(pointVals[i] < isolevel): 
                                 value |= (2 ** i)
@@ -644,7 +641,7 @@ class Voxel:
                                         normal.addData3f(0.0,0.0,0.0)
                                         color.addData4f(1.0,1.0,1.0,1.0)
 
-                                        #pointHash[location] = row
+                                        pointHash[location] = row
                                         triVerts[vert] = row
 
                             tris.addVertices(triVerts[0], triVerts[1], triVerts[2])
@@ -691,7 +688,7 @@ class Voxel:
         chunk.setTexture(stageGrass, grass)
         chunk.setTexture(stageRock, rock)
 
-        chunk.setTwoSided(False)
+        chunk.setTwoSided(True)
 
     '''
     ooooooooo.              o8o                  .       .oooooo..o                      o8o      .                      

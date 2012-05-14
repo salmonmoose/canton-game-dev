@@ -18,7 +18,7 @@ void vshader(
 }
 
 void fshader(
-	in float3 l_texcoord0 : TEXCOORD0,
+	in float3 l_texcoord0 : TEXCOORD0, //normals
 	in float4 l_texcoord1 : TEXCOORD1,
 
 	uniform sampler2D tex_0,
@@ -49,6 +49,8 @@ void fshader(
 		col1.xyzw * blend_weights.xxxx +
 		col2.xyzw * blend_weights.yyyy +
 		col3.xyzw * blend_weights.zzzz;
+
+	//This code, deals with lights
 	float4 lcolor, lspec, lvec, lpoint, latten, ldir, leye, lhalf;
 
 	float4 tot_ambient  = float4(0,0,0,0);
