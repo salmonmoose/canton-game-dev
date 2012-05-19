@@ -333,16 +333,36 @@ class Canton(ShowBase):
         loadPrcFile('canton.prc')
         ShowBase.__init__(self)
 
-        
+        base.disableMouse()        
 
         self.title = OnscreenText(
             text='Canton indev',
-            style=1, fg=(1,1,1,1), pos=(0.5, -0.95), scale = .07)
+            style=1, fg=(1,1,1,1), pos=(0.5, -0.95), scale = .07
+        )
+
+        self.volume = OnscreenText(
+            text='0',
+            style=1, fg=(1,1,1,1), pos=(-0.95, -0.95), scale = .07, mayChange=True
+        )
+
+        self.mouseStat = OnscreenText(
+            text='',
+            style=1, fg=(1,1,1,1), pos=(-0.95, -0.9), scale = .07, mayChange=True
+        )
+
 
         render.ls()
 
-        base.useDrive()
+        self.accept('mouse1', self.mouseOneEvent)
+        self.accept('mouse2', self.mouseTwoEvent)
+        self.accept('mouse3', self.mouseThreeEvent)
+
         self.worldMap = WorldMap(16,8,122011)
+
+        self.activeVoxel = False
+
+        self.mouseBlock = self.loader.loadModel("models/box")
+        self.mouseBlock.reparentTo(self.render)
 
         self.sun = DirectionalLight('sun')
 
@@ -351,30 +371,56 @@ class Canton(ShowBase):
         render.setLight(self.dlnp)
         render.setShaderInput("sun", self.dlnp)
 
-        self.ambient = AmbientLight('amient')
-        self.ambient.setColor(VBase4(0.0,0.0,0.5,1))
-        self.alnp = render.attachNewNode(self.ambient)
-        render.setLight(self.alnp)
-        render.setShaderInput("ambient", self.alnp)
-
-        self.camera.setPos(0,0,18)
-        self.taskMgr.add(self.spinCameraTask, "spinCameraTask")
+        self.pickerRay = CollisionRay()
+        self.camLens.setFar(200.0)
+        self.taskMgr.add(self.dayCycleTask, "dayCycleTask")
+        self.cam.setPos(48,48,32)
+        self.cam.setHpr(135,-20,0)
         self.taskMgr.add(self.drawLandscapeTask, "drawLandscapeTask")
+        self.taskMgr.add(self.mouseCursorTask, "mouseCursorTask")
+
+    def mouseOneEvent(self):
+        if(self.activeVoxel):
+            self.worldMap.addVolume(self.activeVoxel)
+        self.mouseStat.setText('Left')
+
+
+    def mouseTwoEvent(self):
+        self.mouseStat.setText('Middle')
+
+    def mouseThreeEvent(self):
+        if(self.activeVoxel):
+            self.worldMap.removeVolume(self.activeVoxel)
+        self.mouseStat.setText('Right')
 
     def drawLandscapeTask(self, task):
         playerPos = (0.0,0.0,0.0)
         self.worldMap.update(playerPos)
 
+    def mouseCursorTask(self, task):
+        if base.mouseWatcherNode.hasMouse():
+            mpos = base.mouseWatcherNode.getMouse()
 
-    def spinCameraTask(self, task):
+            self.pickerRay.setFromLens(base.camNode, mpos)
+
+            nearPoint = render.getRelativePoint(base.cam, self.pickerRay.getOrigin())
+            farPoint = render.getRelativePoint(base.cam, self.pickerRay.getDirection())
+
+            self.activeVoxel = self.worldMap.bresenham(nearPoint, farPoint)
+            if(self.activeVoxel):
+                self.volume.setText("{0}".format(self.worldMap.getVolume(self.activeVoxel[0], self.activeVoxel[1], self.activeVoxel[2])))
+
+            self.mouseBlock.setPos(self.worldMap.bresenham(nearPoint, farPoint))
+
+        return task.again
+
+    def dayCycleTask(self, task):
         angleDegrees = task.time * 20.0
         angleRadians = angleDegrees * (pi / 180.0)
-        self.camera.setPos(64 * sin(angleRadians), -64 * cos(angleRadians), 32)
         self.dlnp.setPos(16,16,16)
         self.dlnp.setHpr(angleDegrees * 4, 45, 0)
-        self.camera.setHpr(angleDegrees, -20, 0)
 
-        return Task.cont
+        return task.cont
 '''
     oooooo   oooooo     oooo                    oooo        .o8  ooo        ooooo                      
      `888.    `888.     .8'                     `888       "888  `88.       .888'                      
@@ -418,19 +464,121 @@ class WorldMap:
                     nodeLoc[2]
                     ))
 
+    def addVolume(self, position):
+        mapRef = (position[0] / self.chunkSize, position[1] / self.chunkSize, position[2] / self.chunkSize)
+
+        if mapRef not in self.chunks:
+            return False
+
+        if self.chunks[mapRef][position[0] % self.chunkSize, position[1] % self.chunkSize, position[2] % self.chunkSize] < 1:
+            self.chunks[mapRef][position[0] % self.chunkSize, position[1] % self.chunkSize, position[2] % self.chunkSize] = 1
+            self.updateChunk(mapRef)
+        else:
+            self.addVolume((position[0], position[1], position[2] + 1))
+
+    def removeVolume(self, position):
+        mapRef = (position[0] / self.chunkSize, position[1] / self.chunkSize, position[2] / self.chunkSize)
+
+        if mapRef not in self.chunks:
+            return False
+
+        if self.chunks[mapRef][position[0] % self.chunkSize, position[1] % self.chunkSize, position[2] % self.chunkSize] > 0:
+            self.chunks[mapRef][position[0] % self.chunkSize, position[1] % self.chunkSize, position[2] % self.chunkSize] = 0
+            self.updateChunk(mapRef)
+        else:
+            self.removeVolume((position[0], position[1], position[2] - 1))
+
     def updateChunk(self, location):
         if location not in self.chunks:
             self.loadChunk(location)
-        self.geomNodes[location] = render.attachNewNode(Voxel.marchingCubes(
+
+
+
+        newMesh = Voxel.marchingCubes(
             self, 
             (self.chunkSize, self.chunkSize, self.chunkSize),
-            (location[0] * self.chunkSize, location[1] * self.chunkSize, location[2] * self.chunkSize),
-            0.5)
+            (location[0] * self.chunkSize, location[1] * self.chunkSize, location[2] * self.chunkSize)
         )
+        if location in self.geomNodes:
+            self.geomNodes[location].removeNode()        
+
+        self.geomNodes[location] = render.attachNewNode(newMesh)
         self.geomNodes[location].setShader(self.shader)
         self.geomNodes[location].setTexture(self.stageGrass, self.grass)
         self.geomNodes[location].setTexture(self.stageRock, self.rock)
         self.geomNodes[location].setTwoSided(False)
+
+    def getVolume(self, x_pos, y_pos, z_pos):
+        mapRef = (x_pos / self.chunkSize, y_pos / self.chunkSize, z_pos / self.chunkSize)
+
+        if mapRef not in self.chunks:
+            return False
+
+        return self.chunks[mapRef][x_pos % self.chunkSize, y_pos % self.chunkSize, z_pos % self.chunkSize]
+
+    def getPoint(self, x_pos, y_pos, z_pos):
+        mapRef = (x_pos / self.chunkSize, y_pos / self.chunkSize, z_pos / self.chunkSize)
+
+        if mapRef not in self.chunks:
+            return False
+
+        if self.chunks[mapRef][x_pos % self.chunkSize, y_pos % self.chunkSize, z_pos % self.chunkSize] > 0:
+            return True
+        else:
+            return False
+
+    def bresenham(self, startPoint, endPoint):
+        startPoint = [int(startPoint[0]),int(startPoint[1]),int(startPoint[2])]
+
+        endPoint = [int(endPoint[0]),int(endPoint[1]),int(endPoint[2])]
+
+        steepXY = (abs(endPoint[1] - startPoint[1]) > abs(endPoint[0] - startPoint[0]))
+        if(steepXY):   
+            startPoint[0], startPoint[1] = startPoint[1], startPoint[0]
+            endPoint[0], endPoint[1] = endPoint[1], endPoint[0]
+
+        steepXZ = (abs(endPoint[2] - startPoint[2]) > abs(endPoint[0] - startPoint[0]))
+        if(steepXZ):
+            startPoint[0], startPoint[2] = startPoint[2], startPoint[0]
+            endPoint[0], endPoint[2] = endPoint[2], endPoint[0]
+
+        delta = [abs(endPoint[0] - startPoint[0]), abs(endPoint[1] - startPoint[1]), abs(endPoint[2] - startPoint[2])]
+
+        errorXY = delta[0] / 2
+        errorXZ = delta[0] / 2
+
+        step = [
+            -1 if startPoint[0] > endPoint[0] else 1,
+            -1 if startPoint[1] > endPoint[1] else 1,
+            -1 if startPoint[2] > endPoint[2] else 1
+        ]
+
+        y = startPoint[1]
+        z = startPoint[2]
+
+        for x in range(startPoint[0], endPoint[0], step[0]):
+            point = [x, y, z]
+
+            if(steepXZ):
+                point[0], point[2] = point[2], point[0]
+            if(steepXY):
+                point[0], point[1] = point[1], point[0]
+
+            if(self.getPoint(point[0], point[1], point[2])):
+                return (point[0], point[1], point[2])
+
+            errorXY -= delta[1]
+            errorXZ -= delta[2]
+
+            if(errorXY < 0):
+                y += step[1]
+                errorXY += delta[0]
+
+            if(errorXZ < 0):
+                z += step[2]
+                errorXZ += delta[0]
+
+        return False
 
 
     def getCacheGroup(self, x_pos, y_pos, z_pos):
@@ -439,7 +587,7 @@ class WorldMap:
         if mapRef not in self.chunks:
             self.loadChunk(mapRef)
 
-        #This order is stupid fixing requires regenerating Magic Numbers :(
+        #This order is stupid; fixing requires regenerating Magic Numbers :(
         return [
             self.chunks[mapRef][(x_pos % self.chunkSize) + 0, (y_pos % self.chunkSize) + 0, (z_pos % self.chunkSize) + 0],
             self.chunks[mapRef][(x_pos % self.chunkSize) + 1, (y_pos % self.chunkSize) + 0, (z_pos % self.chunkSize) + 0],
@@ -485,14 +633,17 @@ class Terrain:
         self.noise = PerlinNoise3(4.0,4.0,16.0, 256, seed)
 
     def getGeneratedPoint(self, point):
-        density =  cmp(point[2], self.seaLevel)
-        density+=  self.noise(point[0] / 2.0, point[1] / 2.0, point[2] / 2.0) * 2
-        density+=  self.noise(point[0] / 2.0, point[1] / 2.0, point[2] / 2.0) * 2
+        density =  0-cmp(point[2], self.seaLevel)
+        density-=  self.noise(point[0] / 2.0, point[1] / 2.0, point[2] / 2.0) * 2
+        density-=  self.noise(point[0] / 2.0, point[1] / 2.0, point[2] / 2.0) * 2
 
-        density+= (float(point[2]) / 2) / self.seaLevel
-
+        density-= (float(point[2]) / 2) / self.seaLevel
         #if(density > 0): density = 0
-        return density
+
+        if(density < -1): density = -1
+        if(density > 1): density = 1
+
+        return round(density, 1)
 
 '''
     oooooo     oooo                                 oooo      
@@ -574,6 +725,8 @@ class Voxel:
         #Voxel.buildChunk(lemmingData, Voxel.pointSprite,0.5)
         #Voxel.buildChunk(lemmingData, Voxel.culledCube, 0.5)
 
+
+     
     @staticmethod
     def buildChunk(chunkData, renderMode, scale):
         faces = (0,1,2,3,4,5)
@@ -609,7 +762,7 @@ class Voxel:
                                                                                 "Y88888P'                                                            
     '''                                                                                                                                                  
     @staticmethod
-    def marchingCubes(chunkData, size, offset, scale):
+    def marchingCubes(chunkData, size, offset):
         snode = GeomNode('chunk')
 
         x_count = size[0]
@@ -653,7 +806,7 @@ class Voxel:
 
                         pointVals = chunkData.getCacheGroup(x + offset[0], y + offset[1], z + offset[2])
                         for i in range(8):
-                            if(pointVals[i] < isolevel): 
+                            if(pointVals[i] > isolevel): 
                                 value |= (2 ** i)
 
                         for tri in range(0, len(cubeTris[value])-1, 3):
