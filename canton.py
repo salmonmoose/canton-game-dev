@@ -2,10 +2,15 @@ from math import pi, sin, cos
 
 from direct.showbase.ShowBase import ShowBase
 from direct.gui.DirectGui import *
+from direct.directtools.DirectGeometry import LineNodePath
 from direct.task import Task
 from panda3d.core import *
 
 import numpy
+
+import marchingcubes
+
+import draw
 
 points = [
     [0,0,0],
@@ -59,265 +64,6 @@ edgeUVW = [
     [0.0,0.5,1.0]
 ]
 
-cubeTris = [
-    [],
-    [0,8,3],
-    [0,1,9],
-    [1,8,3,9,8,1],
-    [1,2,10],
-    [0,8,3,1,2,10],
-    [9,2,10,0,2,9],
-    [2,8,3,2,10,8,10,9,8],
-    [3,11,2],
-    [0,11,2,8,11,0],
-    [1,9,0,2,3,11],
-    [1,11,2,1,9,11,9,8,11],
-    [3,10,1,11,10,3],
-    [0,10,1,0,8,10,8,11,10],
-    [3,9,0,3,11,9,11,10,9],
-    [9,8,10,10,8,11],
-    [4,7,8],
-    [4,3,0,7,3,4],
-    [0,1,9,8,4,7],
-    [4,1,9,4,7,1,7,3,1],
-    [1,2,10,8,4,7],
-    [3,4,7,3,0,4,1,2,10],
-    [9,2,10,9,0,2,8,4,7],
-    [2,10,9,2,9,7,2,7,3,7,9,4],
-    [8,4,7,3,11,2],
-    [11,4,7,11,2,4,2,0,4],
-    [9,0,1,8,4,7,2,3,11],
-    [4,7,11,9,4,11,9,11,2,9,2,1],
-    [3,10,1,3,11,10,7,8,4],
-    [1,11,10,1,4,11,1,0,4,7,11,4],
-    [4,7,8,9,0,11,9,11,10,11,0,3],
-    [4,7,11,4,11,9,9,11,10],
-    [9,5,4],
-    [9,5,4,0,8,3],
-    [0,5,4,1,5,0],
-    [8,5,4,8,3,5,3,1,5],
-    [1,2,10,9,5,4],
-    [3,0,8,1,2,10,4,9,5],
-    [5,2,10,5,4,2,4,0,2],
-    [2,10,5,3,2,5,3,5,4,3,4,8],
-    [9,5,4,2,3,11],
-    [0,11,2,0,8,11,4,9,5],
-    [0,5,4,0,1,5,2,3,11],
-    [2,1,5,2,5,8,2,8,11,4,8,5],
-    [10,3,11,10,1,3,9,5,4],
-    [4,9,5,0,8,1,8,10,1,8,11,10],
-    [5,4,0,5,0,11,5,11,10,11,0,3],
-    [5,4,8,5,8,10,10,8,11],
-    [9,7,8,5,7,9],
-    [9,3,0,9,5,3,5,7,3],
-    [0,7,8,0,1,7,1,5,7],
-    [1,5,3,3,5,7],
-    [9,7,8,9,5,7,10,1,2],
-    [10,1,2,9,5,0,5,3,0,5,7,3],
-    [8,0,2,8,2,5,8,5,7,10,5,2],
-    [2,10,5,2,5,3,3,5,7],
-    [7,9,5,7,8,9,3,11,2],
-    [9,5,7,9,7,2,9,2,0,2,7,11],
-    [2,3,11,0,1,8,1,7,8,1,5,7],
-    [11,2,1,11,1,7,7,1,5],
-    [9,5,8,8,5,7,10,1,3,10,3,11],
-    [5,7,0,5,0,9,7,11,0,1,0,10,11,10,0],
-    [11,10,0,11,0,3,10,5,0,8,0,7,5,7,0],
-    [11,10,5,7,11,5],
-    [10,6,5],
-    [0,8,3,5,10,6],
-    [9,0,1,5,10,6],
-    [1,8,3,1,9,8,5,10,6],
-    [1,6,5,2,6,1],
-    [1,6,5,1,2,6,3,0,8],
-    [9,6,5,9,0,6,0,2,6],
-    [5,9,8,5,8,2,5,2,6,3,2,8],
-    [2,3,11,10,6,5],
-    [11,0,8,11,2,0,10,6,5],
-    [0,1,9,2,3,11,5,10,6],
-    [5,10,6,1,9,2,9,11,2,9,8,11],
-    [6,3,11,6,5,3,5,1,3],
-    [0,8,11,0,11,5,0,5,1,5,11,6],
-    [3,11,6,0,3,6,0,6,5,0,5,9],
-    [6,5,9,6,9,11,11,9,8],
-    [5,10,6,4,7,8],
-    [4,3,0,4,7,3,6,5,10],
-    [1,9,0,5,10,6,8,4,7],
-    [10,6,5,1,9,7,1,7,3,7,9,4],
-    [6,1,2,6,5,1,4,7,8],
-    [1,2,5,5,2,6,3,0,4,3,4,7],
-    [8,4,7,9,0,5,0,6,5,0,2,6],
-    [7,3,9,7,9,4,3,2,9,5,9,6,2,6,9],
-    [3,11,2,7,8,4,10,6,5],
-    [5,10,6,4,7,2,4,2,0,2,7,11],
-    [0,1,9,4,7,8,2,3,11,5,10,6],
-    [9,2,1,9,11,2,9,4,11,7,11,4,5,10,6],
-    [8,4,7,3,11,5,3,5,1,5,11,6],
-    [5,1,11,5,11,6,1,0,11,7,11,4,0,4,11],
-    [0,5,9,0,6,5,0,3,6,11,6,3,8,4,7],
-    [6,5,9,6,9,11,4,7,9,7,11,9],
-    [10,4,9,6,4,10],
-    [4,10,6,4,9,10,0,8,3],
-    [10,0,1,10,6,0,6,4,0],
-    [8,3,1,8,1,6,8,6,4,6,1,10],
-    [1,4,9,1,2,4,2,6,4],
-    [3,0,8,1,2,9,2,4,9,2,6,4],
-    [0,2,4,4,2,6],
-    [8,3,2,8,2,4,4,2,6],
-    [10,4,9,10,6,4,11,2,3],
-    [0,8,2,2,8,11,4,9,10,4,10,6],
-    [3,11,2,0,1,6,0,6,4,6,1,10],
-    [6,4,1,6,1,10,4,8,1,2,1,11,8,11,1],
-    [9,6,4,9,3,6,9,1,3,11,6,3],
-    [8,11,1,8,1,0,11,6,1,9,1,4,6,4,1],
-    [3,11,6,3,6,0,0,6,4],
-    [6,4,8,11,6,8],
-    [7,10,6,7,8,10,8,9,10],
-    [0,7,3,0,10,7,0,9,10,6,7,10],
-    [10,6,7,1,10,7,1,7,8,1,8,0],
-    [10,6,7,10,7,1,1,7,3],
-    [1,2,6,1,6,8,1,8,9,8,6,7],
-    [2,6,9,2,9,1,6,7,9,0,9,3,7,3,9],
-    [7,8,0,7,0,6,6,0,2],
-    [7,3,2,6,7,2],
-    [2,3,11,10,6,8,10,8,9,8,6,7],
-    [2,0,7,2,7,11,0,9,7,6,7,10,9,10,7],
-    [1,8,0,1,7,8,1,10,7,6,7,10,2,3,11],
-    [11,2,1,11,1,7,10,6,1,6,7,1],
-    [8,9,6,8,6,7,9,1,6,11,6,3,1,3,6],
-    [0,9,1,11,6,7],
-    [7,8,0,7,0,6,3,11,0,11,6,0],
-    [7,11,6],
-    [7,6,11],
-    [3,0,8,11,7,6],
-    [0,1,9,11,7,6],
-    [8,1,9,8,3,1,11,7,6],
-    [10,1,2,6,11,7],
-    [1,2,10,3,0,8,6,11,7],
-    [2,9,0,2,10,9,6,11,7],
-    [6,11,7,2,10,3,10,8,3,10,9,8],
-    [7,2,3,6,2,7],
-    [7,0,8,7,6,0,6,2,0],
-    [2,7,6,2,3,7,0,1,9],
-    [1,6,2,1,8,6,1,9,8,8,7,6],
-    [10,7,6,10,1,7,1,3,7],
-    [10,7,6,1,7,10,1,8,7,1,0,8],
-    [0,3,7,0,7,10,0,10,9,6,10,7],
-    [7,6,10,7,10,8,8,10,9],
-    [6,8,4,11,8,6],
-    [3,6,11,3,0,6,0,4,6],
-    [8,6,11,8,4,6,9,0,1],
-    [9,4,6,9,6,3,9,3,1,11,3,6],
-    [6,8,4,6,11,8,2,10,1],
-    [1,2,10,3,0,11,0,6,11,0,4,6],
-    [4,11,8,4,6,11,0,2,9,2,10,9],
-    [10,9,3,10,3,2,9,4,3,11,3,6,4,6,3],
-    [8,2,3,8,4,2,4,6,2],
-    [0,4,2,4,6,2],
-    [1,9,0,2,3,4,2,4,6,4,3,8],
-    [1,9,4,1,4,2,2,4,6],
-    [8,1,3,8,6,1,8,4,6,6,10,1],
-    [10,1,0,10,0,6,6,0,4],
-    [4,6,3,4,3,8,6,10,3,0,3,9,10,9,3],
-    [10,9,4,6,10,4],
-    [4,9,5,7,6,11],
-    [0,8,3,4,9,5,11,7,6],
-    [5,0,1,5,4,0,7,6,11],
-    [11,7,6,8,3,4,3,5,4,3,1,5],
-    [9,5,4,10,1,2,7,6,11],
-    [6,11,7,1,2,10,0,8,3,4,9,5],
-    [7,6,11,5,4,10,4,2,10,4,0,2],
-    [3,4,8,3,5,4,3,2,5,10,5,2,11,7,6],
-    [7,2,3,7,6,2,5,4,9],
-    [9,5,4,0,8,6,0,6,2,6,8,7],
-    [3,6,2,3,7,6,1,5,0,5,4,0],
-    [6,2,8,6,8,7,2,1,8,4,8,5,1,5,8],
-    [9,5,4,10,1,6,1,7,6,1,3,7],
-    [1,6,10,1,7,6,1,0,7,8,7,0,9,5,4],
-    [4,0,10,4,10,5,0,3,10,6,10,7,3,7,10],
-    [7,6,10,7,10,8,5,4,10,4,8,10],
-    [6,9,5,6,11,9,11,8,9],
-    [3,6,11,0,6,3,0,5,6,0,9,5],
-    [0,11,8,0,5,11,0,1,5,5,6,11],
-    [6,11,3,6,3,5,5,3,1],
-    [1,2,10,9,5,11,9,11,8,11,5,6],
-    [0,11,3,0,6,11,0,9,6,5,6,9,1,2,10],
-    [11,8,5,11,5,6,8,0,5,10,5,2,0,2,5],
-    [6,11,3,6,3,5,2,10,3,10,5,3],
-    [5,8,9,5,2,8,5,6,2,3,8,2],
-    [9,5,6,9,6,0,0,6,2],
-    [1,5,8,1,8,0,5,6,8,3,8,2,6,2,8],
-    [1,5,6,2,1,6],
-    [1,3,6,1,6,10,3,8,6,5,6,9,8,9,6],
-    [10,1,0,10,0,6,9,5,0,5,6,0],
-    [0,3,8,5,6,10],
-    [10,5,6],
-    [11,5,10,7,5,11],
-    [11,5,10,11,7,5,8,3,0],
-    [5,11,7,5,10,11,1,9,0],
-    [10,7,5,10,11,7,9,8,1,8,3,1],
-    [11,1,2,11,7,1,7,5,1],
-    [0,8,3,1,2,7,1,7,5,7,2,11],
-    [9,7,5,9,2,7,9,0,2,2,11,7],
-    [7,5,2,7,2,11,5,9,2,3,2,8,9,8,2],
-    [2,5,10,2,3,5,3,7,5],
-    [8,2,0,8,5,2,8,7,5,10,2,5],
-    [9,0,1,5,10,3,5,3,7,3,10,2],
-    [9,8,2,9,2,1,8,7,2,10,2,5,7,5,2],
-    [1,3,5,3,7,5],
-    [0,8,7,0,7,1,1,7,5],
-    [9,0,3,9,3,5,5,3,7],
-    [9,8,7,5,9,7],
-    [5,8,4,5,10,8,10,11,8],
-    [5,0,4,5,11,0,5,10,11,11,3,0],
-    [0,1,9,8,4,10,8,10,11,10,4,5],
-    [10,11,4,10,4,5,11,3,4,9,4,1,3,1,4],
-    [2,5,1,2,8,5,2,11,8,4,5,8],
-    [0,4,11,0,11,3,4,5,11,2,11,1,5,1,11],
-    [0,2,5,0,5,9,2,11,5,4,5,8,11,8,5],
-    [9,4,5,2,11,3],
-    [2,5,10,3,5,2,3,4,5,3,8,4],
-    [5,10,2,5,2,4,4,2,0],
-    [3,10,2,3,5,10,3,8,5,4,5,8,0,1,9],
-    [5,10,2,5,2,4,1,9,2,9,4,2],
-    [8,4,5,8,5,3,3,5,1],
-    [0,4,5,1,0,5],
-    [8,4,5,8,5,3,9,0,5,0,3,5],
-    [9,4,5],
-    [4,11,7,4,9,11,9,10,11],
-    [0,8,3,4,9,7,9,11,7,9,10,11],
-    [1,10,11,1,11,4,1,4,0,7,4,11],
-    [3,1,4,3,4,8,1,10,4,7,4,11,10,11,4],
-    [4,11,7,9,11,4,9,2,11,9,1,2],
-    [9,7,4,9,11,7,9,1,11,2,11,1,0,8,3],
-    [11,7,4,11,4,2,2,4,0],
-    [11,7,4,11,4,2,8,3,4,3,2,4],
-    [2,9,10,2,7,9,2,3,7,7,4,9],
-    [9,10,7,9,7,4,10,2,7,8,7,0,2,0,7],
-    [3,7,10,3,10,2,7,4,10,1,10,0,4,0,10],
-    [1,10,2,8,7,4],
-    [4,9,1,4,1,7,7,1,3],
-    [4,9,1,4,1,7,0,8,1,8,7,1],
-    [4,0,3,7,4,3],
-    [4,8,7],
-    [9,10,8,10,11,8],
-    [3,0,9,3,9,11,11,9,10],
-    [0,1,10,0,10,8,8,10,11],
-    [3,1,10,11,3,10],
-    [1,2,11,1,11,9,9,11,8],
-    [3,0,9,3,9,11,1,2,9,2,11,9],
-    [0,2,11,8,0,11],
-    [3,2,11],
-    [2,3,8,2,8,10,10,8,9],
-    [9,10,2,0,9,2],
-    [2,3,8,2,8,10,0,1,8,1,10,8],
-    [1,10,2],
-    [1,3,8,9,1,8],
-    [0,9,1],
-    [0,3,8],
-    []
-]
-
 '''
       .oooooo.                             .                         
      d8P'  `Y8b                          .o8                         
@@ -350,14 +96,29 @@ class Canton(ShowBase):
             style=1, fg=(1,1,1,1), pos=(-0.95, -0.9), scale = .07, mayChange=True
         )
 
-
         render.ls()
 
         self.accept('mouse1', self.mouseOneEvent)
         self.accept('mouse2', self.mouseTwoEvent)
         self.accept('mouse3', self.mouseThreeEvent)
 
-        self.worldMap = WorldMap(16,8,122011)
+        self.accept('arrow_left', self.keyLeft)
+        self.accept('arrow_left-repeat', self.keyLeft)
+
+        self.accept('arrow_right', self.keyRight)
+        self.accept('arrow_right-repeat', self.keyRight)
+
+        self.accept('arrow_up', self.keyUp)
+        self.accept('arrow_up-repeat', self.keyUp)
+
+        self.accept('arrow_down', self.keyDown)
+        self.accept('arrow_down-repeat', self.keyDown)
+
+        self.mapSize = (64,64,16)
+        self.viewPosition = (0,0,0)
+        self.camOffset = (-32,-32,32)
+
+        self.worldMap = WorldMap(16, self.mapSize, 8, 122011)
 
         self.activeVoxel = False
 
@@ -374,16 +135,55 @@ class Canton(ShowBase):
         self.pickerRay = CollisionRay()
         self.camLens.setFar(200.0)
         self.taskMgr.add(self.dayCycleTask, "dayCycleTask")
-        self.cam.setPos(48,48,32)
-        self.cam.setHpr(135,-20,0)
+        self.cam.setPos(self.camOffset)
+        self.cam.setHpr(-45,-20,0)
         self.taskMgr.add(self.drawLandscapeTask, "drawLandscapeTask")
         self.taskMgr.add(self.mouseCursorTask, "mouseCursorTask")
+
+    def getCamPos(self):
+        return (
+            self.viewPosition[0] + self.camOffset[0],
+            self.viewPosition[1] + self.camOffset[1],
+            self.viewPosition[2] + self.camOffset[2]
+            )
+
+    def keyLeft(self):
+        self.viewPosition = (
+            self.viewPosition[0] + (-1 if self.viewPosition[0] > 0 else 0),
+            self.viewPosition[1] + (1 if self.viewPosition[1] < self.mapSize[1] else 0),
+            self.viewPosition[2]
+            )
+        self.cam.setPos(self.getCamPos())
+
+    def keyRight(self):
+        self.viewPosition = (
+            self.viewPosition[0] + (1 if self.viewPosition[0] < self.mapSize[0] else 0),
+            self.viewPosition[1] + (-1 if self.viewPosition[1] > 0 else 0),
+            self.viewPosition[2]
+            )
+        self.cam.setPos(self.getCamPos())
+
+    def keyUp(self):
+        self.viewPosition = (
+            self.viewPosition[0] + (1 if self.viewPosition[0] < self.mapSize[0] else 0),
+            self.viewPosition[1] + (1 if self.viewPosition[1] < self.mapSize[0] else 0),
+            self.viewPosition[2]
+            )
+        self.cam.setPos(self.getCamPos())
+
+    def keyDown(self):
+        self.viewPosition = (
+            self.viewPosition[0] + (-1 if self.viewPosition[0] > 0 else 0),
+            self.viewPosition[1] + (-1 if self.viewPosition[1] > 0 else 0),
+            self.viewPosition[2]
+            )
+        self.cam.setPos(self.getCamPos())
+
 
     def mouseOneEvent(self):
         if(self.activeVoxel):
             self.worldMap.addVolume(self.activeVoxel)
         self.mouseStat.setText('Left')
-
 
     def mouseTwoEvent(self):
         self.mouseStat.setText('Middle')
@@ -394,13 +194,13 @@ class Canton(ShowBase):
         self.mouseStat.setText('Right')
 
     def drawLandscapeTask(self, task):
-        playerPos = (0.0,0.0,0.0)
-        self.worldMap.update(playerPos)
+        self.worldMap.update(self.viewPosition)
+        #self.worldMap.drawNavMesh()
+        return task.again
 
     def mouseCursorTask(self, task):
         if base.mouseWatcherNode.hasMouse():
             mpos = base.mouseWatcherNode.getMouse()
-
             self.pickerRay.setFromLens(base.camNode, mpos)
 
             nearPoint = render.getRelativePoint(base.cam, self.pickerRay.getOrigin())
@@ -434,12 +234,20 @@ class Canton(ShowBase):
 '''
 class WorldMap:
 
-    def __init__(self, chunkSize, seaLevel, seed):
+    def __init__(self, chunkSize, mapSize, seaLevel, seed):
         self.chunkSize = chunkSize
+        self.mapSize = mapSize
         self.seaLevel = seaLevel
-        self.terrainGen = Terrain(chunkSize,seaLevel,seed)
+        self.terrainGen = Terrain(seaLevel,seed)
         self.chunks = {}
         self.geomNodes = {}
+        self.travelGrid = {}
+        self.setupMap()
+        self.travelLines = LineNodePath(parent = render, thickness = 1.0, colorVec = Vec4(1, 0, 0, 1))
+        self.travelVerts = []
+
+        self.genTravelGrid()
+
         self.shader = loader.loadShader('bin/moosecore/marchingcubes.sha')
         self.rock = loader.loadTexture('resources/rock.jpg')
         self.stageRock = TextureStage("Rock")
@@ -458,11 +266,78 @@ class WorldMap:
 
         for x in range(-1, 2):
             for y in range(-1, 2):
-                self.updateChunk((
-                    nodeLoc[0] + x,
-                    nodeLoc[1] + y,
-                    nodeLoc[2]
-                    ))
+                if(
+                    nodeLoc[0] + x >= 0 
+                    and nodeLoc[1] + y >= 0
+                    and nodeLoc[0] + x < self.mapSize[0] / self.chunkSize
+                    and nodeLoc[1] + y < self.mapSize[1] / self.chunkSize
+                    ):
+                    self.drawChunk((
+                        nodeLoc[0] + x,
+                        nodeLoc[1] + y,
+                        nodeLoc[2]
+                        ))
+
+    def drawNavMesh(self):
+        pass
+
+    def genTravelGrid(self):
+        self.travelLines.reset()
+        self.travelGrid = {}
+        self.travelVerts = []
+        for x in range(self.mapSize[0]):
+            for y in range(self.mapSize[1]):
+                for z in range(self.mapSize[2]):
+                    self.walkNodes((x,y,z))
+
+        self.travelLines.drawLines(self.travelVerts)
+        self.travelLines.create()
+
+
+    def walkNodes(self, position):
+        if position not in self.travelGrid:
+            if self.getPoint(position[0], position[1], position[2]) and not self.getPoint(position[0], position[1], position[2] + 1):
+
+                self.travelGrid[position] = 0
+
+                if self.walkNodes((position[0], position[1] + 1, position[2])):
+                    self.travelGrid[position] |= 1
+                    self.travelVerts.append(((position[0], position[1], position[2] + 1), (position[0], position[1] + 1, position[2] + 1)))
+
+                if self.walkNodes((position[0] + 1, position[1] + 1, position[2])):
+                    self.travelGrid[position] |= 2
+                    self.travelVerts.append(((position[0], position[1], position[2] + 1), (position[0] + 1, position[1] + 1, position[2] + 1)))
+
+                if self.walkNodes((position[0] + 1, position[1], position[2])):
+                    self.travelGrid[position] |= 4
+                    self.travelVerts.append(((position[0], position[1], position[2] + 1), (position[0] + 1, position[1], position[2] + 1)))
+
+                if self.walkNodes((position[0] + 1, position[1] - 1, position[2])):
+                    self.travelGrid[position] |= 8
+                    self.travelVerts.append(((position[0], position[1], position[2] + 1), (position[0] + 1, position[1] - 1, position[2] + 1)))
+
+                if self.walkNodes((position[0], position[1] - 1, position[2])):
+                    self.travelGrid[position] |= 16
+                    self.travelVerts.append(((position[0], position[1], position[2] + 1), (position[0], position[1] - 1, position[2] + 1)))
+
+                if self.walkNodes((position[0] - 1, position[1] - 1, position[2])):
+                    self.travelGrid[position] |= 32
+                    self.travelVerts.append(((position[0], position[1], position[2] + 1), (position[0] - 1, position[1] - 1, position[2] + 1)))
+
+                if self.walkNodes((position[0] - 1, position[1], position[2])):
+                    self.travelGrid[position] |= 64
+                    self.travelVerts.append(((position[0], position[1], position[2] + 1), (position[0] - 1, position[1], position[2] + 1)))
+
+                if self.walkNodes((position[0] - 1, position[1] + 1, position[2])):
+                    self.travelGrid[position] |= 128
+                    self.travelVerts.append(((position[0], position[1], position[2] + 1), (position[0] - 1, position[1] + 1, position[2] + 1)))
+
+                return True
+            else:
+                return False
+        else:
+            return True
+
 
     def addVolume(self, position):
         mapRef = (position[0] / self.chunkSize, position[1] / self.chunkSize, position[2] / self.chunkSize)
@@ -473,6 +348,7 @@ class WorldMap:
         if self.chunks[mapRef][position[0] % self.chunkSize, position[1] % self.chunkSize, position[2] % self.chunkSize] < 1:
             self.chunks[mapRef][position[0] % self.chunkSize, position[1] % self.chunkSize, position[2] % self.chunkSize] = 1
             self.updateChunk(mapRef)
+            self.genTravelGrid()
         else:
             self.addVolume((position[0], position[1], position[2] + 1))
 
@@ -485,16 +361,22 @@ class WorldMap:
         if self.chunks[mapRef][position[0] % self.chunkSize, position[1] % self.chunkSize, position[2] % self.chunkSize] > 0:
             self.chunks[mapRef][position[0] % self.chunkSize, position[1] % self.chunkSize, position[2] % self.chunkSize] = 0
             self.updateChunk(mapRef)
+            self.genTravelGrid()
         else:
             self.removeVolume((position[0], position[1], position[2] - 1))
+
+    def drawChunk(self, location):
+        if location not in self.chunks:
+            self.loadChunk(location)
+
+        if location not in self.geomNodes:
+            self.updateChunk(location)
 
     def updateChunk(self, location):
         if location not in self.chunks:
             self.loadChunk(location)
 
-
-
-        newMesh = Voxel.marchingCubes(
+        newMesh = marchingcubes.MarchingCubes.generate(
             self, 
             (self.chunkSize, self.chunkSize, self.chunkSize),
             (location[0] * self.chunkSize, location[1] * self.chunkSize, location[2] * self.chunkSize)
@@ -598,7 +480,19 @@ class WorldMap:
             self.chunks[mapRef][(x_pos % self.chunkSize) + 1, (y_pos % self.chunkSize) + 1, (z_pos % self.chunkSize) + 1],
             self.chunks[mapRef][(x_pos % self.chunkSize) + 0, (y_pos % self.chunkSize) + 1, (z_pos % self.chunkSize) + 1]
         ]
-        
+    
+    def getCachePoint(self, x_pos, y_pos, z_pos, x_off, y_off, z_off):
+        if(x_pos + y_pos == 0):
+            pass
+
+
+    def setupMap(self):
+        for x in range(self.mapSize[0] / self.chunkSize):
+            for y in range(self.mapSize[1] / self.chunkSize):
+                for z in range(self.mapSize[2] / self.chunkSize):
+                    mapRef = (x,y,z)
+                    self.loadChunk(mapRef)
+
     def loadChunk(self, mapRef):
         self.generateChunk(mapRef)
 
@@ -626,8 +520,7 @@ class WorldMap:
 '''                                                                       
 class Terrain:
 
-    def __init__(self, chunkSize, seaLevel, seed):
-        self.chunkSize = chunkSize
+    def __init__(self, seaLevel, seed):
         self.seaLevel = seaLevel
         self.heightMap = PerlinNoise2(16.0,16.0, 256, seed)
         self.noise = PerlinNoise3(4.0,4.0,16.0, 256, seed)
@@ -636,6 +529,8 @@ class Terrain:
         density =  0-cmp(point[2], self.seaLevel)
         density-=  self.noise(point[0] / 2.0, point[1] / 2.0, point[2] / 2.0) * 2
         density-=  self.noise(point[0] / 2.0, point[1] / 2.0, point[2] / 2.0) * 2
+
+        density-=  self.noise(point[0] / 1.5, point[1] / 0.5, point[2] / 0.5) *2
 
         density-= (float(point[2]) / 2) / self.seaLevel
         #if(density > 0): density = 0
@@ -672,32 +567,6 @@ class Voxel:
         [0.0,0.0],
         [1.0,0.0],
         [1.0,1.0]
-    ]
-
-    points = [
-        [0,0,0],
-        [1,0,0],
-        [1,0,1],
-        [0,0,1],
-        [0,1,0],
-        [1,1,0],
-        [1,1,1],
-        [0,1,1]
-    ]
-
-    edges = [
-        [0,1],
-        [1,2],
-        [2,3],
-        [3,0],
-        [4,5],
-        [5,6],
-        [6,7],
-        [7,4],
-        [0,4],
-        [1,5],
-        [2,6],
-        [3,7]
     ]
 
     cubeColors = [
@@ -749,135 +618,7 @@ class Voxel:
         a = inColor & 3
 
         return (r * 85 / 255.0, g * 85 / 255.0, b * 85 / 255.0, a * 85 / 255.0)
-
-    '''
-    ooo        ooooo                              oooo         o8o                              .oooooo.                .o8                          
-    `88.       .888'                              `888         `"'                             d8P'  `Y8b              "888                          
-     888b     d'888   .oooo.   oooo d8b  .ooooo.   888 .oo.   oooo  ooo. .oo.    .oooooooo    888          oooo  oooo   888oooo.   .ooooo.   .oooo.o 
-     8 Y88. .P  888  `P  )88b  `888""8P d88' `"Y8  888P"Y88b  `888  `888P"Y88b  888' `88b     888          `888  `888   d88' `88b d88' `88b d88(  "8 
-     8  `888'   888   .oP"888   888     888        888   888   888   888   888  888   888     888           888   888   888   888 888ooo888 `"Y88b.  
-     8    Y     888  d8(  888   888     888   .o8  888   888   888   888   888  `88bod8P'     `88b    ooo   888   888   888   888 888    .o o.  )88b 
-    o8o        o888o `Y888""8o d888b    `Y8bod8P' o888o o888o o888o o888o o888o `8oooooo.      `Y8bood8P'   `V88V"V8P'  `Y8bod8P' `Y8bod8P' 8""888P' 
-                                                                                d"     YD                                                            
-                                                                                "Y88888P'                                                            
-    '''                                                                                                                                                  
-    @staticmethod
-    def marchingCubes(chunkData, size, offset):
-        snode = GeomNode('chunk')
-
-        x_count = size[0]
-        y_count = size[1]
-        z_count = size[2]
-
-        array = GeomVertexArrayFormat()
-        array.addColumn(InternalName.make('vertex'), 3, Geom.NTFloat32, Geom.CPoint)
-        array.addColumn(InternalName.make('normal'), 3, Geom.NTFloat32, Geom.CPoint)
-        array.addColumn(InternalName.make('color'), 4, Geom.NTFloat32, Geom.CPoint)
-        array.addColumn(InternalName.make('texcoord'), 4, Geom.NTFloat32, Geom.CPoint)
-        
-        format = GeomVertexFormat()
-        format.addArray(array)
-        format = GeomVertexFormat.registerFormat(format)
-        
-        vdata=GeomVertexData('strip', format, Geom.UHDynamic)
-        
-        cube = Geom(vdata)
-
-        vertex = GeomVertexWriter(vdata, 'vertex')
-        
-        normal = GeomVertexWriter(vdata, 'normal')
-
-        color  = GeomVertexWriter(vdata, 'color')
-
-        texcoord = GeomVertexWriter(vdata, 'texcoord')
-
-        tris = GeomTriangles(Geom.UHDynamic)
-
-        pointHash = {}
-
-        triVerts = [0,0,0]
-
-        isolevel = 0
-
-        for z in range(z_count):
-            for y in range(y_count):
-                for x in range(x_count):
-                        value = 0
-
-                        pointVals = chunkData.getCacheGroup(x + offset[0], y + offset[1], z + offset[2])
-                        for i in range(8):
-                            if(pointVals[i] > isolevel): 
-                                value |= (2 ** i)
-
-                        for tri in range(0, len(cubeTris[value])-1, 3):
-                            for vert in range(3):
-                                if value is not 0 and value is not 255:
-                                    edge = cubeTris[value][tri+vert]
-                                    #are these points hashed?
-                                    p1 = Voxel.points[Voxel.edges[edge][0]]
-                                    p2 = Voxel.points[Voxel.edges[edge][1]]
-                                    p1val = pointVals[Voxel.edges[edge][0]]
-                                    p2val = pointVals[Voxel.edges[edge][1]]
-
-
-                                    location = (p1[0]+x, p1[1]+y, p1[2] +z, p2[0] + x, p2[1] + y, p2[2] + z)
-
-                                    if(location in pointHash):
-                                        triVerts[vert] = pointHash[location]
-                                    else:
-                                        if(abs(isolevel - p1val) < 0.00001):
-                                            point = p1
-                                        if(abs(isolevel - p2val) < 0.00001):
-                                            point = p2
-                                        if(abs(p1val - p2val) < 0.00001):
-                                            point = p1
-                                        mu = (isolevel - p1val) / (p2val - p1val)
-
-                                        point = [
-                                            p1[0] + mu * (p2[0] - p1[0]),
-                                            p1[1] + mu * (p2[1] - p1[1]),
-                                            p1[2] + mu * (p2[2] - p1[2])
-                                        ]
-
-                                        row = vertex.getWriteRow()
-
-                                        vertex.addData3f(x+point[0]+offset[0],y+point[1]+offset[1],z+point[2]+offset[2])
-                                        texcoord.addData3f(point[0],point[1],point[2])
-                                        normal.addData3f(0.0,0.0,0.0)
-                                        color.addData4f(1.0,1.0,1.0,1.0)
-
-                                        pointHash[location] = row
-                                        triVerts[vert] = row
-
-                            tris.addVertices(triVerts[0], triVerts[1], triVerts[2])
-        
-        vertexReader = GeomVertexReader(vdata, 'vertex')
-        normalReader = GeomVertexReader(vdata, 'normal')
-
-        for tri in range(tris.getNumPrimitives()):
-            vIndex = tris.getPrimitiveStart(tri)
-
-            vertexReader.setRow(tris.getVertex(vIndex))
-            vert1 = vertexReader.getData3f()
-            vertexReader.setRow(tris.getVertex(vIndex + 1))
-            vert2 = vertexReader.getData3f()
-            vertexReader.setRow(tris.getVertex(vIndex + 2))
-            vert3 = vertexReader.getData3f()
-
-            triNormal = (vert2 - vert1).cross(vert1 - vert3)
-            
-            for i in range(3):
-                normalReader.setRow(tris.getVertex(vIndex + i))
-                newNormal = normalReader.getData3f() + triNormal
-                newNormal.normalize()
-                normal.setRow(tris.getVertex(vIndex + i))
-                normal.setData3f(newNormal)
-            
-        cube.addPrimitive(tris)
-        snode.addGeom(cube)
-
-        return snode
-
+    
     '''
     ooooooooo.              o8o                  .       .oooooo..o                      o8o      .                      
     `888   `Y88.            `"'                .o8      d8P'    `Y8                      `"'    .o8                      
