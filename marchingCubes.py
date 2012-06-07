@@ -3,6 +3,8 @@ from panda3d.core import Geom, GeomNode, GeomTriangles
 from panda3d.core import GeomVertexArrayFormat, InternalName
 from panda3d.core import GeomVertexReader, GeomVertexWriter
 
+import numpy
+
 '''
     ooo        ooooo                              oooo         o8o                              .oooooo.                .o8                          
     `88.       .888'                              `888         `"'                             d8P'  `Y8b              "888                          
@@ -18,6 +20,7 @@ class MarchingCubes:
 
     @staticmethod
     def generate(chunkData, size, offset):
+        print ('generating iso surface')
         snode = GeomNode('chunk')
 
         x_count = size[0]
@@ -48,7 +51,7 @@ class MarchingCubes:
 
         tris = GeomTriangles(Geom.UHDynamic)
 
-        pointHash = {}
+        pointHash = numpy.zeros((x_count * 2 + 1, y_count * 2 + 1, z_count  * 2 + 1), int)
 
         triVerts = [0,0,0]
 
@@ -61,7 +64,7 @@ class MarchingCubes:
 
                         pointVals = chunkData.getCacheGroup(x + offset[0], y + offset[1], z + offset[2])
                         for i in range(8):
-                            if(pointVals[i] > isolevel): 
+                            if(pointVals[i][0] > isolevel): 
                                 value |= (2 ** i)
 
                         for tri in range(0, len(cubeTris[value])-1, 3):
@@ -71,11 +74,15 @@ class MarchingCubes:
                                     #are these points hashed?
                                     p1 = points[edges[edge][0]]
                                     p2 = points[edges[edge][1]]
-                                    p1val = pointVals[edges[edge][0]]
-                                    p2val = pointVals[edges[edge][1]]
+                                    p1val = pointVals[edges[edge][0]][0]
+                                    p2val = pointVals[edges[edge][1]][0]
 
 
-                                    location = (p1[0]+x, p1[1]+y, p1[2] +z, p2[0] + x, p2[1] + y, p2[2] + z)
+                                    location = (
+                                        (((p1[0]+x) * 2) + ((p2[0]+x) * 2)) / 2, 
+                                        (((p1[1]+y) * 2) + ((p2[1]+y) * 2)) / 2, 
+                                        (((p1[2]+z) * 2) + ((p2[2]+z) * 2)) / 2
+                                        )
 
                                     if(location in pointHash):
                                         triVerts[vert] = pointHash[location]
@@ -105,8 +112,10 @@ class MarchingCubes:
                                         texcoord.addData3f(point[0], point[1], point[2])
                                         normal.addData3f(0.0,0.0,0.0)
                                         color.addData4f(1.0,1.0,1.0,1.0)
-
-                                        pointHash[location] = row
+                                        try:
+                                            pointHash[location] = row
+                                        except Exception:
+                                            print (location)
                                         triVerts[vert] = row
 
                             tris.addVertices(triVerts[0], triVerts[1], triVerts[2])

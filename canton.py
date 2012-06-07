@@ -8,7 +8,7 @@ from panda3d.core import *
 
 import numpy
 
-import marchingcubes
+import marchingCubes
 
 import draw
 
@@ -246,19 +246,34 @@ class WorldMap:
         self.seaLevel = seaLevel
         self.terrainGen = Terrain(seaLevel,seed)
         self.chunks = {}
+        self.materialChunks = {}
         self.geomNodes = {}
         self.travelGrid = numpy.zeros(self.mapSize, int)
-        self.travelLines = LineNodePath(parent = render, thickness = 3.0, colorVec = Vec4(0, 0, 1, 1))
+        self.travelLines = {}
+        self.travelVerts = []   
         self.setupMap()
-        self.travelVerts = []
 
         self.shader = loader.loadShader('bin/moosecore/marchingcubes.sha')
+
         self.rock = loader.loadTexture('resources/rock.jpg')
         self.stageRock = TextureStage("Rock")
         self.stageRock.setSort(1)
+
         self.grass = loader.loadTexture('resources/grass.jpg')
         self.stageGrass = TextureStage("Grass")
         self.stageGrass.setSort(2)
+
+        self.void = loader.loadTexture('resources/void.jpg')
+        self.stageVoid = TextureStage("Void")
+        self.stageVoid.setSort(3)
+
+        self.clay = loader.loadTexture('resource/clay.jpg')
+        self.stageClay = TextureStage("Clay")
+        self.stageClay.setSort(4)
+
+        self.dirt = loader.loadTexture('resource/dirt.jpg')
+        self.stageDirt = TextureStage("Dirt")
+        self.stageClay.setSort(5)
 
     def update(self, playerPos):
         #generate chunks near player
@@ -283,17 +298,19 @@ class WorldMap:
                         ))
 
     def genTravelGrid(self, mapRef):
-        self.travelLines.reset()
-        self.travelGrid = numpy.zeros(self.mapSize, int)
-        self.travelVerts = []
-        for x in range(self.mapSize[0]):
-            for y in range(self.mapSize[1]):
-                for z in range(self.mapSize[2]):
-                    self.walkNodes((x,y,z))
+        print ('Generating Travel Grid {0}'.format(mapRef))
+        if mapRef in self.travelLines:
+            self.travelLines[mapRef].reset()
+        else:
+            self.travelLines[mapRef] = LineNodePath(parent = render, thickness = 3.0, colorVec = Vec4(0, 0, 1, 1))
+        
+        for x in range(self.chunkSize):
+            for y in range(self.chunkSize):
+                for z in range(self.chunkSize):
+                    self.walkNodes(mapRef, (x,y,z))
 
-        self.travelLines.drawLines(self.travelVerts)
-        self.travelLines.create()
-
+        self.travelLines[mapRef].drawLines(self.travelVerts)
+        self.travelLines[mapRef].create()
 
     def nodeWalkable(self, position):
         if self.getPoint(position[0], position[1], position[2]) and not self.getPoint(position[0], position[1], position[2] + 1) and not self.getPoint(position[0], position[1], position[2] + 2):
@@ -301,50 +318,47 @@ class WorldMap:
         else:
             return False
 
-    def walkNodes(self, position):
-        if position not in self.travelGrid:
-            if self.nodeWalkable(position):
+    def walkNodes(self, mapRef, offset):
+        position = (
+            mapRef[0] * self.chunkSize + offset[0],
+            mapRef[1] * self.chunkSize + offset[1],
+            mapRef[2] * self.chunkSize + offset[2]
+            )
 
-                self.travelGrid[position] = 0
+        self.travelGrid[position] = 0
 
-                if self.nodeWalkable((position[0], position[1] + 1, position[2])):
-                    self.travelGrid[position] |= 1
-                    self.travelVerts.append(((position[0], position[1], position[2] +1), (position[0], position[1] + 1, position[2] + 1)))
+        if self.nodeWalkable(position):
+            if self.nodeWalkable((position[0], position[1] + 1, position[2])):
+                self.travelGrid[position] |= 1
+                #self.travelVerts.append(((position[0], position[1], position[2] +1), (position[0], position[1] + 1, position[2] + 1)))
 
-                if self.nodeWalkable((position[0] + 1, position[1] + 1, position[2])):
-                    self.travelGrid[position] |= 2
-                    self.travelVerts.append(((position[0], position[1], position[2] +1), (position[0] + 1, position[1] + 1, position[2] + 1)))
+            if self.nodeWalkable((position[0] + 1, position[1] + 1, position[2])):
+                self.travelGrid[position] |= 2
+                #self.travelVerts.append(((position[0], position[1], position[2] +1), (position[0] + 1, position[1] + 1, position[2] + 1)))
 
-                if self.nodeWalkable((position[0] + 1, position[1], position[2])):
-                    self.travelGrid[position] |= 4
-                    self.travelVerts.append(((position[0], position[1], position[2] +1), (position[0] + 1, position[1], position[2] + 1)))
+            if self.nodeWalkable((position[0] + 1, position[1], position[2])):
+                self.travelGrid[position] |= 4
+                #self.travelVerts.append(((position[0], position[1], position[2] +1), (position[0] + 1, position[1], position[2] + 1)))
 
-                if self.nodeWalkable((position[0] + 1, position[1] - 1, position[2])):
-                    self.travelGrid[position] |= 8
-                    self.travelVerts.append(((position[0], position[1], position[2] +1), (position[0] + 1, position[1] - 1, position[2] + 1)))
+            if self.nodeWalkable((position[0] + 1, position[1] - 1, position[2])):
+                self.travelGrid[position] |= 8
+                #self.travelVerts.append(((position[0], position[1], position[2] +1), (position[0] + 1, position[1] - 1, position[2] + 1)))
 
-                if self.nodeWalkable((position[0], position[1] - 1, position[2])):
-                    self.travelGrid[position] |= 16
-                    self.travelVerts.append(((position[0], position[1], position[2] +1), (position[0], position[1] - 1, position[2] + 1)))
+            if self.nodeWalkable((position[0], position[1] - 1, position[2])):
+                self.travelGrid[position] |= 16
+                #self.travelVerts.append(((position[0], position[1], position[2] +1), (position[0], position[1] - 1, position[2] + 1)))
 
-                if self.nodeWalkable((position[0] - 1, position[1] - 1, position[2])):
-                    self.travelGrid[position] |= 32
-                    self.travelVerts.append(((position[0], position[1], position[2] +1), (position[0] - 1, position[1] - 1, position[2] + 1)))
+            if self.nodeWalkable((position[0] - 1, position[1] - 1, position[2])):
+                self.travelGrid[position] |= 32
+                #self.travelVerts.append(((position[0], position[1], position[2] +1), (position[0] - 1, position[1] - 1, position[2] + 1)))
 
-                if self.nodeWalkable((position[0] - 1, position[1], position[2])):
-                    self.travelGrid[position] |= 64
-                    self.travelVerts.append(((position[0], position[1], position[2] +1), (position[0] - 1, position[1], position[2] + 1)))
+            if self.nodeWalkable((position[0] - 1, position[1], position[2])):
+                self.travelGrid[position] |= 64
+                #self.travelVerts.append(((position[0], position[1], position[2] +1), (position[0] - 1, position[1], position[2] + 1)))
 
-                if self.nodeWalkable((position[0] - 1, position[1] + 1, position[2])):
-                    self.travelGrid[position] |= 128
-                    self.travelVerts.append(((position[0], position[1], position[2] +1), (position[0] - 1, position[1] + 1, position[2] + 1)))
-
-                return True
-            else:
-                return False
-        else:
-            return True
-
+            if self.nodeWalkable((position[0] - 1, position[1] + 1, position[2])):
+                self.travelGrid[position] |= 128
+                #self.travelVerts.append(((position[0], position[1], position[2] +1), (position[0] - 1, position[1] + 1, position[2] + 1)))
 
     def addVolume(self, position):
         mapRef = (position[0] / self.chunkSize, position[1] / self.chunkSize, position[2] / self.chunkSize)
@@ -383,7 +397,7 @@ class WorldMap:
         if location not in self.chunks:
             self.loadChunk(location)
 
-        newMesh = marchingcubes.MarchingCubes.generate(
+        newMesh = marchingCubes.MarchingCubes.generate(
             self, 
             (self.chunkSize, self.chunkSize, self.chunkSize),
             (location[0] * self.chunkSize, location[1] * self.chunkSize, location[2] * self.chunkSize)
@@ -494,7 +508,8 @@ class WorldMap:
         if mapRef not in self.chunks:
             self.loadChunk(mapRef)
 
-        return self.chunks[mapRef][x_pos % self.chunkSize, y_pos % self.chunkSize, z_pos % self.chunkSize]
+        return self.chunks[mapRef][x_pos % self.chunkSize, y_pos % self.chunkSize, z_pos % self.chunkSize], 
+        self.materialChunks[mapRef][x_pos % self.chunkSize, y_pos % self.chunkSize, z_pos % self.chunkSize]
 
     def setupMap(self):
         for x in range(self.mapSize[0] / self.chunkSize):
@@ -502,13 +517,14 @@ class WorldMap:
                 for z in range(self.mapSize[2] / self.chunkSize):
                     mapRef = (x,y,z)
                     self.loadChunk(mapRef)
-                    self.genTravelGrid(mapRef)
+        self.genTravelGrid(mapRef)
 
     def loadChunk(self, mapRef):
         self.generateChunk(mapRef)
 
     def generateChunk(self, mapRef):
         self.chunks[mapRef] = numpy.zeros((self.chunkSize, self.chunkSize, self.chunkSize), float)
+        self.materialChunks[mapRef] = numpy.zeros((self.chunkSize, self.chunkSize, self.chunkSize), float)
 
         for x in range(self.chunkSize):
             for y in range(self.chunkSize):
@@ -518,7 +534,8 @@ class WorldMap:
                         (mapRef[1] * self.chunkSize) + y,
                         (mapRef[2] * self.chunkSize) + z
                         )
-                    self.chunks[mapRef][x,y,z] = self.terrainGen.getGeneratedPoint(point)
+
+                    self.chunks[mapRef][x,y,z], self.materialChunks[mapRef][x,y,z] = self.terrainGen.getGeneratedPoint(point)
 
 '''
     ooooooooooooo                                        o8o              
@@ -536,8 +553,17 @@ class Terrain:
         self.heightMap = PerlinNoise2(16.0,16.0, 256, seed)
         self.noise = PerlinNoise3(4.0,4.0,16.0, 256, seed)
 
+    def loadTerrain(self):
+        program = [
+            
+        ]
+        pass
+
     def getGeneratedPoint(self, point):
         density =  0-cmp(point[2], self.seaLevel)
+
+        material = self.noise(point[0], point[1], point[2])
+
         #density-=  self.noise(point[0] / 2.0, point[1] / 2.0, point[2] / 2.0) * 2
         
         #density-=  self.noise(point[0] / 2.0, point[1] / 2.0, point[2] / 2.0) * 2
@@ -550,7 +576,16 @@ class Terrain:
         if(density < -1): density = -1
         if(density > 1): density = 1
 
-        return round(density, 1)
+        if material > 0.5:
+            material = 3
+        elif material > 0:
+            material = 2
+        elif material > -0.5:
+            material = 1
+        else:
+            material = 0
+
+        return round(density, 1), material
 
 '''
     oooooo     oooo                                 oooo      

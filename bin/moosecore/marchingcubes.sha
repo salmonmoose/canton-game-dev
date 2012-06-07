@@ -3,26 +3,33 @@
 void vshader(
 	in float4	vtx_position : POSITION,
 	in float3	vtx_normal : NORMAL,
+	in float4   vtx_color : COLOR,
 
 	uniform float4x4 tps_projection,
 	uniform float4x4 mat_modelproj,
 
 	out float4 	l_position : POSITION,
 	out float4	l_texcoord0 : TEXCOORD0,
-	out float3	l_texcoord1 : TEXCOORD1
+	out float3	l_texcoord1 : TEXCOORD1,
+	out float4  l_color : COLOR
 )
 {   
 	l_position = mul(mat_modelproj, vtx_position);
 	l_texcoord1 = vtx_normal;
 	l_texcoord0 = mul(tps_projection, vtx_position);
+	l_color = vtx_color;
 }
 
 void fshader(
 	in float3 l_texcoord0 : TEXCOORD0, //normals
 	in float4 l_texcoord1 : TEXCOORD1,
+	in float4 l_color : COLOR,
 
 	uniform sampler2D tex_0,
 	uniform sampler2D tex_1,
+	uniform sampler2D tex_2,
+	uniform sampler2D tex_3,
+	uniform sampler2D tex_4,
 
 	uniform float4x4 dlight_sun_rel_view,
 
@@ -41,14 +48,47 @@ void fshader(
 	float2 coord2 = l_texcoord0.zx * tex_scale;
 	float2 coord3 = l_texcoord0.xy * tex_scale;
 
-	float4 col1 = tex2D(tex_0, coord1);
-	float4 col2 = tex2D(tex_0, coord2);
-	float4 col3 = tex2D(tex_1, coord3);
+	float4 rock_x = tex2D(tex_0, coord1);
+	float4 rock_y = tex2D(tex_0, coord2);
+	float4 rock_z = tex2D(tex_0, coord3);
 
-	blended_color = 
-		col1.xyzw * blend_weights.xxxx +
-		col2.xyzw * blend_weights.yyyy +
-		col3.xyzw * blend_weights.zzzz;
+	float4 dirt_x = tex2D(tex_1, coord1);
+	float4 dirt_y = tex2D(tex_1, coord2);
+	float4 dirt_z = tex2D(tex_1, coord3);
+
+	float4 clay_x = tex2D(tex_2, coord1);
+	float4 clay_y = tex2D(tex_2, coord2);
+	float4 clay_z = tex2D(tex_2, coord3);
+
+	float4 void_x = tex2D(tex_3, coord1);
+	float4 void_y = tex2D(tex_3, coord2);
+	float4 void_z = tex2D(tex_3, coord3);
+
+	triplanar_rock = 
+		rock_x.xyzw * blend_weights.xxxx +
+		rock_y.xyzw * blend_weights.yyyy +
+		rock_z.xyzw * blend_weights.zzzz;
+
+	triplanar_dirt =
+		dirt_x.xyzw * blend_weights.xxxx +
+		dirt_y.xyzw * blend_weights.yyyy +
+		dirt_z.xyzw * blend_weights.zzzz;
+
+	triplanar_clay =
+		clay_x.xyzw * blend_weights.xxxx +
+		clay_y.xyzw * blend_weights.yyyy +
+		clay_z.xyzw * blend_weights.zzzz;
+
+	triplanar_void =
+		clay_x.xyzw * blend_weights.xxxx +
+		clay_y.xyzw * blend_weights.yyyy +
+		clay_z.xyzw * blend_weights.zzzz;
+
+	blended_color =
+		triplanar_void +
+		triplanar_rock * l_color.r +
+		triplanar_dirt * l_color.g +
+		triplanar_clay * l_color.b;
 
 	//This code, deals with lights
 	float4 lcolor, lspec, lvec, lpoint, latten, ldir, leye, lhalf;
