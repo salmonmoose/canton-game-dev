@@ -20,7 +20,6 @@ class MarchingCubes:
 
     @staticmethod
     def generate(chunkData, size, offset):
-        print ('generating iso surface')
         snode = GeomNode('chunk')
 
         x_count = size[0]
@@ -64,7 +63,7 @@ class MarchingCubes:
 
                         pointVals = chunkData.getCacheGroup(x + offset[0], y + offset[1], z + offset[2])
                         for i in range(8):
-                            if(pointVals[i][0] > isolevel): 
+                            if(pointVals[i][0] > isolevel):
                                 value |= (2 ** i)
 
                         for tri in range(0, len(cubeTris[value])-1, 3):
@@ -76,7 +75,8 @@ class MarchingCubes:
                                     p2 = points[edges[edge][1]]
                                     p1val = pointVals[edges[edge][0]][0]
                                     p2val = pointVals[edges[edge][1]][0]
-
+                                    p1col = colors[pointVals[edges[edge][0]][1]]
+                                    p2col = colors[pointVals[edges[edge][1]][1]]
 
                                     location = (
                                         (((p1[0]+x) * 2) + ((p2[0]+x) * 2)) / 2, 
@@ -89,10 +89,13 @@ class MarchingCubes:
                                     else:
                                         if(abs(isolevel - p1val) < 0.00001):
                                             point = p1
+                                            pointColor = p1col
                                         if(abs(isolevel - p2val) < 0.00001):
                                             point = p2
+                                            pointColor = p2col
                                         if(abs(p1val - p2val) < 0.00001):
                                             point = p1
+                                            pointColor = p1col
                                         mu = (isolevel - p1val) / (p2val - p1val)
 
                                         point = [
@@ -100,6 +103,13 @@ class MarchingCubes:
                                             p1[1] + mu * (p2[1] - p1[1]),
                                             p1[2] + mu * (p2[2] - p1[2])
                                         ]
+
+                                        pointColor = (
+                                            p1col[0] + mu * (p2col[0] - p1col[0]),
+                                            p1col[1] + mu * (p2col[1] - p1col[1]),
+                                            p1col[2] + mu * (p2col[2] - p1col[2]),
+                                            p1col[3] + mu * (p2col[3] - p1col[3])
+                                        )
 
                                         row = vertex.getWriteRow()
 
@@ -111,7 +121,8 @@ class MarchingCubes:
 
                                         texcoord.addData3f(point[0], point[1], point[2])
                                         normal.addData3f(0.0,0.0,0.0)
-                                        color.addData4f(1.0,1.0,1.0,1.0)
+
+                                        color.addData4f(pointColor)
                                         try:
                                             pointHash[location] = row
                                         except Exception:
@@ -171,6 +182,13 @@ edges = [
     [1,5],
     [2,6],
     [3,7]
+]
+
+colors = [
+    (1.0,0.0,0.0,0.0),
+    (0.0,1.0,0.0,0.0),
+    (0.0,0.0,1.0,0.0),
+    (0.0,0.0,0.0,1.0)
 ]
 
 cubeTris = [

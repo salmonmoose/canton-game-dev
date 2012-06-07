@@ -116,7 +116,7 @@ class Canton(ShowBase):
 
         self.mapSize = (64,64,16)
         self.viewPosition = (0,0,0)
-        self.camOffset = (-16,-16,16)
+        self.camOffset = (-32,-32,32)
 
         self.worldMap = WorldMap(16, self.mapSize, 8, 122011)
 
@@ -259,21 +259,21 @@ class WorldMap:
         self.stageRock = TextureStage("Rock")
         self.stageRock.setSort(1)
 
+        self.dirt = loader.loadTexture('resources/dirt.jpg')
+        self.stageDirt = TextureStage("Dirt")
+        self.stageDirt.setSort(2)
+
+        self.clay = loader.loadTexture('resources/clay.jpg')
+        self.stageClay = TextureStage("Clay")
+        self.stageClay.setSort(3)
+
+        self.sand = loader.loadTexture('resources/sand.jpg')
+        self.stageSand = TextureStage("Sand")
+        self.stageSand.setSort(4)
+
         self.grass = loader.loadTexture('resources/grass.jpg')
         self.stageGrass = TextureStage("Grass")
-        self.stageGrass.setSort(2)
-
-        self.void = loader.loadTexture('resources/void.jpg')
-        self.stageVoid = TextureStage("Void")
-        self.stageVoid.setSort(3)
-
-        self.clay = loader.loadTexture('resource/clay.jpg')
-        self.stageClay = TextureStage("Clay")
-        self.stageClay.setSort(4)
-
-        self.dirt = loader.loadTexture('resource/dirt.jpg')
-        self.stageDirt = TextureStage("Dirt")
-        self.stageClay.setSort(5)
+        self.stageGrass.setSort(5)
 
     def update(self, playerPos):
         #generate chunks near player
@@ -298,7 +298,6 @@ class WorldMap:
                         ))
 
     def genTravelGrid(self, mapRef):
-        print ('Generating Travel Grid {0}'.format(mapRef))
         if mapRef in self.travelLines:
             self.travelLines[mapRef].reset()
         else:
@@ -407,6 +406,9 @@ class WorldMap:
 
         self.geomNodes[location] = render.attachNewNode(newMesh)
         self.geomNodes[location].setShader(self.shader)
+        self.geomNodes[location].setTexture(self.stageClay, self.clay)
+        self.geomNodes[location].setTexture(self.stageDirt, self.dirt)
+        self.geomNodes[location].setTexture(self.stageSand, self.sand)
         self.geomNodes[location].setTexture(self.stageGrass, self.grass)
         self.geomNodes[location].setTexture(self.stageRock, self.rock)
         self.geomNodes[location].setTwoSided(False)
@@ -508,8 +510,10 @@ class WorldMap:
         if mapRef not in self.chunks:
             self.loadChunk(mapRef)
 
-        return self.chunks[mapRef][x_pos % self.chunkSize, y_pos % self.chunkSize, z_pos % self.chunkSize], 
-        self.materialChunks[mapRef][x_pos % self.chunkSize, y_pos % self.chunkSize, z_pos % self.chunkSize]
+        return (
+            self.chunks[mapRef][x_pos % self.chunkSize, y_pos % self.chunkSize, z_pos % self.chunkSize], 
+            self.materialChunks[mapRef][x_pos % self.chunkSize, y_pos % self.chunkSize, z_pos % self.chunkSize]
+            )
 
     def setupMap(self):
         for x in range(self.mapSize[0] / self.chunkSize):
@@ -524,7 +528,7 @@ class WorldMap:
 
     def generateChunk(self, mapRef):
         self.chunks[mapRef] = numpy.zeros((self.chunkSize, self.chunkSize, self.chunkSize), float)
-        self.materialChunks[mapRef] = numpy.zeros((self.chunkSize, self.chunkSize, self.chunkSize), float)
+        self.materialChunks[mapRef] = numpy.zeros((self.chunkSize, self.chunkSize, self.chunkSize), int)
 
         for x in range(self.chunkSize):
             for y in range(self.chunkSize):
@@ -562,15 +566,15 @@ class Terrain:
     def getGeneratedPoint(self, point):
         density =  0-cmp(point[2], self.seaLevel)
 
-        material = self.noise(point[0], point[1], point[2])
+        material = self.noise(point[0] / 5.0, point[1] / 5.0, point[2] / 5.0)
 
-        #density-=  self.noise(point[0] / 2.0, point[1] / 2.0, point[2] / 2.0) * 2
+        density-=  self.noise(point[0] / 2.0, point[1] / 2.0, point[2] / 2.0) * 2
         
-        #density-=  self.noise(point[0] / 2.0, point[1] / 2.0, point[2] / 2.0) * 2
+        density-=  self.noise(point[0] / 2.0, point[1] / 2.0, point[2] / 2.0) * 2
 
-        #density-=  self.noise(point[0] / 1.5, point[1] / 0.5, point[2] / 0.5) * 2
+        density-=  self.noise(point[0] / 1.5, point[1] / 0.5, point[2] / 0.5) * 2
 
-        #density-= (float(point[2]) / 2) / self.seaLevel
+        density-= (float(point[2]) / 2) / self.seaLevel
         #if(density > 0): density = 0
 
         if(density < -1): density = -1

@@ -60,35 +60,39 @@ void fshader(
 	float4 clay_y = tex2D(tex_2, coord2);
 	float4 clay_z = tex2D(tex_2, coord3);
 
-	float4 void_x = tex2D(tex_3, coord1);
-	float4 void_y = tex2D(tex_3, coord2);
-	float4 void_z = tex2D(tex_3, coord3);
+	float4 sand_x = tex2D(tex_3, coord1);
+	float4 sand_y = tex2D(tex_3, coord2);
+	float4 sand_z = tex2D(tex_3, coord3);
 
-	triplanar_rock = 
+	float4 grass_x = tex2D(tex_4, coord1);
+	float4 grass_y = tex2D(tex_4, coord2);
+	float4 grass_z = tex2D(tex_4, coord3);
+
+	float4 triplanar_rock = 
 		rock_x.xyzw * blend_weights.xxxx +
 		rock_y.xyzw * blend_weights.yyyy +
 		rock_z.xyzw * blend_weights.zzzz;
 
-	triplanar_dirt =
+	float4 triplanar_dirt =
 		dirt_x.xyzw * blend_weights.xxxx +
 		dirt_y.xyzw * blend_weights.yyyy +
-		dirt_z.xyzw * blend_weights.zzzz;
+		grass_z.xyzw * blend_weights.zzzz;
 
-	triplanar_clay =
+	float4 triplanar_clay =
 		clay_x.xyzw * blend_weights.xxxx +
 		clay_y.xyzw * blend_weights.yyyy +
 		clay_z.xyzw * blend_weights.zzzz;
 
-	triplanar_void =
-		clay_x.xyzw * blend_weights.xxxx +
-		clay_y.xyzw * blend_weights.yyyy +
-		clay_z.xyzw * blend_weights.zzzz;
+	float4 triplanar_sand =
+		sand_x.xyzw * blend_weights.xxxx +
+		sand_y.xyzw * blend_weights.yyyy +
+		sand_z.xyzw * blend_weights.zzzz;
 
 	blended_color =
-		triplanar_void +
-		triplanar_rock * l_color.r +
-		triplanar_dirt * l_color.g +
-		triplanar_clay * l_color.b;
+		triplanar_rock * l_color.x +
+		triplanar_dirt * l_color.y +
+		triplanar_clay * l_color.z +
+		triplanar_sand * l_color.w;
 
 	//This code, deals with lights
 	float4 lcolor, lspec, lvec, lpoint, latten, ldir, leye, lhalf;
