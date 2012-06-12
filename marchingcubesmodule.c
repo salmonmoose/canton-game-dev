@@ -1,5 +1,4 @@
 #include "Python.h"
-#include <cstdlib.h>
 
 typedef struct {
     double x,y,z;
@@ -24,11 +23,11 @@ XYZ VertexInterp(double isolevel, XYZ p1, XYZ p2, double valp1,double valp2)
    double mu;
    XYZ p;
 
-   if (ABS(isolevel-valp1) < 0.00001)
+   if (abs(isolevel-valp1) < 0.00001)
       return(p1);
-   if (ABS(isolevel-valp2) < 0.00001)
+   if (abs(isolevel-valp2) < 0.00001)
       return(p2);
-   if (ABS(valp1-valp2) < 0.00001)
+   if (abs(valp1-valp2) < 0.00001)
       return(p1);
    mu = (isolevel - valp1) / (valp2 - valp1);
    p.x = p1.x + mu * (p2.x - p1.x);
