@@ -12,6 +12,8 @@ import marchingCubes
 
 import draw
 
+import cProfile
+
 points = [
     [0,0,0],
     [1,0,0],
@@ -803,4 +805,4 @@ def main():
     canton.run()
 
 if __name__ == '__main__':
-    main()
+    cProfile.run('main()')

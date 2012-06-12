@@ -1,3 +1,4 @@
+want-pstats 1
 load-display pandagl
-win-size 1024 768
+win-size 320 240 
 window-title Canton InDev
