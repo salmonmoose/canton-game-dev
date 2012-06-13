@@ -2,66 +2,27 @@
 #include "Vec4.h"
 
 typedef struct {
-    double x,y,z;
-} Vec3;
-
-typedef struct {
-    Vec3 p[3];
+    Vector::Vec3 p[3];
 } TRIANGLE;
 
 typedef struct {
-    Vec3 p[8];
+    Vector::Vec3 p[8];
+    Vector::Vec4 c[8];
     double val[8];
 } GRIDCELL;
 
 typedef struct {
-    Vec3 vertex;
-    Vec3 normal;
-    Vec4 color;
+    Vector::Vec3 vertex;
+    Vector::Vec3 normal;
+    Vector::Vec4 color;
 } VERTEX;
-
-/*
-   Linearly interpolate the position where an isosurface cuts
-   an edge between two vertices, each with their own scalar value
-*/
-Vec3 VertexInterp(double isolevel, Vec3 p1, Vec3 p2, double valp1, double valp2)
-{
-   double mu;
-   Vec3 p;
-
-   if (abs(isolevel-valp1) < 0.00001)
-      return(p1);
-   if (abs(isolevel-valp2) < 0.00001)
-      return(p2);
-   if (abs(valp1-valp2) < 0.00001)
-      return(p1);
-   mu = (isolevel - valp1) / (valp2 - valp1);
-   p.x = p1.x + mu * (p2.x - p1.x);
-   p.y = p1.y + mu * (p2.y - p1.y);
-   p.z = p1.z + mu * (p2.z - p1.z);
-
-   return(p);
-}
-
-Vec3 V3Normalize(Vec3 input)
-{
-    double m;
-    Vec3 p;
-
-    m = sqrt((input.x * input.x) + (input.y + input.y) + (input.z * input.z));
-
-    p.x = input.x / m;
-    p.y = input.y / m;
-    p.z = input.z / m;
-
-    return p;
-}
 
 int Polygonise(GRIDCELL grid, double isolevel, TRIANGLE *triangles)
 {
    int i, ntriang;
    int cubeindex;
-   Vec3 vertlist[12];
+   Vector::Vec3 vertlist[12];
+   Vector::Vec4 colorlist[12];
 
     int edgeTable[256]={
         0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
@@ -377,29 +338,65 @@ int Polygonise(GRIDCELL grid, double isolevel, TRIANGLE *triangles)
 
     /* Find the vertices where the surface intersects the cube */
     if (edgeTable[cubeindex] & 1)
-        vertlist[0] =  VertexInterp(isolevel, grid.p[0], grid.p[1], grid.val[0], grid.val[1]);
+    {
+        vertlist[0] =  Vector::interpolate(grid.p[0], grid.p[1], grid.val[0], grid.val[1], isolevel);
+        colorlist[0] =  Vector::interpolate(grid.c[0], grid.c[1], grid.val[0], grid.val[1], isolevel);
+    }
     if (edgeTable[cubeindex] & 2)
-        vertlist[1] =  VertexInterp(isolevel, grid.p[1], grid.p[2], grid.val[1], grid.val[2]);
+    {
+        vertlist[1] =  Vector::interpolate(grid.p[1], grid.p[2], grid.val[1], grid.val[2], isolevel);
+        colorlist[1] =  Vector::interpolate(grid.c[1], grid.c[2], grid.val[1], grid.val[2], isolevel);
+    }
     if (edgeTable[cubeindex] & 4)
-        vertlist[2] =  VertexInterp(isolevel, grid.p[2], grid.p[3], grid.val[2], grid.val[3]);
+    {
+        vertlist[2] =  Vector::interpolate(grid.p[2], grid.p[3], grid.val[2], grid.val[3], isolevel);
+        colorlist[2] =  Vector::interpolate(grid.c[2], grid.c[3], grid.val[2], grid.val[3], isolevel);
+    }
     if (edgeTable[cubeindex] & 8)
-        vertlist[3] =  VertexInterp(isolevel, grid.p[3], grid.p[0], grid.val[3], grid.val[0]);
+    {
+        vertlist[3] =  Vector::interpolate(grid.p[3], grid.p[0], grid.val[3], grid.val[0], isolevel);
+        colorlist[3] =  Vector::interpolate(grid.c[3], grid.c[0], grid.val[3], grid.val[0], isolevel);
+    }
     if (edgeTable[cubeindex] & 16)
-        vertlist[4] =  VertexInterp(isolevel, grid.p[4], grid.p[5], grid.val[4], grid.val[5]);
+    {
+        vertlist[4] =  Vector::interpolate(grid.p[4], grid.p[5], grid.val[4], grid.val[5], isolevel);
+        colorlist[4] =  Vector::interpolate(grid.c[4], grid.c[5], grid.val[4], grid.val[5], isolevel);
+    }
     if (edgeTable[cubeindex] & 32)
-        vertlist[5] =  VertexInterp(isolevel, grid.p[5], grid.p[6], grid.val[5], grid.val[6]);
+    {
+        vertlist[5] =  Vector::interpolate(grid.p[5], grid.p[6], grid.val[5], grid.val[6], isolevel);
+        colorlist[5] =  Vector::interpolate(grid.c[5], grid.c[6], grid.val[5], grid.val[6], isolevel);
+    }
     if (edgeTable[cubeindex] & 64)
-        vertlist[6] =  VertexInterp(isolevel, grid.p[6], grid.p[7], grid.val[6], grid.val[7]);
+    {
+        vertlist[6] =  Vector::interpolate(grid.p[6], grid.p[7], grid.val[6], grid.val[7], isolevel);
+        colorlist[6] =  Vector::interpolate(grid.c[6], grid.c[7], grid.val[6], grid.val[7], isolevel);
+    }
     if (edgeTable[cubeindex] & 128)
-        vertlist[7] =  VertexInterp(isolevel, grid.p[7], grid.p[4], grid.val[7], grid.val[4]);
+    {
+        vertlist[7] =  Vector::interpolate(grid.p[7], grid.p[4], grid.val[7], grid.val[4], isolevel);
+        colorlist[7] =  Vector::interpolate(grid.c[7], grid.c[4], grid.val[7], grid.val[4], isolevel);
+    }
     if (edgeTable[cubeindex] & 256)
-        vertlist[8] =  VertexInterp(isolevel, grid.p[0], grid.p[4], grid.val[0], grid.val[4]);
+    {
+        vertlist[8] =  Vector::interpolate(grid.p[0], grid.p[4], grid.val[0], grid.val[4], isolevel);
+        colorlist[8] =  Vector::interpolate(grid.c[0], grid.c[4], grid.val[0], grid.val[4], isolevel);
+    }
     if (edgeTable[cubeindex] & 512)
-        vertlist[9] =  VertexInterp(isolevel, grid.p[1], grid.p[5], grid.val[1], grid.val[5]);
+    {
+        vertlist[9] =  Vector::interpolate(grid.p[1], grid.p[5], grid.val[1], grid.val[5], isolevel);
+        colorlist[9] = Vector::interpolate(grid.c[1], grid.c[5], grid.val[1], grid.val[5], isolevel);
+    }
     if (edgeTable[cubeindex] & 1024)
-        vertlist[10] = VertexInterp(isolevel, grid.p[2], grid.p[6], grid.val[2], grid.val[6]);
+    {
+        vertlist[10] =  Vector::interpolate(grid.p[2], grid.p[6], grid.val[2], grid.val[6], isolevel);
+        colorlist[10] = Vector::interpolate(grid.c[2], grid.c[6], grid.val[2], grid.val[6], isolevel);
+    }
     if (edgeTable[cubeindex] & 2048)
-        vertlist[11] = VertexInterp(isolevel, grid.p[3], grid.p[7], grid.val[3], grid.val[7]);
+    {
+        vertlist[11] =  Vector::interpolate(grid.p[3], grid.p[7], grid.val[3], grid.val[7], isolevel);
+        colorlist[11] = Vector::interpolate(grid.c[3], grid.c[7], grid.val[3], grid.val[7], isolevel);
+    }
 
     /* Create the triangle */
     ntriang = 0;
