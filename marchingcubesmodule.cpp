@@ -1,27 +1,33 @@
 #include "Python.h"
+#include "Vec4.h"
 
 typedef struct {
     double x,y,z;
-} XYZ;
+} Vec3;
 
 typedef struct {
-    XYZ p[3];
+    Vec3 p[3];
 } TRIANGLE;
 
 typedef struct {
-    XYZ p[8];
+    Vec3 p[8];
     double val[8];
 } GRIDCELL;
 
+typedef struct {
+    Vec3 vertex;
+    Vec3 normal;
+    Vec4 color;
+} VERTEX;
 
 /*
    Linearly interpolate the position where an isosurface cuts
    an edge between two vertices, each with their own scalar value
 */
-XYZ VertexInterp(double isolevel, XYZ p1, XYZ p2, double valp1,double valp2)
+Vec3 VertexInterp(double isolevel, Vec3 p1, Vec3 p2, double valp1, double valp2)
 {
    double mu;
-   XYZ p;
+   Vec3 p;
 
    if (abs(isolevel-valp1) < 0.00001)
       return(p1);
@@ -37,11 +43,25 @@ XYZ VertexInterp(double isolevel, XYZ p1, XYZ p2, double valp1,double valp2)
    return(p);
 }
 
+Vec3 V3Normalize(Vec3 input)
+{
+    double m;
+    Vec3 p;
+
+    m = sqrt((input.x * input.x) + (input.y + input.y) + (input.z * input.z));
+
+    p.x = input.x / m;
+    p.y = input.y / m;
+    p.z = input.z / m;
+
+    return p;
+}
+
 int Polygonise(GRIDCELL grid, double isolevel, TRIANGLE *triangles)
 {
    int i, ntriang;
    int cubeindex;
-   XYZ vertlist[12];
+   Vec3 vertlist[12];
 
     int edgeTable[256]={
         0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
@@ -393,9 +413,9 @@ int Polygonise(GRIDCELL grid, double isolevel, TRIANGLE *triangles)
     return(ntriang);
 }
 
-static PyObject * marching_cubes_generate(PyObject *self, PyObject *chunkdata, PyObject *size, PyObject *offset)
+static PyObject * marching_cubes_generate(PyObject *self, PyObject *args)
 {
-
+    return Py_BuildValue("Ok");
 }
 
 // Module's method table and initialization function
