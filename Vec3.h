@@ -1,3 +1,6 @@
+#ifndef VEC3_H
+#define VEC3_H
+
 namespace Vector {
 
     class Vec3
@@ -5,7 +8,8 @@ namespace Vector {
         public:
             float _v[3];
 
-            Vec3() {
+            Vec3() 
+            {
                 _v[0]=0.0;
                 _v[1]=0.0;
                 _v[2]=0.0;
@@ -202,6 +206,8 @@ namespace Vector {
 
                 return (norm);
             }
+
+
     };
 
     inline Vec3 interpolate (const Vec3& lhs, const Vec3& rhs, const float& vallhs, const float& valrhs, const float& level)
@@ -223,4 +229,22 @@ namespace Vector {
 
         return p;
     }
+
+    inline Vec3 cross(const Vec3& lhs, const Vec3& rhs)
+    {
+        return Vec3(
+            lhs._v[1] * rhs._v[2] - lhs._v[2] * rhs._v[1],
+            lhs._v[2] * rhs._v[0] - lhs._v[0] * rhs._v[2],
+            lhs._v[0] * rhs._v[1] - lhs._v[1] * rhs._v[0]
+        );
+    }
+
+    inline float dot(const Vec3& lhs, const Vec3& rhs)
+    {
+        return lhs._v[0] * rhs._v[0] + 
+               lhs._v[1] * rhs._v[1] +
+               lhs._v[2] * rhs._v[2];
+    }
 }
+
+#endif

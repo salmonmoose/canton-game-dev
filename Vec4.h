@@ -1,4 +1,5 @@
-#include "Vec3.h"
+#ifndef VEC4_H
+#define VEC4_H
 
 namespace Vector {
 
@@ -7,7 +8,8 @@ namespace Vector {
         public:
             float _v[4];
 
-            Vec4() {
+            Vec4() 
+            {
                 _v[0]=0.0;
                 _v[1]=0.0;
                 _v[2]=0.0;
@@ -249,4 +251,14 @@ namespace Vector {
 
         return p;
     }
+
+    inline float dot(const Vec4& lhs, const Vec4& rhs)
+    {
+        return lhs._v[0] * rhs._v[0] + 
+               lhs._v[1] * rhs._v[1] +
+               lhs._v[2] * rhs._v[2] +
+               lhs._v[3] * rhs._v[3];
+    }
 }
+
+#endif
