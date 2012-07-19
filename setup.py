@@ -1,7 +1,11 @@
 from distutils.core import setup, Extension
 import numpy as np
 
-ext = Extension('marchingcubes', sources=['marchingcubesmodule.cpp'])
+ext = Extension(
+	'marchingcubes', 
+	sources=['marchingcubesmodule.cpp'],
+	language="c++",
+	)
 
 setup(
 	name='marchingcubes', 

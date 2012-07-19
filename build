@@ -1,0 +1,3 @@
+#/bin/sh
+
+g++ -I../libs/irrlicht-1.7.3/include/ canton.cpp
