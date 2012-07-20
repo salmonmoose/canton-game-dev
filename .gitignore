@@ -1,4 +1,7 @@
 #I don't really need to commit these
 *.pyc
 ./examples
+./bin
+./Debug
+*.sdf
 build/

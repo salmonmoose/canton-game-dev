@@ -402,7 +402,7 @@ class WorldMap:
             self, 
             (self.chunkSize, self.chunkSize, self.chunkSize),
             (location[0] * self.chunkSize, location[1] * self.chunkSize, location[2] * self.chunkSize)
-        )
+        
         if location in self.geomNodes:
             self.geomNodes[location].removeNode()        
 

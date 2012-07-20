@@ -5,7 +5,7 @@ Target = Canton
 Sources = canton.cpp
 
 # general compiler settings
-CPPFLAGS = -I../libs/irrlicht-1.7.3/include -I/usr/X11R6/include
+CPPFLAGS = -I../libs/irrlicht-1.7.3/include -I../libs/accidentalnoise/include -I/usr/X11R6/include
 CXXFLAGS = -O3 -ffast-math
 #CXXFLAGS = -g -Wall
 
