@@ -33,10 +33,10 @@ static int edges[12][2] = {
 };
 
 static video::SColorf colors[4] = {
-	video::SColorf(1.0, 0.0, 0.0, 1.0),
-	video::SColorf(0.0, 1.0, 0.0, 1.0),
-	video::SColorf(0.0, 0.0, 1.0, 1.0),
-	video::SColorf(0.0, 1.0, 1.0, 1.0)
+	video::SColorf(1.0, 0.0, 0.0, 0.0),
+	video::SColorf(0.0, 1.0, 0.0, 0.0),
+	video::SColorf(0.0, 0.0, 1.0, 0.0),
+	video::SColorf(0.0, 0.0, 0.0, 1.0)
 };
 
 static int edgeTable[256]={
@@ -402,58 +402,43 @@ public:
                     cubeIndex = 0;
                     for (i = 0; i < 8; i++) {
                         pointVals[i] = values[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
-                        printf("pointVal = %f\n", pointVals[i]);
                         colorVals[i] = materials[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
                         if(pointVals[i] > isolevel) cubeIndex |= (1 << i);
                     }
-					printf("CubeIndex: %d\n", cubeIndex);
-
-					position = core::vector3df((double) x, (double) y, (double) z);
+            		position = core::vector3df((double) x, (double) y, (double) z);
 
 					//Generate verts needed by this voxel.
                     for (i = 0; i < 12; i++) {
                         if (edgeTable[cubeIndex] & (1 << i))
                         {
                             if (fabs(isolevel - pointVals[edges[i][0]]) < 0.00001) {
-								printf("isolevel is same as pointval1 %f %f\n", isolevel, pointVals[edges[i][0]]);
 								vertList[i].Pos = points[edges[i][0]] + position;
 								vertList[i].Color = colors[colorVals[edges[i][0]]].toSColor();
                             } 
                             else if (fabs(isolevel - pointVals[edges[i][1]]) < 0.00001) {
-								printf("isolevel is same as pointval2 %f %f\n", isolevel, pointVals[edges[i][1]]);
 								vertList[i].Pos = points[edges[i][1]] + position;
                                 vertList[i].Color = colors[colorVals[edges[i][1]]].toSColor();
                             }
                             else if (fabs(pointVals[edges[i][0]] - pointVals[edges[i][1]]) < 0.00001) {
-								printf("pointval1 and pointval 2 are similar\n", pointVals[edges[i][0]], pointVals[edges[i][1]]);
                                 vertList[i].Pos = points[edges[i][0]] + position;
 								vertList[i].Color = colors[colorVals[edges[i][0]]].toSColor();
                             } else {
-								printf("interpolateing p1 and p2\n");
                                 mu = (isolevel - pointVals[edges[i][0]]) / (pointVals[edges[i][1]] - pointVals[edges[i][0]]);
-
-                                printf("interpolation mu = %f\n", mu);
 
 								vertList[i].Pos = position + points[edges[i][0]].getInterpolated(points[edges[i][1]], mu);
 								vertList[i].Color = colors[colorVals[edges[i][0]]].getInterpolated(colors[colorVals[edges[i][1]]], mu).toSColor().color;
                             }
+                            vertList[i].Normal.set(core::vector3df(0.0,1.0,0.0));
+                            vertList[i].TCoords.set(0.0,0.0);
                         }
                     }
-
 					for (i=0;triTable[cubeIndex][i]!=-1;i++) {
-						printf("Adding point %d at: %f,%f,%f\n", i,
-							vertList[triTable[cubeIndex][i]].Pos.X,
-							vertList[triTable[cubeIndex][i]].Pos.Y,
-							vertList[triTable[cubeIndex][i]].Pos.Z
-							);
-
 						buf->Indices.push_back(buf->Vertices.size());
 						buf->Vertices.push_back(vertList[triTable[cubeIndex][i]]);
 					}
                 }
             }
         }
-
         buf->recalculateBoundingBox();
     }
 };

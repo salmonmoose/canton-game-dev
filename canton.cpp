@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
 	mesh.init(driver);
 
 	scene::IMeshSceneNode *meshnode = smgr->addMeshSceneNode(mesh.Mesh);
-	meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
+	meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, true);
 
 	scene::ILightSceneNode *node = smgr->addLightSceneNode(0,core::vector3df(0,0,0),
 		video::SColorf(1.0f, 1.0f, 1.0f, 1.0f), 20.0f);
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
 	scene::ICameraSceneNode *camera = smgr->addCameraSceneNodeFPS();
 	if(camera)
 	{
-		camera->setPosition(core::vector3df(0.f, 150.f, 0.f));
+		camera->setPosition(core::vector3df(0.f, 0.f, 0.f));
 		camera->setTarget(core::vector3df(0.f, 0.f, 0.f));
 		camera->setFarValue(200.0f);
 	}
