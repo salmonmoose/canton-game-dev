@@ -1,23 +1,10 @@
 #include <irrlicht.h>
 #include "driverChoice.h"
-#include "Vec3.h"
-#include "Vec4.h"
 #include <boost/multi_array.hpp>
 #include <boost/array.hpp>
 #include <stdio.h>
 
 using namespace irr;
-
-typedef struct {
-    Vec3 position;
-    Vec3 normal;
-    Vec4 color;
-} VERTEX;
-
-typedef struct {
-    double value;
-    int material;
-} VOXEL;
 
 static core::vector3df points[8] = {
 	core::vector3df(0.0, 0.0, 0.0),
@@ -49,7 +36,7 @@ static video::SColorf colors[4] = {
 	video::SColorf(1.0, 0.0, 0.0, 1.0),
 	video::SColorf(0.0, 1.0, 0.0, 1.0),
 	video::SColorf(0.0, 0.0, 1.0, 1.0),
-	video::SColorf(0.0, 0.0, 0.0, 1.0)
+	video::SColorf(0.0, 1.0, 1.0, 1.0)
 };
 
 static int edgeTable[256]={
@@ -349,14 +336,30 @@ static int triTable[256][16] = {
 class MCubeMesh
 {
 private:
-    typedef boost::multi_array<double, 3> value_array;
-    typedef boost::multi_array<int, 3> material_array;
+    value_array values;
+    material_array materials;
+
 public:
     scene::SMesh* Mesh;
 
-    MCubeMesh() : Mesh(0)
+    MCubeMesh(value_array inVals, material_array inMats) : Mesh(0)
     {
         Mesh = new scene::SMesh();
+        //FIXME This is messy, I should use pointers here.
+        values.resize(boost::extents
+            [inVals.shape()[0]]
+            [inVals.shape()[1]]
+            [inVals.shape()[2]]
+        );  
+
+        materials.resize(boost::extents
+            [inMats.shape()[0]]
+            [inMats.shape()[1]]
+            [inMats.shape()[2]]
+        );
+
+        values = inVals;
+        materials = inMats;
     }
 
     ~MCubeMesh()
@@ -366,37 +369,22 @@ public:
 
     void init(video::IVideoDriver *driver)
     {
-        int xDim = 3;
-        int yDim = 3;
-		int zDim = 3;
+        int xDim = values.shape()[0];
+        int yDim = values.shape()[1];
+        int zDim = values.shape()[2];
 
         int x,y,z,i,cubeIndex,cacheIndex,ntriang;
         float pointVals[8];
         int colorVals[8];
         video::S3DVertex vertList[12];
         float isolevel = 0.0;
+        float mu;
+		core::vector3df position;
 
         int uSpace = yDim * zDim * (xDim -1);
         int vSpace = zDim * xDim * (yDim -1);
         int wSpace = xDim * yDim * (zDim -1);
 
-        value_array values(boost::extents[xDim][yDim][zDim]);
-        material_array materials(boost::extents[xDim][yDim][zDim]);
-
-        double value_data[] = {
-            0.0,0.0,0.0,    0.0,0.0,0.0,    0.0,0.0,0.0,
-            0.0,0.0,0.0,    0.0,0.5,0.0,    0.0,0.0,0.0,
-            0.0,0.0,0.0,    0.0,0.0,0.0,    0.0,0.0,0.0
-        };
-
-        int material_data[] = {
-            0,0,0, 1,1,1, 2,2,2,
-            1,1,1, 2,2,2, 3,3,3,
-            2,2,2, 3,3,3, 0,0,0,
-        };
-
-        values.assign(value_data, value_data + (xDim * yDim * zDim));
-        materials.assign(material_data, material_data + (xDim * yDim * zDim));
         scene::SMeshBuffer *buf = 0;
 
         buf = new scene::SMeshBuffer();
@@ -414,38 +402,40 @@ public:
                     cubeIndex = 0;
                     for (i = 0; i < 8; i++) {
                         pointVals[i] = values[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
+                        printf("pointVal = %f\n", pointVals[i]);
                         colorVals[i] = materials[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
                         if(pointVals[i] > isolevel) cubeIndex |= (1 << i);
                     }
 					printf("CubeIndex: %d\n", cubeIndex);
-                    //Generate verts needed by this voxel.
+
+					position = core::vector3df((double) x, (double) y, (double) z);
+
+					//Generate verts needed by this voxel.
                     for (i = 0; i < 12; i++) {
                         if (edgeTable[cubeIndex] & (1 << i))
                         {
                             if (fabs(isolevel - pointVals[edges[i][0]]) < 0.00001) {
 								printf("isolevel is same as pointval1 %f %f\n", isolevel, pointVals[edges[i][0]]);
-								vertList[i].Pos = points[edges[i][0]];
+								vertList[i].Pos = points[edges[i][0]] + position;
 								vertList[i].Color = colors[colorVals[edges[i][0]]].toSColor();
                             } 
                             else if (fabs(isolevel - pointVals[edges[i][1]]) < 0.00001) {
 								printf("isolevel is same as pointval2 %f %f\n", isolevel, pointVals[edges[i][1]]);
-								vertList[i].Pos = points[edges[i][1]];
+								vertList[i].Pos = points[edges[i][1]] + position;
                                 vertList[i].Color = colors[colorVals[edges[i][1]]].toSColor();
                             }
                             else if (fabs(pointVals[edges[i][0]] - pointVals[edges[i][1]]) < 0.00001) {
 								printf("pointval1 and pointval 2 are similar\n", pointVals[edges[i][0]], pointVals[edges[i][1]]);
-                                vertList[i].Pos = points[edges[i][0]];
+                                vertList[i].Pos = points[edges[i][0]] + position;
 								vertList[i].Color = colors[colorVals[edges[i][0]]].toSColor();
                             } else {
-								printf("interpolateing p1 and p2");
-								vertList[i].Pos = points[edges[i][0]].getInterpolated(
-                                        points[edges[i][0]],
-                                        (isolevel - pointVals[edges[i][0]]) / (pointVals[edges[i][1]] - pointVals[edges[i][0]])
-                                    );
-								vertList[i].Color = colors[colorVals[edges[i][0]]].getInterpolated(
-                                        colors[colorVals[edges[i][1]]],
-                                        (isolevel - pointVals[edges[i][0]]) / (pointVals[edges[i][1]] - pointVals[edges[i][0]])
-                                    ).toSColor().color;
+								printf("interpolateing p1 and p2\n");
+                                mu = (isolevel - pointVals[edges[i][0]]) / (pointVals[edges[i][1]] - pointVals[edges[i][0]]);
+
+                                printf("interpolation mu = %f\n", mu);
+
+								vertList[i].Pos = position + points[edges[i][0]].getInterpolated(points[edges[i][1]], mu);
+								vertList[i].Color = colors[colorVals[edges[i][0]]].getInterpolated(colors[colorVals[edges[i][1]]], mu).toSColor().color;
                             }
                         }
                     }

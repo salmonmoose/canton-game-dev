@@ -1,5 +1,8 @@
+#include <iostream>
 #include <irrlicht.h>
 #include "driverChoice.h"
+
+#include "canton.h"
 
 #include "marchingcubes.cpp"
 #include "terrain.cpp"
@@ -39,13 +42,15 @@ private:
 
 int main(int argc, char* argv[])
 {
+	ScalarTerrain world;
+
 	video::E_DRIVER_TYPE driverType = driverChoiceConsole();
 	if(driverType == video::EDT_COUNT)
 		return 1;
 
 	MyEventReceiver receiver;
 	IrrlichtDevice* device = createDevice(driverType,
-		core::dimension2du(800, 600), 32, false, false, false,
+		core::dimension2du(320, 240), 32, false, false, false,
 		&receiver);
 
 	if(device == 0)
@@ -56,20 +61,20 @@ int main(int argc, char* argv[])
 
 	device->setWindowCaption(L"Canton Indev");
 
-	MCubeMesh mesh;
+	MCubeMesh mesh(world.values, world.materials);
 
 	mesh.init(driver);
 
-	scene::IMeshSceneNode* meshnode = smgr->addMeshSceneNode(mesh.Mesh);
+	scene::IMeshSceneNode *meshnode = smgr->addMeshSceneNode(mesh.Mesh);
 	meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
 
-	scene::ILightSceneNode *node = smgr->addLightSceneNode(0,core::vector3df(0,100,0),
-		video::SColorf(1.0f, 0.6f, 0.7f, 1.0f), 500.0f);
+	scene::ILightSceneNode *node = smgr->addLightSceneNode(0,core::vector3df(0,0,0),
+		video::SColorf(1.0f, 1.0f, 1.0f, 1.0f), 20.0f);
 
 	if(node)
 	{
 		node->getLightData().Attenuation.set(0.f, 1.f/500.f, 0.f);
-		scene::ISceneNodeAnimator* anim = smgr->createFlyCircleAnimator(core::vector3df(0,150,0),250.0f);
+		scene::ISceneNodeAnimator* anim = smgr->createFlyCircleAnimator(core::vector3df(0,10,0),20.0f);
 		if(anim)
 		{
 			node->addAnimator(anim);
@@ -80,9 +85,9 @@ int main(int argc, char* argv[])
 	scene::ICameraSceneNode *camera = smgr->addCameraSceneNodeFPS();
 	if(camera)
 	{
-		camera->setPosition(core::vector3df(-20.f, 150.f, -20.f));
+		camera->setPosition(core::vector3df(0.f, 150.f, 0.f));
 		camera->setTarget(core::vector3df(0.f, 0.f, 0.f));
-		camera->setFarValue(20000.0f);
+		camera->setFarValue(200.0f);
 	}
 
 	while(device->run())
