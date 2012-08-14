@@ -336,30 +336,44 @@ static int triTable[256][16] = {
 class MCubeMesh
 {
 private:
-    value_array values;
-    material_array materials;
 
 public:
     scene::SMesh* Mesh;
+    TerrainChunk tc;
 
-    MCubeMesh(value_array inVals, material_array inMats) : Mesh(0)
+    MCubeMesh(TerrainChunk & in_tc) : Mesh(0)
     {
+        //FIXME: This is all fucked up
+        //There is no need to clone the object, a reference would work just as well
+        //But C++ is hard.
+        tc = TerrainChunk();
+        printf("this is a test, %d\n", 0);
+
         Mesh = new scene::SMesh();
-        //FIXME This is messy, I should use pointers here.
-        values.resize(boost::extents
-            [inVals.shape()[0]]
-            [inVals.shape()[1]]
-            [inVals.shape()[2]]
+
+        printf("this is a test, %d\n", 1);
+
+        tc.values.resize(boost::extents
+            [in_tc.values.shape()[0]]
+            [in_tc.values.shape()[1]]
+            [in_tc.values.shape()[2]]
         );  
 
-        materials.resize(boost::extents
-            [inMats.shape()[0]]
-            [inMats.shape()[1]]
-            [inMats.shape()[2]]
+        tc.materials.resize(boost::extents
+            [in_tc.materials.shape()[0]]
+            [in_tc.materials.shape()[1]]
+            [in_tc.materials.shape()[2]]
         );
 
-        values = inVals;
-        materials = inMats;
+        printf("this is a test, %d\n", 2);
+
+        tc.values = in_tc.values;
+        tc.materials = in_tc.materials;
+
+        printf("You fed me a chunk this big: %d %d %d\n",
+                (int)in_tc.values.shape()[0],
+                (int)in_tc.values.shape()[1],
+                (int)in_tc.values.shape()[2]);
     }
 
     ~MCubeMesh()
@@ -369,9 +383,9 @@ public:
 
     void init(video::IVideoDriver *driver)
     {
-        int xDim = values.shape()[0];
-        int yDim = values.shape()[1];
-        int zDim = values.shape()[2];
+        int xDim = tc.values.shape()[0];
+        int yDim = tc.values.shape()[1];
+        int zDim = tc.values.shape()[2];
 
         int x,y,z,i,cubeIndex,cacheIndex,ntriang;
         float pointVals[8];
@@ -379,7 +393,7 @@ public:
         video::S3DVertex vertList[12];
         float isolevel = 0.0;
         float mu;
-		core::vector3df position;
+		core::vector3df tmpVec3D;
 
         int uSpace = yDim * zDim * (xDim -1);
         int vSpace = zDim * xDim * (yDim -1);
@@ -401,37 +415,38 @@ public:
                     //Grab density and color data
                     cubeIndex = 0;
                     for (i = 0; i < 8; i++) {
-                        pointVals[i] = values[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
-                        colorVals[i] = materials[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
+                        pointVals[i] = tc.values[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
+                        colorVals[i] = tc.materials[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
                         if(pointVals[i] > isolevel) cubeIndex |= (1 << i);
                     }
-            		position = core::vector3df((double) x, (double) y, (double) z);
+            		tmpVec3D = core::vector3df((double) x, (double) y, (double) z);
 
 					//Generate verts needed by this voxel.
                     for (i = 0; i < 12; i++) {
                         if (edgeTable[cubeIndex] & (1 << i))
                         {
                             if (fabs(isolevel - pointVals[edges[i][0]]) < 0.00001) {
-								vertList[i].Pos = points[edges[i][0]] + position;
+								vertList[i].Pos = points[edges[i][0]] + tmpVec3D;
 								vertList[i].Color = colors[colorVals[edges[i][0]]].toSColor();
                             } 
                             else if (fabs(isolevel - pointVals[edges[i][1]]) < 0.00001) {
-								vertList[i].Pos = points[edges[i][1]] + position;
+								vertList[i].Pos = points[edges[i][1]] + tmpVec3D;
                                 vertList[i].Color = colors[colorVals[edges[i][1]]].toSColor();
                             }
                             else if (fabs(pointVals[edges[i][0]] - pointVals[edges[i][1]]) < 0.00001) {
-                                vertList[i].Pos = points[edges[i][0]] + position;
+                                vertList[i].Pos = points[edges[i][0]] + tmpVec3D;
 								vertList[i].Color = colors[colorVals[edges[i][0]]].toSColor();
                             } else {
                                 mu = (isolevel - pointVals[edges[i][0]]) / (pointVals[edges[i][1]] - pointVals[edges[i][0]]);
 
-								vertList[i].Pos = position + points[edges[i][0]].getInterpolated(points[edges[i][1]], mu);
+								vertList[i].Pos = tmpVec3D + points[edges[i][0]].getInterpolated(points[edges[i][1]], mu);
 								vertList[i].Color = colors[colorVals[edges[i][0]]].getInterpolated(colors[colorVals[edges[i][1]]], mu).toSColor().color;
                             }
                             vertList[i].Normal.set(core::vector3df(0.0,1.0,0.0));
                             vertList[i].TCoords.set(0.0,0.0);
                         }
                     }
+
 					for (i=0;triTable[cubeIndex][i]!=-1;i++) {
 						buf->Indices.push_back(buf->Vertices.size());
 						buf->Vertices.push_back(vertList[triTable[cubeIndex][i]]);
@@ -439,6 +454,14 @@ public:
                 }
             }
         }
+
+        for (i = 0; i < buf->Vertices.size(); i += 3) {
+            tmpVec3D = (buf->Vertices[i+1].Pos - buf->Vertices[i].Pos).crossProduct(buf->Vertices[i].Pos - buf->Vertices[i + 2].Pos);
+            buf->Vertices[i].Normal = tmpVec3D;
+            buf->Vertices[i+1].Normal = tmpVec3D;
+            buf->Vertices[i+2].Normal = tmpVec3D;
+        }
+
         buf->recalculateBoundingBox();
     }
 };
