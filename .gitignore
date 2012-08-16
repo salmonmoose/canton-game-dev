@@ -5,3 +5,5 @@
 ./Debug
 *.sdf
 build/
+bin/
+
