@@ -1,4 +1,5 @@
 #include <iostream>
+#include "tinyxml2.h"
 
 class ScalarTerrain
 {
@@ -6,14 +7,13 @@ private:
 	double value;
 
 public:
-	TerrainChunk tc;
-
+    TerrainChunk tc;
+	tinyxml2::XMLDocument terrainConfig;
+	tinyxml2::XMLElement * terrainData;
 	ScalarTerrain();
 
 	~ScalarTerrain(){};
 
 	void setupAccidentalNoise();
-	void setupNoise();
-	void trashNoise();
 	void generateChunk(int, int, int);
 };

@@ -1,10 +1,11 @@
 varying vec4 vNormal;
-
+varying vec4 vColor;
 void main(void)
 {
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
     vNormal.xyz = gl_Normal;
     gl_TexCoord[1] = gl_Vertex;
+    vColor = gl_Color;
 }
 
 

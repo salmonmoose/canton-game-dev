@@ -1,9 +1,12 @@
 uniform sampler2D tex0;
 uniform sampler2D tex1;
 uniform sampler2D tex2;
+uniform sampler2D tex3;
+uniform sampler2D tex4;
+uniform sampler2D tex5;
 
 varying vec4 vNormal;
-
+varying vec4 vColor;
 void main(void)
 {
 	vec4 blend_weights = abs(vNormal);
@@ -19,8 +22,8 @@ void main(void)
 	vec2 coord3 = gl_TexCoord[1].xy * tex_scale;
 
 	vec4 dirt_x = texture2D(tex0, coord1);
-	vec4 dirt_y = texture2D(tex1, coord2);
-	vec4 dirt_z = texture2D(tex2, coord3);
+	vec4 dirt_y = texture2D(tex2, coord2);
+	vec4 dirt_z = texture2D(tex0, coord3);
 
 	blended_color = 
 		dirt_x.xyzw * blend_weights.xxxx +

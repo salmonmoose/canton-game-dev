@@ -7,6 +7,7 @@
 #include "canton.h"
 #include "terrain.h"
 
+
 static int x_chunk = 24;
 static int y_chunk = 24;
 static int z_chunk = 24;
@@ -16,58 +17,51 @@ using namespace irr;
 ScalarTerrain::ScalarTerrain()
 {
 	tc = TerrainChunk();
+
+	printf("Loading Terrain Document\n");
+	terrainConfig.LoadFile("basicTerrain.xml");
+
+	terrainData = terrainConfig.FirstChildElement("document")->FirstChildElement("terrain");
+
 	//TODO: these dimensions should be expanded, and a chunking system introduced.
 	int material;
-
+	printf("Resizing node\n");
 	tc.values.resize(boost::extents[x_chunk][y_chunk][z_chunk]);
 	tc.materials.resize(boost::extents[x_chunk][y_chunk][z_chunk]);
 
-	//printf("Resizing chunk, %d", 0);
-
+	printf("Setting up accidental noise functions\n");
 	setupAccidentalNoise();
-
-	//generateChunk(0,0,0);
-
-	//trashNoise();
 }
 
 void ScalarTerrain::setupAccidentalNoise() {
-	//Form gradient to base land shape off of. This can be altered to change relative height and slant of landscape
-	anl::CImplicitGradient landGradient;
-	landGradient.setGradient(0.0,0.0,0.0,1.0,0.0,0.0);
-	//Generates Fractal noise in order to disturb the ground pattern
-	anl::CImplicitFractal groundShape(anl::FBM,anl::GRADIENT,anl::QUINTIC);
-	groundShape.setNumOctaves(2);
-	groundShape.setFrequency(1);
-	//Scale Offset makes terrain flatter or more mountainous
-	anl::CImplicitScaleOffset groundScale(0.5, 0.0);
-	groundScale.setSource(&groundShape);
-	//Eliminate Floating Islands
-	anl::CImplicitScaleDomain yGroundScale;
-	yGroundScale.setYScale(0.0);
-	yGroundScale.setSource(&groundScale);
-	//Links generation together
-	anl::CImplicitTranslateDomain translate;
-	translate.setSource(&landGradient);
-	translate.setYAxisSource(&yGroundScale);
-	//translate.setYAxisSource(&groundShape);
+    anl::CImplicitCache result;
+    anl::CImplicitSphere sphereGradient;
 
+    try {
+    	tinyxml2::XMLElement * nextElement = terrainData->FirstChildElement("layer");
 
-	anl::CImplicitSphere sphereGradient;
-	sphereGradient.setCenter(0.5,0.5,0.5, 0.5,0.5,0.5);
+        if(nextElement->Attribute("type", "sphere")) {
+            sphereGradient.setCenter(
+                nextElement->FirstChildElement("center")->DoubleAttribute("x"),
+                nextElement->FirstChildElement("center")->DoubleAttribute("y"),
+                nextElement->FirstChildElement("center")->DoubleAttribute("z"),
+                nextElement->FirstChildElement("center")->DoubleAttribute("u"),
+                nextElement->FirstChildElement("center")->DoubleAttribute("v"),
+                nextElement->FirstChildElement("center")->DoubleAttribute("w")
+            );
 
-	//Select module performs a step function on the gradient in order to get a clear boundary between earth and sky
-	//Change threshold to alter height of landscape based on gradient
-	anl::CImplicitSelect landStep;
-	landStep.setLowSource(1.0);
-	landStep.setHighSource(0.0);
-	landStep.setThreshold(0.5);
-	landStep.setControlSource(&translate);
+            //result.setSource(&sphereGradient);
+        } else {
+            printf("Didn't match\n");
+        }
+    } catch (char * except) {
+        printf("Exception raised: %s\n", except);
+    }
 
 	for(int z = 0; z < z_chunk; z++) {
 		for(int y = 0; y < y_chunk; y++) {
 			for(int x = 0; x < x_chunk; x++) {
-				value = translate.get(
+				value = sphereGradient.get(
                     (double) x/x_chunk * 2, 
                     (double) y/y_chunk * 2, 
                     (double) z/z_chunk * 2

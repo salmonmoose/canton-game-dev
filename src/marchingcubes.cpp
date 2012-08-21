@@ -98,7 +98,7 @@ for (z = 0; z < zDim -1; z++) {
                     case 0: //Change in X direction
                         index = ((int)points[edges[i][0]].X + x) + 
                                (((int)points[edges[i][0]].Y + y) * (xDim-1)) + 
-                               (((int)points[edges[i][0]].Z + z) * (xDim-1)  * yDim);
+                               (((int)points[edges[i][0]].Z + z) * (xDim-1)  * (yDim));
                     break;
                     case 1: //Change in Y direction
                         index = ((int)points[edges[i][0]].X + x) + 
@@ -116,6 +116,7 @@ for (z = 0; z < zDim -1; z++) {
 
                 if(edgeTable[cubeIndex] & (1 << i)) {
                     if (generatedPoints[index] == -1) {
+                        printf("Generating new point\n");
                         mu = (isolevel - pointVals[edges[i][0]]) / (pointVals[edges[i][1]] - pointVals[edges[i][0]]);
                         
                         tmpS3DVertex.Pos.set(
@@ -133,8 +134,12 @@ for (z = 0; z < zDim -1; z++) {
 
                         tmpS3DVertex.TCoords.set(0.0,0.0);
 
+                        tmpS3DVertex.Normal.set(0.0,0.0,0.0);
+
                         generatedPoints[index] = buf->Vertices.size();
                         buf->Vertices.push_back(tmpS3DVertex); //FIXME this should just build the vertex here and now.
+                    } else {
+                        printf("Point exists\n");
                     }
                     
                     vertList[i] = index;
@@ -148,11 +153,16 @@ for (z = 0; z < zDim -1; z++) {
     }
 }
 
-for (i = 0; i < buf->Vertices.size(); i += 3) {
-    tmpVec3D = (buf->Vertices[i+1].Pos - buf->Vertices[i].Pos).crossProduct(buf->Vertices[i].Pos - buf->Vertices[i + 2].Pos);
-    buf->Vertices[i].Normal = tmpVec3D;
-    buf->Vertices[i+1].Normal = tmpVec3D;
-    buf->Vertices[i+2].Normal = tmpVec3D;
+for (i = 0; i < buf->Indices.size(); i += 3) {
+    tmpVec3D = (
+        buf->Vertices[buf->Indices[i+1]].Pos - buf->Vertices[buf->Indices[i]].Pos
+    ).crossProduct(
+        buf->Vertices[buf->Indices[i]].Pos - buf->Vertices[buf->Indices[i + 2]].Pos
+    );
+
+    buf->Vertices[buf->Indices[i]].Normal   = buf->Vertices[buf->Indices[i]].Normal + tmpVec3D;
+    buf->Vertices[buf->Indices[i+1]].Normal = buf->Vertices[buf->Indices[i+1]].Normal + tmpVec3D;
+    buf->Vertices[buf->Indices[i+2]].Normal = buf->Vertices[buf->Indices[i+2]].Normal + tmpVec3D;
 }
 
 buf->recalculateBoundingBox();

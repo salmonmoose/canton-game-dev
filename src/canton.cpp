@@ -5,6 +5,7 @@
 #include "canton.h"
 #include "marchingcubes.h"
 #include "terrain.h"
+#include "tinyxml2.h"
 
 //#include "marchingcubes.cpp"
 //#include "terrain.cpp"
@@ -82,6 +83,12 @@ public:
 
 int main(int argc, char* argv[])
 {
+	tinyxml2::XMLDocument doc;
+
+	doc.LoadFile("config.xml");
+
+	tinyxml2::XMLElement* settings = doc.FirstChildElement("document")->FirstChildElement("settings");
+
 	ScalarTerrain world;
 
 	video::E_DRIVER_TYPE driverType = video::EDT_OPENGL;
@@ -90,7 +97,10 @@ int main(int argc, char* argv[])
 
 	MyEventReceiver receiver;
 	device = createDevice(driverType,
-		core::dimension2du(640, 480), 32, false, false, false,
+		core::dimension2du(
+			settings->FirstChildElement("resolution")->IntAttribute("x"), 
+			settings->FirstChildElement("resolution")->IntAttribute("y")
+			), 32, false, false, false,
 		&receiver);
 
 	if(device == 0)
@@ -117,16 +127,15 @@ int main(int argc, char* argv[])
 		shaderCallBack->drop();
 	}
 
-	printf("calling mesh\n");
 	MCubeMesh mesh(world.tc);
-	printf("called mesh\n");
 
 	mesh.init(driver);
 
 	scene::IMeshSceneNode *meshnode = smgr->addMeshSceneNode(mesh.Mesh);
 	
-	meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, true);
-	meshnode->setMaterialFlag(video::EMF_LIGHTING, false);
+	meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, settings->FirstChildElement("mesh")->BoolAttribute("cullbackface"));
+	meshnode->setMaterialFlag(video::EMF_WIREFRAME, settings->FirstChildElement("mesh")->BoolAttribute("wireframe"));
+	meshnode->setMaterialFlag(video::EMF_LIGHTING, true);
 	meshnode->setMaterialTexture(0, driver->getTexture("./resources/dirt.jpg"));
 	meshnode->setMaterialTexture(1, driver->getTexture("./resources/clay.jpg"));
 	meshnode->setMaterialTexture(2, driver->getTexture("./resources/grass.jpg"));
@@ -150,18 +159,11 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	scene::ICameraSceneNode *camera = smgr->addCameraSceneNodeFPS(
+	scene::ICameraSceneNode *camera = smgr->addCameraSceneNode(
 		0, 
-		100.f, 
-		0.01f
+		core::vector3df(20.f, 0.f, 10.f),
+		core::vector3df(0.f,0.f,0.f)
 		);
-
-	if(camera)
-	{
-		camera->setPosition(core::vector3df(0.f, 0.f, 0.f));
-		camera->setTarget(core::vector3df(0.f, 0.f, 0.f));
-		camera->setFarValue(200.0f);
-	}
 
 	int lastFPS = -1;
 
@@ -192,5 +194,3 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
-
-
