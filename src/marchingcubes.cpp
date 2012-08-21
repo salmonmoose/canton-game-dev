@@ -116,7 +116,6 @@ for (z = 0; z < zDim -1; z++) {
 
                 if(edgeTable[cubeIndex] & (1 << i)) {
                     if (generatedPoints[index] == -1) {
-                        printf("Generating new point\n");
                         mu = (isolevel - pointVals[edges[i][0]]) / (pointVals[edges[i][1]] - pointVals[edges[i][0]]);
                         
                         tmpS3DVertex.Pos.set(
@@ -139,7 +138,6 @@ for (z = 0; z < zDim -1; z++) {
                         generatedPoints[index] = buf->Vertices.size();
                         buf->Vertices.push_back(tmpS3DVertex); //FIXME this should just build the vertex here and now.
                     } else {
-                        printf("Point exists\n");
                     }
                     
                     vertList[i] = index;

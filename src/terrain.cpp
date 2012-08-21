@@ -34,26 +34,56 @@ ScalarTerrain::ScalarTerrain()
 }
 
 void ScalarTerrain::setupAccidentalNoise() {
-    anl::CImplicitCache result;
-    anl::CImplicitSphere sphereGradient;
+    anl::CImplicitSphere thisLayer;
 
     try {
-    	tinyxml2::XMLElement * nextElement = terrainData->FirstChildElement("layer");
+    	tinyxml2::XMLElement * thisElement = terrainData->FirstChildElement("layer");
 
-        if(nextElement->Attribute("type", "sphere")) {
-            sphereGradient.setCenter(
-                nextElement->FirstChildElement("center")->DoubleAttribute("x"),
-                nextElement->FirstChildElement("center")->DoubleAttribute("y"),
-                nextElement->FirstChildElement("center")->DoubleAttribute("z"),
-                nextElement->FirstChildElement("center")->DoubleAttribute("u"),
-                nextElement->FirstChildElement("center")->DoubleAttribute("v"),
-                nextElement->FirstChildElement("center")->DoubleAttribute("w")
+        if(thisElement->Attribute("type", "sphere")) {
+        	anl::CImplicitSphere thisLayer;
+            
+            thisLayer.setCenter(
+                thisElement->FirstChildElement("center")->DoubleAttribute("x"),
+                thisElement->FirstChildElement("center")->DoubleAttribute("y"),
+                thisElement->FirstChildElement("center")->DoubleAttribute("z"),
+                thisElement->FirstChildElement("center")->DoubleAttribute("u"),
+                thisElement->FirstChildElement("center")->DoubleAttribute("v"),
+                thisElement->FirstChildElement("center")->DoubleAttribute("w")
             );
 
-            //result.setSource(&sphereGradient);
-        } else {
-            printf("Didn't match\n");
+            //thisLayer.setRadius(thisElement->FirstChildElement("radius")->DoubleAttribute("radius"));
+            
+            //lastLayer.setSource(& thisLayer);
+
+        } else if(thisElement->Attribute("type", "fractal")) {
+        	anl::CImplicitFractal thisLayer(0,0,0);
+
+        	thisLayer.setNumOctaves(thisElement->FirstChildElement("octaves")->IntAttribute("value"));
+        	thisLayer.setFrequency(thisElement->FirstChildElement("frequency")->DoubleAttribute("value"));
+
+        	if(thisElement->Attribute("fractaltype", "FBM")) {
+        		thisLayer.setType(anl::FBM);
+        	} else if(thisElement->Attribute("fractaltype", "RIDGEDMULTI")) {
+				thisLayer.setType(anl::RIDGEDMULTI);
+        	} else if(thisElement->Attribute("fractaltype", "BILLOW")) {
+				thisLayer.setType(anl::BILLOW);
+        	} else if(thisElement->Attribute("fractaltype", "MULTI")) {
+				thisLayer.setType(anl::MULTI);
+        	} else if(thisElement->Attribute("fractaltype", "HYBRIDMULTI")) {
+				thisLayer.setType(anl::HYBRIDMULTI);
+        	}
+			//setLacunarity(double l);
+			//setGain(double g);
+			//setOffset(double o);
+			//setH(double h);
+			//setAllSourceTypes(unsigned int basis_type, unsigned int interp);
+			//setSourceType(int which, unsigned int type, unsigned int interp);
+			//overrideSource(int which, CImplicitModuleBase *b);
+			//resetSource(int which);
+			//resetAllSources();	
+			//setSeed(unsigned int seed);
         }
+
     } catch (char * except) {
         printf("Exception raised: %s\n", except);
     }
@@ -61,7 +91,7 @@ void ScalarTerrain::setupAccidentalNoise() {
 	for(int z = 0; z < z_chunk; z++) {
 		for(int y = 0; y < y_chunk; y++) {
 			for(int x = 0; x < x_chunk; x++) {
-				value = sphereGradient.get(
+				value = thisLayer.get(
                     (double) x/x_chunk * 2, 
                     (double) y/y_chunk * 2, 
                     (double) z/z_chunk * 2
