@@ -5,7 +5,7 @@ Target = Canton
 Sources = ./src/*.cpp
 
 # general compiler settings
-CPPFLAGS = -I../libs/boost_1_50_0 -I../libs/irrlicht-1.7.3/include -I../libs/accidentalnoise/include -I/usr/X11R6/include
+CPPFLAGS = -I../libs/boost_1_50_0 -I../libs/irrlicht-1.8.0/include -I./include -I/usr/X11R6/include
 CXXFLAGS = -O3 -ffast-math
 #CXXFLAGS = -g -Wall
 
@@ -17,7 +17,7 @@ LIBSELECT=64
 endif
 
 # target specific settings
-all_linux: LDFLAGS = -L/usr/X11R6/lib$(LIBSELECT) -L../libs/irrlicht-1.7.3/lib/Linux -L../libs/accidentalnoise/src -L../libs/noisepp-0.3/build/lib/Release -lnoisepp -lIrrlicht -lGL -lXxf86vm -lXext -lX11
+all_linux: LDFLAGS = -L/usr/X11R6/lib$(LIBSELECT) -L../libs/irrlicht-1.8.0/lib/Linux -L../libs/accidentalnoise/src -lIrrlicht -lGL -lXxf86vm -lXext -lX11
 all_linux clean_linux: SYSTEM=Linux
 all_win32: LDFLAGS = -L../../lib/Win32-gcc -lIrrlicht -lopengl32 -lm
 all_win32 clean_win32: SYSTEM=Win32-gcc

@@ -113,13 +113,13 @@ int main(int argc, char* argv[])
 	vsFileName = "./shaders/terrain.vert";
 
 	video::IGPUProgrammingServices * gpu = driver->getGPUProgrammingServices();
-	s32 newMaterialType1 = 0;
+	s32 terrainMaterial = 0;
 
 	if(gpu)
 	{
 		ShaderCallBack * shaderCallBack = new ShaderCallBack();
 
-		newMaterialType1 = gpu->addHighLevelShaderMaterialFromFiles(
+		terrainMaterial = gpu->addHighLevelShaderMaterialFromFiles(
 			vsFileName, "vertexMain", video::EVST_VS_1_1,
 			psFileName, "pixelMain", video::EPST_PS_1_1,
 			shaderCallBack, video::EMT_SOLID);
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
 
 	mesh.init(driver);
 
-	scene::IMeshSceneNode *meshnode = smgr->addMeshSceneNode(mesh.Mesh);
+	scene::IMeshSceneNode * meshnode = smgr->addMeshSceneNode(mesh.Mesh);
 	
 	meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, settings->FirstChildElement("mesh")->BoolAttribute("cullbackface"));
 	meshnode->setMaterialFlag(video::EMF_WIREFRAME, settings->FirstChildElement("mesh")->BoolAttribute("wireframe"));
@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
 	meshnode->setMaterialTexture(4, driver->getTexture("./resources/sand.jpg"));
 	meshnode->setMaterialTexture(5, driver->getTexture("./resources/void.jpg"));
 
-	meshnode->setMaterialType((video::E_MATERIAL_TYPE) newMaterialType1);
+	meshnode->setMaterialType((video::E_MATERIAL_TYPE) terrainMaterial);
 
 	scene::ILightSceneNode *node = smgr->addLightSceneNode(0,core::vector3df(0,0,0),
 		video::SColorf(1.0f, 1.0f, 1.0f, 1.0f), 20.0f);

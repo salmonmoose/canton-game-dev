@@ -30,7 +30,7 @@ namespace anl
         m_radius.set(r);
     }
 
-    double CImplicitSphere::get(double x, double y)
+    double CImplicitSphere::get(double x, double y) 
     {
         double dx=x-m_cx.get(x,y), dy=y-m_cy.get(x,y);
         double len=sqrt(dx*dx+dy*dy);
@@ -42,7 +42,7 @@ namespace anl
         return i;
     }
 
-    double CImplicitSphere::get(double x, double y, double z)
+    double CImplicitSphere::get(double x, double y, double z)  
     {
         double dx=x-m_cx.get(x,y,z), dy=y-m_cy.get(x,y,z), dz=z-m_cz.get(x,y,z);
         double len=sqrt(dx*dx+dy*dy+dz*dz);
@@ -54,7 +54,7 @@ namespace anl
         return i;
     }
 
-    double CImplicitSphere::get(double x, double y, double z, double w)
+    double CImplicitSphere::get(double x, double y, double z, double w) 
     {
         double dx=x-m_cx.get(x,y,z,w), dy=y-m_cy.get(x,y,z,w), dz=z-m_cz.get(x,y,z,w), dw=w-m_cw.get(x,y,z,w);
         double len=sqrt(dx*dx+dy*dy+dz*dz+dw*dw);
@@ -66,7 +66,7 @@ namespace anl
         return i;
     }
 
-    double CImplicitSphere::get(double x, double y, double z, double w, double u, double v)
+    double CImplicitSphere::get(double x, double y, double z, double w, double u, double v) 
     {
         double dx=x-m_cx.get(x,y,z,w,u,v), dy=y-m_cy.get(x,y,z,w,u,v), dz=z-m_cz.get(x,y,z,w,u,v), dw=w-m_cw.get(x,y,z,w,u,v),
             du=u-m_cu.get(x,y,z,w,u,v), dv=v-m_cv.get(x,y,z,w,u,v);
