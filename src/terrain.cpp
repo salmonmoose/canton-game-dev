@@ -8,7 +8,6 @@
 #include "canton.h"
 #include "terrain.h"
 
-
 static int x_chunk = 24;
 static int y_chunk = 24;
 static int z_chunk = 24;
@@ -55,18 +54,25 @@ void ScalarTerrain::setupAccidentalNoise() {
             	layer.child("center").attribute("w").as_double()
             );
 
+            dynamic_cast<anl::CImplicitSphere*>(tmp)->setRadius(layer.child("radius").attribute("value").as_double());
+
             layers.push_back(tmp);
-        }
-         else {
+        } else if(strcmp(layer.attribute("type").value(), "fractal") == 0) {
+        	tmp = new anl::CImplicitFractal(
+                anl::CImplicitFractal::FractalMap.find(layer.attribute("fractaltype").value())->second,
+                anl::CImplicitBasisFunction::BasisMap.find(layer.attribute("basistype").value())->second,
+                anl::CImplicitBasisFunction::InterpMap.find(layer.attribute("interptype").value())->second
+                );
+
+            layers.push_back(tmp);
+        } else {
         	printf("Layer type not found\n");
         }
-
-
     } catch (char * exception) {
         printf("Exception raised: %s\n", exception);
     }
-    try {
 
+    try {
 		for(int z = 0; z < z_chunk; z++) {
 			for(int y = 0; y < y_chunk; y++) {
 				for(int x = 0; x < x_chunk; x++) {
