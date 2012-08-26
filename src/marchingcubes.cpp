@@ -8,11 +8,8 @@ MCubeMesh::MCubeMesh(TerrainChunk & in_tc) : Mesh(0)
 //There is no need to clone the object, a reference would work just as well
 //But C++ is hard.
 tc = TerrainChunk();
-printf("this is a test, %d\n", 0);
 
 Mesh = new scene::SMesh();
-
-printf("this is a test, %d\n", 1);
 
 tc.values.resize(boost::extents
     [in_tc.values.shape()[0]]
@@ -25,8 +22,6 @@ tc.materials.resize(boost::extents
     [in_tc.materials.shape()[1]]
     [in_tc.materials.shape()[2]]
 );
-
-printf("this is a test, %d\n", 2);
 
 tc.values = in_tc.values;
 tc.materials = in_tc.materials;
@@ -90,7 +85,6 @@ for (z = 0; z < zDim -1; z++) {
                 colorVals[i] = tc.materials[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
                 if(pointVals[i] > isolevel) cubeIndex |= (1 << i);
             }
-            
 
             //Generate verts needed by this voxel.
             for (i = 0; i < 12; i++) {

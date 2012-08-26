@@ -1,11 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document>
 	<terrain>
+        <render>frac3</render>
 		<layer type="fractal" fractaltype="FBM" basistype="SIMPLEX" interptype="QUINTIC">
-
+            <name>frac1</name>
 		</layer>
-		<layer type="sphere">
+		
+        <layer type="sphere">
+            <name>sphere1</name>
 			<center x="0.5" y="0.5" z="0.5" u="0.5" v="0.5" w="0.5" />
 		</layer>
+
+        <layer type="fractal" fractaltype="BILLOW" basistype="SIMPLEX" interptype="QUINTIC">
+            <name>frac2</name>
+        </layer>
+
+        <layer type="fractal" fractaltype="FBM" basistype="GRADIENT" interptype="QUINTIC">
+            <name>frac3</name>
+        </layer>
 	</terrain>
 </document>
