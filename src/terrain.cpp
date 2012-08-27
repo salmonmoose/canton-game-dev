@@ -30,15 +30,37 @@ ScalarTerrain::ScalarTerrain()
 	tc.materials.resize(boost::extents[x_chunk][y_chunk][z_chunk]);
 
 	setupAccidentalNoise();
+    renderChunk();
+}
+
+void ScalarTerrain::renderChunk() {
+    try {
+        for(int z = 0; z < z_chunk; z++) {
+            for(int y = 0; y < y_chunk; y++) {
+                for(int x = 0; x < x_chunk; x++) {
+                    value = noiseTree.find(terrainData.child_value("render"))->second->get(
+                        (double) x/x_chunk * 2, 
+                        (double) y/y_chunk * 2, 
+                        (double) z/z_chunk * 2
+                    );
+
+                    tc.values[x][y][z] = value;
+
+                    //printf("value at position (%d,%d,%d) is %f\n",x,y,z,value);
+
+                    if(value < -0.5) tc.materials[x][y][z] = 0;
+                    else if (value < 0) tc.materials[x][y][z] = 1;
+                    else if (value < 0.5) tc.materials[x][y][z] = 2;
+                    else tc.materials[x][y][z] = 3;
+                }
+            }
+        }
+    } catch (char * exception) {
+        printf("Exception raised: %s\n", exception);
+    }
 }
 
 void ScalarTerrain::setupAccidentalNoise() {
-	std::vector<anl::CImplicitModuleBase *> layers;
-	anl::CImplicitModuleBase * tmp;
-
-    std::map<std::string, anl::CImplicitModuleBase *> noiseTree;
-    std::map<std::string, anl::CImplicitModuleBase *> :: iterator noiseIterator;
-
     try {
         for (
             pugi::xml_node layer = terrainData.child("layer"); layer; layer = layer.next_sibling("layer")) {
@@ -76,45 +98,4 @@ void ScalarTerrain::setupAccidentalNoise() {
     } catch (char * exception) {
         printf("Exception raised: %s\n", exception);
     }
-
-    noiseIterator = noiseTree.end();
-
-    noiseIterator--;
-
-    printf("value is %s\n", noiseIterator->first.c_str());
-
-    noiseIterator--;
-
-    printf("value is %s\n", noiseIterator->first.c_str());
-
-    noiseIterator--;
-
-    printf("value is %s\n", noiseIterator->first.c_str());
-
-    printf("Render element %s\n", terrainData.child_value("render"));
-
-    try {
-		for(int z = 0; z < z_chunk; z++) {
-			for(int y = 0; y < y_chunk; y++) {
-				for(int x = 0; x < x_chunk; x++) {
-                    value = noiseTree.find(terrainData.child_value("render"))->second->get(
-	                    (double) x/x_chunk * 2, 
-	                    (double) y/y_chunk * 2, 
-	                    (double) z/z_chunk * 2
-	                );
-
-					tc.values[x][y][z] = value;
-
-                    //printf("value at position (%d,%d,%d) is %f\n",x,y,z,value);
-
-					if(value < -0.5) tc.materials[x][y][z] = 0;
-					else if (value < 0) tc.materials[x][y][z] = 1;
-					else if (value < 0.5) tc.materials[x][y][z] = 2;
-					else tc.materials[x][y][z] = 3;
-				}
-			}
-		}
-	} catch (char * exception) {
-		printf("Exception raised: %s\n", exception);
-	}
 }

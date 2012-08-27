@@ -2,10 +2,10 @@
 # It's usually sufficient to change just the target name and source file list
 # and be sure that CXX is set to a valid compiler
 Target = Canton 
-Sources = ./src/*.cpp
+Sources = ../libs/tinyxml2/tinyxml2.cpp ../libs/pugixml-1.2/src/*.cpp ../libs/accidentalnoise/src/*.cpp ./src/*.cpp
 
 # general compiler settings
-CPPFLAGS = -I../libs/boost_1_50_0 -I../libs/irrlicht-1.8.0/include -I./include -I/usr/X11R6/include
+CPPFLAGS = -I../libs/boost_1_50_0 -I../libs/pugixml-1.2/src -I../libs/tinyxml2 -I../libs/accidentalnoise/include -I../libs/irrlicht-1.8.0/include -I./include -I/usr/X11R6/include
 CXXFLAGS = -O3 -ffast-math
 #CXXFLAGS = -g -Wall
 

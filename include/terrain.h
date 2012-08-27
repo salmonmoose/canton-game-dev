@@ -12,18 +12,21 @@ private:
 
 public:
     TerrainChunk tc;
-	//tinyxml2::XMLDocument terrainConfig;
-	//tinyxml2::XMLElement * terrainData;
 
 	pugi::xml_document terrainConfig;
-
 	pugi::xml_node terrainData;
+
+	anl::CImplicitModuleBase * tmp;
+
+    std::map<std::string, anl::CImplicitModuleBase *> noiseTree;
+    std::map<std::string, anl::CImplicitModuleBase *> :: iterator noiseIterator;
 
 	ScalarTerrain();
 
 	~ScalarTerrain(){};
 
 	void setupAccidentalNoise();
+	void renderChunk();
 	void generateChunk(int, int, int);
 	void bresenham(irr::core::vector3df, irr::core::vector3df);
 };
