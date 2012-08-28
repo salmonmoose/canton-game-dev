@@ -16,20 +16,21 @@ using namespace irr;
 
 ScalarTerrain::ScalarTerrain()
 {
-	tc = TerrainChunk();
+	
+
+    tc = TerrainChunk();
 
 	printf("Loading Terrain Document\n");
 
-	pugi::xml_parse_result result = terrainConfig.load_file("basicTerrain.xml");
+    noiseTree.loadFile("basicTerrain.xml");
 
-	terrainData = terrainConfig.child("document").child("terrain");
+    printf("Terrain Loaded");
 
 	//TODO: these dimensions should be expanded, and a chunking system introduced.
 	int material;
 	tc.values.resize(boost::extents[x_chunk][y_chunk][z_chunk]);
 	tc.materials.resize(boost::extents[x_chunk][y_chunk][z_chunk]);
 
-	setupAccidentalNoise();
     renderChunk();
 }
 
@@ -38,7 +39,7 @@ void ScalarTerrain::renderChunk() {
         for(int z = 0; z < z_chunk; z++) {
             for(int y = 0; y < y_chunk; y++) {
                 for(int x = 0; x < x_chunk; x++) {
-                    value = noiseTree.find(terrainData.child_value("render"))->second->get(
+                    value = noiseTree.get(
                         (double) x/x_chunk * 2, 
                         (double) y/y_chunk * 2, 
                         (double) z/z_chunk * 2
@@ -54,46 +55,6 @@ void ScalarTerrain::renderChunk() {
                     else tc.materials[x][y][z] = 3;
                 }
             }
-        }
-    } catch (char * exception) {
-        printf("Exception raised: %s\n", exception);
-    }
-}
-
-void ScalarTerrain::setupAccidentalNoise() {
-    try {
-        for (
-            pugi::xml_node layer = terrainData.child("layer"); layer; layer = layer.next_sibling("layer")) {
-
-        	if(strcmp(layer.attribute("type").value(), "sphere") == 0) {
-                tmp = new anl::CImplicitSphere();
-
-                dynamic_cast<anl::CImplicitSphere*>(tmp)->setCenter(
-                	layer.child("center").attribute("x").as_double(),
-                	layer.child("center").attribute("y").as_double(),
-                	layer.child("center").attribute("z").as_double(),
-                	layer.child("center").attribute("u").as_double(),
-                	layer.child("center").attribute("v").as_double(),
-                	layer.child("center").attribute("w").as_double()
-                );
-
-                dynamic_cast<anl::CImplicitSphere*>(tmp)->setRadius(layer.child("radius").attribute("value").as_double());
-
-            } else if(strcmp(layer.attribute("type").value(), "fractal") == 0) {
-            	tmp = new anl::CImplicitFractal(
-                    anl::CImplicitFractal::FractalMap.find(layer.attribute("fractaltype").value())->second,
-                    anl::CImplicitBasisFunction::BasisMap.find(layer.attribute("basistype").value())->second,
-                    anl::CImplicitBasisFunction::InterpMap.find(layer.attribute("interptype").value())->second
-                );
-            } else if(strcmp(layer.attribute("type").value(), "blend") == 0) {
-                tmp = new anl::CImplicitBlend();
-            } else {
-            	printf("Layer type not found\n");
-            }
-
-            printf("Adding node to tree with name: %s\n", layer.child_value("name"));
-
-            noiseTree.insert(std::pair<std::string, anl::CImplicitModuleBase *>(layer.child_value("name"), tmp));
         }
     } catch (char * exception) {
         printf("Exception raised: %s\n", exception);

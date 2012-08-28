@@ -12,14 +12,8 @@ private:
 
 public:
     TerrainChunk tc;
-
-	pugi::xml_document terrainConfig;
-	pugi::xml_node terrainData;
-
-	anl::CImplicitModuleBase * tmp;
-
-    std::map<std::string, anl::CImplicitModuleBase *> noiseTree;
-    std::map<std::string, anl::CImplicitModuleBase *> :: iterator noiseIterator;
+    
+    anl::CImplicitXML noiseTree;
 
 	ScalarTerrain();
 

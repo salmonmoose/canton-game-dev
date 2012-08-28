@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document>
-	<terrain>
-        <render>frac3</render>
+	<noise>
+        <render>sphere1</render>
 		<layer type="fractal" fractaltype="FBM" basistype="SIMPLEX" interptype="QUINTIC">
             <name>frac1</name>
 		</layer>
@@ -18,5 +18,5 @@
         <layer type="fractal" fractaltype="FBM" basistype="GRADIENT" interptype="QUINTIC">
             <name>frac3</name>
         </layer>
-	</terrain>
+	</noise>
 </document>
