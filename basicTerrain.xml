@@ -6,8 +6,8 @@
             <Fractal Type="ENUM">FBM</Fractal>
             <Basis Type="ENUM">GRADIENT</Basis>
             <Interpolation Type="ENUM">QUINTIC</Interpolation>
-            <Octaves Type="Int">1</Octaves>
-            <Frequency Type="Double">2</Frequency>
+            <Octaves Type="Int">2</Octaves>
+            <Frequency Type="Double">1</Frequency>
         </Module>
         <Module Type="Gradient" Name="Ground_Gradient">
             <X1 Type="Double">0</X1>
