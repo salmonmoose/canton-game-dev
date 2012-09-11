@@ -64,6 +64,16 @@ public:
 		worldViewProj*= driver->getTransform(video::ETS_VIEW);
 		worldViewProj*= driver->getTransform(video::ETS_WORLD);
 
+        int index[6] = { 0, 1, 2, 3, 4, 5 }; 
+
+        services->setPixelShaderConstant("dirtTex",  &index[0], 1);
+        services->setPixelShaderConstant("clayTex",  &index[1], 1);
+        services->setPixelShaderConstant("grassTex", &index[2], 1);
+        services->setPixelShaderConstant("rockTex",  &index[3], 1);
+        services->setPixelShaderConstant("sandTex",  &index[4], 1);
+        services->setPixelShaderConstant("voidTex",  &index[5], 1);
+
+
 		services->setVertexShaderConstant("mWorldViewProj", worldViewProj.pointer(), 16);
 
 		core::vector3df pos = device->getSceneManager()->getActiveCamera()->getAbsolutePosition();
@@ -159,18 +169,45 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	core::vector3df position = core::vector3df(16.f, 16.f, 16.f);
+	core::vector3df offset = core::vector3df(-16.f,16.f,-16.f);
+
 	scene::ICameraSceneNode *camera = smgr->addCameraSceneNode(
 		0, 
-		core::vector3df(0.f, 20.f, 0.f),
-		core::vector3df(16.f,16.f,16.f)
+		position+offset,
+		position
 		);
 
 	int lastFPS = -1;
 
+	u32 then = device->getTimer()->getTime();
+
+	const f32 MOVEMENT_SPEED = 3.f;
+
 	while(device->run())
 	{
+		const u32 now = device->getTimer()->getTime();
+		const f32 frameDeltaTime = (f32) (now - then) / 1000.f;
+
+		then = now;
+
 		if(device->isWindowActive())
 		{
+			core::vector3df cameraPosition = camera->getTarget();
+
+			if(receiver.IsKeyDown(irr::KEY_KEY_W))
+				cameraPosition.Z += MOVEMENT_SPEED * frameDeltaTime;
+			else if(receiver.IsKeyDown(irr::KEY_KEY_S))
+				cameraPosition.Z -= MOVEMENT_SPEED * frameDeltaTime;
+
+			if(receiver.IsKeyDown(irr::KEY_KEY_A))
+				cameraPosition.X += MOVEMENT_SPEED * frameDeltaTime;
+			else if(receiver.IsKeyDown(irr::KEY_KEY_D))
+				cameraPosition.X -= MOVEMENT_SPEED * frameDeltaTime;
+
+			camera->setTarget(cameraPosition);
+			camera->setPosition(cameraPosition+offset);
+
 			driver->beginScene(true, true, video::SColor(255,255,0,255));
 			smgr->drawAll();
 			driver->endScene();

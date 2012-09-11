@@ -109,7 +109,7 @@ for (z = 0; z < zDim -1; z++) {
                 }
 
                 if(edgeTable[cubeIndex] & (1 << i)) {
-                    if (generatedPoints[index] == -1) {
+                    if (true /*generatedPoints[index] == -1*/) {
                         mu = (isolevel - pointVals[edges[i][0]]) / (pointVals[edges[i][1]] - pointVals[edges[i][0]]);
                         
                         tmpS3DVertex.Pos.set(

@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Document>
 	<Noise>
-        <Render>Ground</Render>
+        <Render>Ground_Shape</Render>
         <Module Type="Fractal" Name="Ground_Shape">
-            <Fractal Type="ENUM">FBM</Fractal>
-            <Basis Type="ENUM">GRADIENT</Basis>
+            <Fractal Type="ENUM">HYBRIDMULTI</Fractal>
+            <Basis Type="ENUM">SIMPLEX</Basis>
             <Interpolation Type="ENUM">QUINTIC</Interpolation>
-            <Octaves Type="Int">2</Octaves>
-            <Frequency Type="Double">1</Frequency>
+            <Octaves Type="Int">3</Octaves>
+            <Frequency Type="Double">0.5</Frequency>
+        </Module>
+        <Module Type="Sphere" Name="TestSphere">
+            <Radius Type="Double">2</Radius>
+            <CenterX Type="Double">1</CenterX>
+            <CenterY Type="Double">1</CenterY>
+            <CenterZ Type="Double">1</CenterZ>
         </Module>
         <Module Type="Gradient" Name="Ground_Gradient">
             <X1 Type="Double">0</X1>

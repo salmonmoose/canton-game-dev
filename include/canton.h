@@ -1,6 +1,5 @@
 #pragma once
 #include <boost/multi_array.hpp>
-
 typedef boost::multi_array<double, 3> ValueArray;
 typedef boost::multi_array<int, 3> MaterialArray;
 
