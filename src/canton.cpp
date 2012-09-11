@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
 		core::dimension2du(
 			settings->FirstChildElement("resolution")->IntAttribute("x"), 
 			settings->FirstChildElement("resolution")->IntAttribute("y")
-			), 32, false, false, false,
+			), 32, false, false, true,
 		&receiver);
 
 	if(device == 0)
@@ -161,8 +161,8 @@ int main(int argc, char* argv[])
 
 	scene::ICameraSceneNode *camera = smgr->addCameraSceneNode(
 		0, 
-		core::vector3df(20.f, 0.f, 10.f),
-		core::vector3df(0.f,0.f,0.f)
+		core::vector3df(0.f, 20.f, 0.f),
+		core::vector3df(16.f,16.f,16.f)
 		);
 
 	int lastFPS = -1;

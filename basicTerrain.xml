@@ -1,22 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document>
-	<noise>
-        <render>sphere1</render>
-		<layer type="fractal" fractaltype="FBM" basistype="SIMPLEX" interptype="QUINTIC">
-            <name>frac1</name>
-		</layer>
-		
-        <layer type="sphere">
-            <name>sphere1</name>
-			<center x="0.5" y="0.5" z="0.5" u="0.5" v="0.5" w="0.5" />
-		</layer>
-
-        <layer type="fractal" fractaltype="BILLOW" basistype="SIMPLEX" interptype="QUINTIC">
-            <name>frac2</name>
-        </layer>
-
-        <layer type="fractal" fractaltype="FBM" basistype="GRADIENT" interptype="QUINTIC">
-            <name>frac3</name>
-        </layer>
-	</noise>
-</document>
+<Document>
+	<Noise>
+        <Render>Ground</Render>
+        <Module Type="Fractal" Name="Ground_Shape">
+            <Fractal Type="ENUM">FBM</Fractal>
+            <Basis Type="ENUM">GRADIENT</Basis>
+            <Interpolation Type="ENUM">QUINTIC</Interpolation>
+            <Octaves Type="Int">1</Octaves>
+            <Frequency Type="Double">2</Frequency>
+        </Module>
+        <Module Type="Gradient" Name="Ground_Gradient">
+            <X1 Type="Double">0</X1>
+            <X2 Type="Double">0</X2>
+            <Y1 Type="Double">1</Y1>
+            <Y2 Type="Double">0</Y2>
+        </Module>
+        <Module Type="ScaleOffset" Name="Ground_Scale">
+            <Scale Type="Double">0.5</Scale>
+            <Offset Type="Double">0</Offset>
+            <Source Type="Noise">Ground_Shape</Source>
+        </Module>
+        <Module Type="TranslateDomain" Name="Ground">
+            <Source Type="Noise">Ground_Gradient</Source>
+            <YAxis Type="Noise">Ground_Scale</YAxis>
+        </Module>
+	</Noise>
+</Document>

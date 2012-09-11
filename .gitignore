@@ -4,6 +4,7 @@
 ./bin
 ./Debug
 *.sdf
+*.sublime*
 build/
 bin/
 

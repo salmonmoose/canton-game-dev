@@ -8,9 +8,9 @@
 #include "canton.h"
 #include "terrain.h"
 
-static int x_chunk = 24;
-static int y_chunk = 24;
-static int z_chunk = 24;
+static int x_chunk = 32;
+static int y_chunk = 32;
+static int z_chunk = 32;
 
 using namespace irr;
 
@@ -46,8 +46,6 @@ void ScalarTerrain::renderChunk() {
                     );
 
                     tc.values[x][y][z] = value;
-
-                    //printf("value at position (%d,%d,%d) is %f\n",x,y,z,value);
 
                     if(value < -0.5) tc.materials[x][y][z] = 0;
                     else if (value < 0) tc.materials[x][y][z] = 1;
