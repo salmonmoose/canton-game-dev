@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Document>
 	<Noise>
-        <Render>Ground_Shape</Render>
+        <Render>TestSphere</Render>
         <Module Type="Fractal" Name="Ground_Shape">
             <Fractal Type="ENUM">HYBRIDMULTI</Fractal>
             <Basis Type="ENUM">SIMPLEX</Basis>
