@@ -3,7 +3,6 @@
 #include "driverChoice.h"
 
 #include "canton.h"
-#include "marchingcubes.h"
 #include "terrain.h"
 #include "tinyxml2.h"
 
@@ -137,11 +136,13 @@ int main(int argc, char* argv[])
 		shaderCallBack->drop();
 	}
 
-	MCubeMesh mesh(world.tc);
+	//FIXME: This code should be part of Terrain
+	//MCubeMesh mesh(world.tc); old
+	scene::SMesh * mesh = world.getMesh();
 
-	mesh.init(driver);
+	//mesh.init(driver);
 
-	scene::IMeshSceneNode * meshnode = smgr->addMeshSceneNode(mesh.Mesh);
+	scene::IMeshSceneNode * meshnode = smgr->addMeshSceneNode(mesh);
 	
 	meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, settings->FirstChildElement("mesh")->BoolAttribute("cullbackface"));
 	meshnode->setMaterialFlag(video::EMF_WIREFRAME, settings->FirstChildElement("mesh")->BoolAttribute("wireframe"));

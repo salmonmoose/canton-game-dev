@@ -1,3 +1,6 @@
+#ifndef MARCHINGCUBES_H
+#define MARCHINGCUBES_H
+
 #include <iostream>
 #include <irrlicht.h>
 #include "driverChoice.h"
@@ -5,6 +8,8 @@
 #include <boost/array.hpp>
 #include <stdio.h>
 #include "canton.h"
+#include "terrain.h"
+
 
 static irr::core::vector3df points[8] = {
     irr::core::vector3df(0.0, 0.0, 0.0), //0
@@ -338,12 +343,9 @@ class MCubeMesh
 private:
 
 public:
-    irr::scene::SMesh* Mesh;
-    TerrainChunk tc;
-
-    MCubeMesh(TerrainChunk & in_tc);
-
+    irr::scene::SMesh MCubeMesh::generateIsoSurface(TerrainChunk & in_tc);
     ~MCubeMesh();
 
-    void init(irr::video::IVideoDriver *driver);
 };
+
+#endif
