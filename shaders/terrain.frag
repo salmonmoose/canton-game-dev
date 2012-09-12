@@ -1,16 +1,16 @@
-uniform sampler2D tex0;
-uniform sampler2D tex1;
-uniform sampler2D tex2;
-uniform sampler2D tex3;
-uniform sampler2D tex4;
-uniform sampler2D tex5;
+uniform sampler2D dirtTex;
+uniform sampler2D clayTex;
+uniform sampler2D grassTex;
+uniform sampler2D rockTex;
+uniform sampler2D sandTex;
+uniform sampler2D voidTex;
 
 varying vec4 vNormal;
 varying vec4 vColor;
 void main(void)
 {
 	vec4 blend_weights = abs(vNormal);
-	blend_weights = (blend_weights - 0.3) * 9.0;
+	blend_weights = (blend_weights) * 9.0;
 	blend_weights = max(blend_weights, 0);
 	blend_weights/= blend_weights.x + blend_weights.y + blend_weights.z;
 
@@ -21,9 +21,9 @@ void main(void)
 	vec2 coord2 = gl_TexCoord[1].zx * tex_scale;
 	vec2 coord3 = gl_TexCoord[1].xy * tex_scale;
 
-	vec4 dirt_x = texture2D(tex0, coord1);
-	vec4 dirt_y = texture2D(tex2, coord2);
-	vec4 dirt_z = texture2D(tex0, coord3);
+	vec4 dirt_x = texture2D(dirtTex, coord1);
+	vec4 dirt_y = texture2D(grassTex, coord2);
+	vec4 dirt_z = texture2D(dirtTex, coord3);
 
 	blended_color = 
 		dirt_x.xyzw * blend_weights.xxxx +
