@@ -53,16 +53,12 @@ int vertIndexList[12];
 float isolevel = 0.5;
 float mu;
 
-int uSpace = yDim * zDim * (xDim -1);
-int vSpace = zDim * xDim * (yDim -1);
-int wSpace = xDim * yDim * (zDim -1);
-
 int index;
 
 core::vector3df tmpVec3D;
-int generatedPoints[uSpace + vSpace + wSpace];
+int generatedPoints[xDim * yDim * zDim * 3];
 
-std::fill_n(generatedPoints, uSpace + vSpace + wSpace, -1);
+std::fill_n(generatedPoints, xDim * yDim * zDim * 3, -1);
 
 scene::SMeshBuffer *buf = 0;
 
@@ -88,26 +84,11 @@ for (z = 0; z < zDim -1; z++) {
 
             //Generate verts needed by this voxel.
             for (i = 0; i < 12; i++) {
-                switch (edges[i][2]) {
-                    case 0: //Change in X direction
-                        index = ((int)points[edges[i][0]].X + x) + 
-                               (((int)points[edges[i][0]].Y + y) * (xDim-1)) + 
-                               (((int)points[edges[i][0]].Z + z) * (xDim-1)  * (yDim));
-                    break;
-                    case 1: //Change in Y direction
-                        index = ((int)points[edges[i][0]].X + x) + 
-                               (((int)points[edges[i][0]].Y + y) * xDim) + 
-                               (((int)points[edges[i][0]].Z + z) * xDim  * (yDim-1)) +
-                               uSpace;
-                    break;
-                    case 2: //Change in Z direction
-                        index = ((int)points[edges[i][0]].X + x) + 
-                               (((int)points[edges[i][0]].Y + y) * xDim) + 
-                               (((int)points[edges[i][0]].Z + z) * xDim  * yDim) +
-                               uSpace + vSpace;
-                    break;
-                }
 
+                index = (((int)points[edges[i][0]].X + x)) +
+                        (((int)points[edges[i][0]].Y + y) * xDim) +
+                        (((int)points[edges[i][0]].Z + z) * xDim * yDim);
+                
                 if(edgeTable[cubeIndex] & (1 << i)) {
                     if (generatedPoints[index] == -1) {
                         mu = (isolevel - pointVals[edges[i][0]]) / (pointVals[edges[i][1]] - pointVals[edges[i][0]]);
@@ -132,6 +113,7 @@ for (z = 0; z < zDim -1; z++) {
                         generatedPoints[index] = buf->Vertices.size();
                         buf->Vertices.push_back(tmpS3DVertex); //FIXME this should just build the vertex here and now.
                     } else {
+                        
                     }
                     
                     vertList[i] = index;
