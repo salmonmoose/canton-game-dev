@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document>
 	<settings>
-		<resolution x='800' y='600'/>
-        <mesh wireframe='false' cullbackface='false'/>
+		<resolution x='400' y='300'/>
+        <mesh wireframe='false' cullbackface='true'/>
 	</settings>
 </document>

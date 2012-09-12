@@ -1,19 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Document>
 	<Noise>
-        <Render>TestSphere</Render>
-        <Module Type="Fractal" Name="Ground_Shape">
-            <Fractal Type="ENUM">HYBRIDMULTI</Fractal>
-            <Basis Type="ENUM">SIMPLEX</Basis>
-            <Interpolation Type="ENUM">QUINTIC</Interpolation>
-            <Octaves Type="Int">3</Octaves>
-            <Frequency Type="Double">0.5</Frequency>
-        </Module>
+        <Render>Ground_Perturb</Render>
         <Module Type="Sphere" Name="TestSphere">
             <Radius Type="Double">2</Radius>
-            <CenterX Type="Double">1</CenterX>
-            <CenterY Type="Double">1</CenterY>
-            <CenterZ Type="Double">1</CenterZ>
+            <CenterX Type="Double">0</CenterX>
+            <CenterY Type="Double">0</CenterY>
+            <CenterZ Type="Double">0</CenterZ>
         </Module>
         <Module Type="Gradient" Name="Ground_Gradient">
             <X1 Type="Double">0</X1>
@@ -21,14 +14,21 @@
             <Y1 Type="Double">1</Y1>
             <Y2 Type="Double">0</Y2>
         </Module>
+        <Module Type="Fractal" Name="Ground_Shape_Fractal">
+            <Fractal Type="Enum">FBM</Fractal>
+            <Basis Type="Enum">GRADIENT</Basis>
+            <Interpolation Type="Enum">QUINTIC</Interpolation>
+            <Octaves Type="Int">6</Octaves>
+            <Frequency Type="Double">1.5</Frequency>
+        </Module>
         <Module Type="ScaleOffset" Name="Ground_Scale">
             <Scale Type="Double">0.5</Scale>
             <Offset Type="Double">0</Offset>
-            <Source Type="Noise">Ground_Shape</Source>
+            <Source Type="Noise">Ground_Shape_Fractal</Source>
         </Module>
-        <Module Type="TranslateDomain" Name="Ground">
+        <Module Type="TranslateDomain" Name="Ground_Perturb">
             <Source Type="Noise">Ground_Gradient</Source>
-            <YAxis Type="Noise">Ground_Scale</YAxis>
+            <TranslateY Type="Noise">Ground_Shape_Fractal</TranslateY>
         </Module>
 	</Noise>
 </Document>

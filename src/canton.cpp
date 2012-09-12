@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
 	}
 
 	core::vector3df position = core::vector3df(16.f, 16.f, 16.f);
-	core::vector3df offset = core::vector3df(-16.f,16.f,-16.f);
+	core::vector3df offset = core::vector3df(-8.f,8.f,-8.f);
 
 	scene::ICameraSceneNode *camera = smgr->addCameraSceneNode(
 		0, 
