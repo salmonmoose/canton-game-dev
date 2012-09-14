@@ -24,11 +24,11 @@ struct TerrainChunk {
     ValueArray values;
     MaterialArray materials;
     
-    const int status;
+    int status;
 
     irr::scene::SMesh mesh;
 
-    TerrainChunk();
+    TerrainChunk() : status(C_NEW)
     {
         status = C_NEW;
         values.resize(boost::extents[32][32][32]);
@@ -72,7 +72,7 @@ public:
 	void generateChunk(int, int, int);
 	void bresenham(irr::core::vector3df, irr::core::vector3df);
 	void generateNavMesh();
-	irr::scene::SMesh * getMesh();
+	std::vector<irr::scene::SMesh> getMesh(/*frustum*/);
 };
 
 #endif

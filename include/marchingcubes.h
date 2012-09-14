@@ -10,6 +10,8 @@
 #include "canton.h"
 #include "terrain.h"
 
+typedef boost::multi_array<double, 3> ValueArray;
+typedef boost::multi_array<int, 3> MaterialArray;
 
 static irr::core::vector3df points[8] = {
     irr::core::vector3df(0.0, 0.0, 0.0), //0
@@ -343,9 +345,8 @@ class MCubeMesh
 private:
 
 public:
-    irr::scene::SMesh MCubeMesh::generateIsoSurface(TerrainChunk & in_tc);
+    irr::scene::SMesh generateIsoSurface(ValueArray values, MaterialArray materials);
     ~MCubeMesh();
-
 };
 
 #endif

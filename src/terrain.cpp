@@ -31,13 +31,20 @@ Not sure exactly how this will work
 -get back mesh
 -PROFIT!!!
 */
-irr::scene::SMesh * ScalarTerrain::getMesh(/*frustum*/)
+std::vector<irr::scene::SMesh> ScalarTerrain::getMesh(/*frustum*/)
 {
+    std::vector<irr::scene::SMesh> meshList;
+
+    //Loop through all chunks in frustum
     worldMap[TerrainLocation(0,0,0)] = TerrainChunk();
     renderChunk(worldMap[TerrainLocation(0,0,0)]);
     worldMap[TerrainLocation(0,0,0)].Mesh = MCubeMesh::generateIsoSurface(tc);
 
-    return worldMap[TerrainLocation(0,0,0)].Mesh;
+    //Push generated meshes back on pile.
+    meshList.push_back(worldMap[TerrainLocation(0,0,0)].Mesh);
+
+
+    return meshList;
 }
 
 void ScalarTerrain::generateNavMesh()

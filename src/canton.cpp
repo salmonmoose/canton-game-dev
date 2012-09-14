@@ -138,11 +138,14 @@ int main(int argc, char* argv[])
 
 	//FIXME: This code should be part of Terrain
 	//MCubeMesh mesh(world.tc); old
-	scene::SMesh * mesh = world.getMesh();
 
-	//mesh.init(driver);
+	std::vector<irr::scene::SMesh> meshList = world.getMesh();
 
-	scene::IMeshSceneNode * meshnode = smgr->addMeshSceneNode(mesh);
+	for(std::vector<irr::scene::SMesh>::iterator it = meshList.begin(); it != meshList.end(); it++)
+	{	
+		//FIXME, need to maintain a list of active scene nodes so that culling can take place.
+		scene::IMeshSceneNode * meshnode = smgr->addMeshSceneNode(*it);
+	}
 	
 	meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, settings->FirstChildElement("mesh")->BoolAttribute("cullbackface"));
 	meshnode->setMaterialFlag(video::EMF_WIREFRAME, settings->FirstChildElement("mesh")->BoolAttribute("wireframe"));
