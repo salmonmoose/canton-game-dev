@@ -38,7 +38,7 @@ std::vector<irr::scene::SMesh> ScalarTerrain::getMesh(/*frustum*/)
     //Loop through all chunks in frustum
     worldMap[TerrainLocation(0,0,0)] = TerrainChunk();
     renderChunk(worldMap[TerrainLocation(0,0,0)]);
-    worldMap[TerrainLocation(0,0,0)].Mesh = MCubeMesh::generateIsoSurface(tc);
+    worldMap[TerrainLocation(0,0,0)].Mesh = generateIsoSurface(tc.values, tc.materials);
 
     //Push generated meshes back on pile.
     meshList.push_back(worldMap[TerrainLocation(0,0,0)].Mesh);

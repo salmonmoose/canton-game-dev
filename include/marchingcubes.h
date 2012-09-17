@@ -345,7 +345,7 @@ class MCubeMesh
 private:
 
 public:
-    irr::scene::SMesh generateIsoSurface(ValueArray values, MaterialArray materials);
+    
     ~MCubeMesh();
 };
 

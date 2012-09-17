@@ -2,13 +2,13 @@
 
 using namespace irr;
 
-irr::scene::SMesh MCubeMesh::generateIsoSurface(TerrainChunk & in_tc) : Mesh(0)
+irr::scene::SMesh * generateIsoSurface(ValueArray values, MaterialArray materials)
 {
-    Mesh = new scene::SMesh();
+    scene::SMesh * Mesh = new scene::SMesh();
 
-    int xDim = tc.values.shape()[0];
-    int yDim = tc.values.shape()[1];
-    int zDim = tc.values.shape()[2];
+    int xDim = values.shape()[0];
+    int yDim = values.shape()[1];
+    int zDim = values.shape()[2];
 
     int x,y,z,i,cubeIndex,cacheIndex,ntriang;
     float pointVals[8];
@@ -44,8 +44,8 @@ irr::scene::SMesh MCubeMesh::generateIsoSurface(TerrainChunk & in_tc) : Mesh(0)
                 //Grab density and color data
                 cubeIndex = 0;
                 for (i = 0; i < 8; i++) {
-                    pointVals[i] = tc.values[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
-                    colorVals[i] = tc.materials[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
+                    pointVals[i] = values[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
+                    colorVals[i] = materials[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
                     if(pointVals[i] > isolevel) cubeIndex |= (1 << i);
                 }
 

@@ -26,7 +26,7 @@ struct TerrainChunk {
     
     int status;
 
-    irr::scene::SMesh mesh;
+    irr::scene::SMesh Mesh;
 
     TerrainChunk() : status(C_NEW)
     {
