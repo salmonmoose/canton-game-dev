@@ -139,9 +139,9 @@ int main(int argc, char* argv[])
 	//FIXME: This code should be part of Terrain
 	//MCubeMesh mesh(world.tc); old
 
-	std::vector<irr::scene::SMesh> meshList = world.getMesh();
+	std::vector<irr::scene::SMesh*> meshList = world.getMesh(/*frustum*/);
 
-	for(std::vector<irr::scene::SMesh>::iterator it = meshList.begin(); it != meshList.end(); it++)
+	for(std::vector<irr::scene::SMesh*>::iterator it = meshList.begin(); it != meshList.end(); it++)
 	{	
 		//FIXME, need to maintain a list of active scene nodes so that culling can take place.
 		scene::IMeshSceneNode * meshnode = smgr->addMeshSceneNode(*it);

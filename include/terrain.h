@@ -21,18 +21,21 @@ enum EChunkStatus
 };
 
 struct TerrainChunk {
-    ValueArray values;
-    MaterialArray materials;
+    ValueArray * values;
+    MaterialArray * materials;
     
     int status;
 
-    irr::scene::SMesh Mesh;
+    irr::scene::SMesh * Mesh;
 
     TerrainChunk() : status(C_NEW)
     {
+    	values = new ValueArray();
+    	materials = new MaterialArray();
+    	printf("Spawning New Chunk\n");
         status = C_NEW;
-        values.resize(boost::extents[32][32][32]);
-        materials.resize(boost::extents[32][32][32]);
+        values->resize(boost::extents[32][32][32]);
+        materials->resize(boost::extents[32][32][32]);
     }
 };
 
@@ -72,7 +75,7 @@ public:
 	void generateChunk(int, int, int);
 	void bresenham(irr::core::vector3df, irr::core::vector3df);
 	void generateNavMesh();
-	std::vector<irr::scene::SMesh> getMesh(/*frustum*/);
+	std::vector<irr::scene::SMesh*> getMesh(/*frustum*/);
 };
 
 #endif

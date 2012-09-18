@@ -340,13 +340,6 @@ static int triTable[256][16] = {
         { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
 };
 
-class MCubeMesh
-{
-private:
-
-public:
-    
-    ~MCubeMesh();
-};
+irr::scene::SMeshBuffer * generateIsoSurface(ValueArray * values, MaterialArray * materials);
 
 #endif

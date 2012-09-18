@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Document>
 	<Noise>
-        <Render>Ground_Perturb</Render>
+        <Render>TestSphere</Render>
         <Module Type="Sphere" Name="TestSphere">
-            <Radius Type="Double">2</Radius>
-            <CenterX Type="Double">0</CenterX>
-            <CenterY Type="Double">0</CenterY>
-            <CenterZ Type="Double">0</CenterZ>
+            <Radius Type="Double">1</Radius>
+            <CenterX Type="Double">0.5</CenterX>
+            <CenterY Type="Double">0.5</CenterY>
+            <CenterZ Type="Double">0.5</CenterZ>
         </Module>
         <Module Type="Gradient" Name="Ground_Gradient">
             <X1 Type="Double">0</X1>

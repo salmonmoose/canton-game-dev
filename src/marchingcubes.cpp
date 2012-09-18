@@ -2,13 +2,23 @@
 
 using namespace irr;
 
-irr::scene::SMesh * generateIsoSurface(ValueArray values, MaterialArray materials)
+scene::SMeshBuffer * generateIsoSurface(ValueArray * values, MaterialArray * materials)
 {
-    scene::SMesh * Mesh = new scene::SMesh();
+    printf("Entered Generate Iso Surface\n");
+    scene::SMeshBuffer *buf = 0;
+    buf = new scene::SMeshBuffer();
+    buf->drop();
 
-    int xDim = values.shape()[0];
-    int yDim = values.shape()[1];
-    int zDim = values.shape()[2];
+    buf->Vertices.clear();
+    buf->Indices.clear();
+
+    printf("Getting Block Shape\n");
+
+    int xDim = values->shape()[0];
+    int yDim = values->shape()[1];
+    int zDim = values->shape()[2];
+
+    printf("Blockshape %i,%i,%i",xDim,yDim,zDim);
 
     int x,y,z,i,cubeIndex,cacheIndex,ntriang;
     float pointVals[8];
@@ -27,25 +37,14 @@ irr::scene::SMesh * generateIsoSurface(ValueArray values, MaterialArray material
 
     std::fill_n(generatedPoints, xDim * yDim * zDim * 3, -1);
 
-    scene::SMeshBuffer *buf = 0;
-
-    buf = new scene::SMeshBuffer();
-    Mesh->addMeshBuffer(buf);
-
-    buf->drop();
-
-    buf->Vertices.clear();
-    buf->Indices.clear();
-
-
     for (z = 0; z < zDim -1; z++) {
         for (y = 0; y < yDim -1; y++) {
             for (x = 0; x < xDim -1; x++) {
                 //Grab density and color data
                 cubeIndex = 0;
                 for (i = 0; i < 8; i++) {
-                    pointVals[i] = values[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
-                    colorVals[i] = materials[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
+                    pointVals[i] = (*values)[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
+                    colorVals[i] = (*materials)[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
                     if(pointVals[i] > isolevel) cubeIndex |= (1 << i);
                 }
 
@@ -108,5 +107,5 @@ irr::scene::SMesh * generateIsoSurface(ValueArray values, MaterialArray material
 
     buf->recalculateBoundingBox();
 
-    return Mesh;
+    return buf;
 }
