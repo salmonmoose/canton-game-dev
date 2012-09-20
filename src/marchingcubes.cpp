@@ -5,12 +5,21 @@ using namespace irr;
 void generateIsoSurface(scene::SMesh& Mesh, ValueArray& values, MaterialArray& materials)
 {
     printf("Entered Generate Iso Surface\n");
-    scene::SMeshBuffer buf;
-    //buf.drop();
+    scene::SMeshBuffer *buf = 0;
+    
+    buf = new irr::scene::SMeshBuffer();
 
-    buf.Vertices.clear();
-    buf.Indices.clear();
+    printf("Adding buffer to mesh\n");
+    Mesh.addMeshBuffer(buf);
 
+    printf("Drop buffer\n");
+    //buf->drop();
+
+    printf("Clear buffer\n");
+    buf->Vertices.clear();
+    buf->Indices.clear();
+
+    printf("Getting shapes\n");
     int xDim = values.shape()[0];
     int yDim = values.shape()[1];
     int zDim = values.shape()[2];
@@ -33,6 +42,8 @@ void generateIsoSurface(scene::SMesh& Mesh, ValueArray& values, MaterialArray& m
     int generatedPoints[xDim * yDim * zDim * 3];
 
     std::fill_n(generatedPoints, xDim * yDim * zDim * 3, -1);
+
+    printf("Pushing vertexes onto buf ");
 
     for (z = 0; z < zDim -1; z++) {
         for (y = 0; y < yDim -1; y++) {
@@ -74,8 +85,9 @@ void generateIsoSurface(scene::SMesh& Mesh, ValueArray& values, MaterialArray& m
 
                             tmpS3DVertex.Normal.set(0.0,0.0,0.0);
 
-                            generatedPoints[index] = buf.Vertices.size();
-                            buf.Vertices.push_back(tmpS3DVertex); //FIXME this should just build the vertex here and now.
+                            generatedPoints[index] = buf->Vertices.size();
+                            printf(".");
+                            buf->Vertices.push_back(tmpS3DVertex); //FIXME this should just build the vertex here and now.
                         } else {
                         }
                         
@@ -84,23 +96,25 @@ void generateIsoSurface(scene::SMesh& Mesh, ValueArray& values, MaterialArray& m
                 }
 
                 for (i=0;triTable[cubeIndex][i]!=-1;i++) {
-                    buf.Indices.push_back(generatedPoints[vertList[triTable[cubeIndex][i]]]);
+                    buf->Indices.push_back(generatedPoints[vertList[triTable[cubeIndex][i]]]);
                 }
             }
         }
     }
 
-    for (i = 0; i < buf.Indices.size(); i += 3) {
+    printf("done\n");
+
+    for (i = 0; i < buf->Indices.size(); i += 3) {
         tmpVec3D = (
-            buf.Vertices[buf.Indices[i+1]].Pos - buf.Vertices[buf.Indices[i]].Pos
+            buf->Vertices[buf->Indices[i+1]].Pos - buf->Vertices[buf->Indices[i]].Pos
         ).crossProduct(
-            buf.Vertices[buf.Indices[i]].Pos - buf.Vertices[buf.Indices[i + 2]].Pos
+            buf->Vertices[buf->Indices[i]].Pos - buf->Vertices[buf->Indices[i + 2]].Pos
         );
 
-        buf.Vertices[buf.Indices[i]].Normal   = buf.Vertices[buf.Indices[i]].Normal + tmpVec3D;
-        buf.Vertices[buf.Indices[i+1]].Normal = buf.Vertices[buf.Indices[i+1]].Normal + tmpVec3D;
-        buf.Vertices[buf.Indices[i+2]].Normal = buf.Vertices[buf.Indices[i+2]].Normal + tmpVec3D;
+        buf->Vertices[buf->Indices[i]].Normal   = buf->Vertices[buf->Indices[i]].Normal + tmpVec3D;
+        buf->Vertices[buf->Indices[i+1]].Normal = buf->Vertices[buf->Indices[i+1]].Normal + tmpVec3D;
+        buf->Vertices[buf->Indices[i+2]].Normal = buf->Vertices[buf->Indices[i+2]].Normal + tmpVec3D;
     }
-
-    buf.recalculateBoundingBox();
+    printf("recalculateBoundingBox\n");
+    buf->recalculateBoundingBox();
 }

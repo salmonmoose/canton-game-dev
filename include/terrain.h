@@ -28,14 +28,14 @@ struct TerrainChunk {
 
     irr::scene::SMesh * Mesh;
 
-    TerrainChunk() : status(C_NEW)
+    TerrainChunk(int xDim = 32, int yDim = 32, int zDim = 32) : status(C_NEW)
     {
     	values = new ValueArray();
     	materials = new MaterialArray();
     	printf("Spawning New Chunk\n");
         status = C_NEW;
-        values->resize(boost::extents[16][16][16]);
-        materials->resize(boost::extents[16][16][16]);
+        values->resize(boost::extents[xDim][yDim][zDim]);
+        materials->resize(boost::extents[xDim][yDim][zDim]);
     }
 };
 

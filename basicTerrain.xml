@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Document>
 	<Noise>
-        <Render>TestSphere</Render>
+        <Render>Ground_Perturb</Render>
         <Module Type="Sphere" Name="TestSphere">
             <Radius Type="Double">1</Radius>
             <CenterX Type="Double">0.5</CenterX>
