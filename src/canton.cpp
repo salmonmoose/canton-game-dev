@@ -141,6 +141,8 @@ int main(int argc, char* argv[])
 
 	world.getMesh(/*frustum*/);
 
+	world.generateMesh();
+
 	scene::IMeshSceneNode * meshnode = smgr->addMeshSceneNode(&world.Mesh);
 
 	meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, settings->FirstChildElement("mesh")->BoolAttribute("cullbackface"));

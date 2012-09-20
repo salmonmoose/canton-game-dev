@@ -20,16 +20,36 @@ enum EChunkStatus
     C_CLEAN //Chunk data matches mesh
 };
 
+struct TerrainLocation
+{
+    int X,Y,Z;
+
+    TerrainLocation(int x, int y, int z) : X(x), Y(y), Z(z) {}
+
+    bool operator < (const TerrainLocation & tl ) const {
+        if(X != tl.X)
+            return (X < tl.X);
+        if(Y != tl.Y)
+            return (Y < tl.Y);
+
+        return (Z < tl.Z);
+    }
+};
+
 struct TerrainChunk {
     ValueArray * values;
     MaterialArray * materials;
-    
+    TerrainLocation * localPoint;
     int status;
 
     irr::scene::SMesh * Mesh;
 
-    TerrainChunk(int xDim = 32, int yDim = 32, int zDim = 32) : status(C_NEW)
+    TerrainChunk(
+        int xDim = 32, int yDim = 32, int zDim = 32,
+        int xPos = 0, int yPos = 0, int zPos = 0
+        ) : status(C_NEW)
     {
+        localPoint = new TerrainLocation(xPos,yPos,zPos);
     	values = new ValueArray();
     	materials = new MaterialArray();
     	printf("Spawning New Chunk\n");
@@ -39,21 +59,6 @@ struct TerrainChunk {
     }
 };
 
-struct TerrainLocation
-{
-	int X,Y,Z;
-
-	TerrainLocation(int x, int y, int z) : X(x), Y(y), Z(z) {}
-
-	bool operator < (const TerrainLocation & tl ) const {
-		if(X != tl.X)
-			return (X < tl.X);
-		if(Y != tl.Y)
-			return (Y < tl.Y);
-
-		return (Z < tl.Z);
-	}
-};
 
 class ScalarTerrain
 {
@@ -78,6 +83,7 @@ public:
 	void bresenham(irr::core::vector3df, irr::core::vector3df);
 	void generateNavMesh();
 	void getMesh(/*frustum*/);
+    void generateMesh();
 };
 
 #endif
