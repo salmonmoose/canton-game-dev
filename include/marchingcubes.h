@@ -1,3 +1,6 @@
+#ifndef MARCHINGCUBES_H
+#define MARCHINGCUBES_H
+
 #include <iostream>
 #include <irrlicht.h>
 #include "driverChoice.h"
@@ -5,6 +8,10 @@
 #include <boost/array.hpp>
 #include <stdio.h>
 #include "canton.h"
+#include "terrain.h"
+
+typedef boost::multi_array<double, 3> ValueArray;
+typedef boost::multi_array<int, 3> MaterialArray;
 
 static irr::core::vector3df points[8] = {
     irr::core::vector3df(0.0, 0.0, 0.0), //0
@@ -333,17 +340,6 @@ static int triTable[256][16] = {
         { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
 };
 
-class MCubeMesh
-{
-private:
+void generateIsoSurface(irr::scene::SMesh& Mesh, ValueArray& values, MaterialArray& materials);
 
-public:
-    irr::scene::SMesh* Mesh;
-    TerrainChunk tc;
-
-    MCubeMesh(TerrainChunk & in_tc);
-
-    ~MCubeMesh();
-
-    void init(irr::video::IVideoDriver *driver);
-};
+#endif

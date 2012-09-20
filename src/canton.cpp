@@ -3,7 +3,6 @@
 #include "driverChoice.h"
 
 #include "canton.h"
-#include "marchingcubes.h"
 #include "terrain.h"
 #include "tinyxml2.h"
 
@@ -137,12 +136,13 @@ int main(int argc, char* argv[])
 		shaderCallBack->drop();
 	}
 
-	MCubeMesh mesh(world.tc);
+	//FIXME: This code should be part of Terrain
+	//MCubeMesh mesh(world.tc); old
 
-	mesh.init(driver);
+	world.getMesh(/*frustum*/);
 
-	scene::IMeshSceneNode * meshnode = smgr->addMeshSceneNode(mesh.Mesh);
-	
+	scene::IMeshSceneNode * meshnode = smgr->addMeshSceneNode(&world.Mesh);
+
 	meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, settings->FirstChildElement("mesh")->BoolAttribute("cullbackface"));
 	meshnode->setMaterialFlag(video::EMF_WIREFRAME, settings->FirstChildElement("mesh")->BoolAttribute("wireframe"));
 	meshnode->setMaterialFlag(video::EMF_LIGHTING, true);
@@ -152,7 +152,6 @@ int main(int argc, char* argv[])
 	meshnode->setMaterialTexture(3, driver->getTexture("./resources/rock.jpg"));
 	meshnode->setMaterialTexture(4, driver->getTexture("./resources/sand.jpg"));
 	meshnode->setMaterialTexture(5, driver->getTexture("./resources/void.jpg"));
-
 	meshnode->setMaterialType((video::E_MATERIAL_TYPE) terrainMaterial);
 
 	scene::ILightSceneNode *node = smgr->addLightSceneNode(0,core::vector3df(0,0,0),
