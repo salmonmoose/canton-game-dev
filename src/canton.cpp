@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
 
 	u32 then = device->getTimer()->getTime();
 
-	const f32 MOVEMENT_SPEED = 3.f;
+	const f32 MOVEMENT_SPEED = 10.f;
 
 	while(device->run())
 	{

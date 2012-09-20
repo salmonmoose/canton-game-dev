@@ -18,8 +18,8 @@
             <Fractal Type="Enum">FBM</Fractal>
             <Basis Type="Enum">GRADIENT</Basis>
             <Interpolation Type="Enum">QUINTIC</Interpolation>
-            <Octaves Type="Int">6</Octaves>
-            <Frequency Type="Double">1.5</Frequency>
+            <Octaves Type="Int">4</Octaves>
+            <Frequency Type="Double">1</Frequency>
         </Module>
         <Module Type="ScaleOffset" Name="Ground_Scale">
             <Scale Type="Double">0.5</Scale>

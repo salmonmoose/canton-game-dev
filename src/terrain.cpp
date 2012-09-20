@@ -9,9 +9,9 @@
 #include "terrain.h"
 
 
-static int x_chunk = 16;
-static int y_chunk = 16;
-static int z_chunk = 16;
+static int x_chunk = 32;
+static int y_chunk = 32;
+static int z_chunk = 32;
 
 using namespace irr;
 
@@ -39,20 +39,22 @@ void ScalarTerrain::getMesh(/*frustum*/)
     for(int z = -1; z <= 1; z++) {
         for(int x = -1; x <= 1; x++) {
             printf("generating chunk %i,0,%i ... ",x,z);
-            worldMap[TerrainLocation(x,0,z)] = TerrainChunk(32,32,32,x,0,z);
+            worldMap[TerrainLocation(x,0,z)] = TerrainChunk(x_chunk,y_chunk,z_chunk,x,0,z);
             renderChunk(worldMap[TerrainLocation(x,0,z)]);
         }
     }
 }
 
 void ScalarTerrain::generateMesh() {
+    int y = 0;
     for(int z = -1; z <= 1; z++) {
         for(int x = -1; x <= 1; x++) {
-            printf("setting up buf %i,0,%i ... ",x,z);
+            printf("setting up buf %i,%i,%i ... ",x,y,z);
             generateIsoSurface(
                 Mesh,
                 (* worldMap[TerrainLocation(x,0,z)].values),
-                (* worldMap[TerrainLocation(x,0,z)].materials)
+                (* worldMap[TerrainLocation(x,0,z)].materials),
+                x * x_chunk, y * y_chunk, z * z_chunk
             );
             printf("buf setup\n");
         }
@@ -74,16 +76,9 @@ void ScalarTerrain::renderChunk(TerrainChunk &tc) {
 
     try {
         for(int z = 0; z < z_chunk; z++) {
-            printf("Z row:\n");
             for(int y = 0; y < y_chunk; y++) {
-                printf("Y row:\n");
                 for(int x = 0; x < x_chunk; x++) {
-                    printf("Point(%f,%f,%f),",
-                        ((double)x/x_chunk) + xPos, 
-                        ((double)y/y_chunk) + yPos, 
-                        ((double)z/z_chunk) + zPos
-                        );
-
+                    
                     value = noiseTree.get(
                         ((double)x/x_chunk) + xPos, 
                         ((double)y/y_chunk) + yPos, 

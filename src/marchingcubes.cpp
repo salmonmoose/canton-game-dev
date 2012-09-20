@@ -2,7 +2,12 @@
 
 using namespace irr;
 
-void generateIsoSurface(scene::SMesh& Mesh, ValueArray& values, MaterialArray& materials)
+void generateIsoSurface(
+        scene::SMesh& Mesh, 
+        ValueArray& values, 
+        MaterialArray& materials,
+        int x_offset, int y_offset, int z_offset
+    )
 {
     printf("Entered Generate Iso Surface\n");
     scene::SMeshBuffer *buf = 0;
@@ -69,17 +74,17 @@ void generateIsoSurface(scene::SMesh& Mesh, ValueArray& values, MaterialArray& m
                             mu = (isolevel - pointVals[edges[i][0]]) / (pointVals[edges[i][1]] - pointVals[edges[i][0]]);
                             
                             tmpS3DVertex.Pos.set(
-                                x + (points[edges[i][0]].X + mu * (points[edges[i][1]].X - points[edges[i][0]].X)),
-                                y + (points[edges[i][0]].Y + mu * (points[edges[i][1]].Y - points[edges[i][0]].Y)),
-                                z + (points[edges[i][0]].Z + mu * (points[edges[i][1]].Z - points[edges[i][0]].Z))
-                                );
+                                x_offset + x + (points[edges[i][0]].X + mu * (points[edges[i][1]].X - points[edges[i][0]].X)),
+                                y_offset + y + (points[edges[i][0]].Y + mu * (points[edges[i][1]].Y - points[edges[i][0]].Y)),
+                                z_offset + z + (points[edges[i][0]].Z + mu * (points[edges[i][1]].Z - points[edges[i][0]].Z))
+                            );
 
                             tmpS3DVertex.Color.set(
                                 colors[colorVals[edges[i][0]]].r + mu * (colors[colorVals[edges[i][1]]].r - colors[colorVals[edges[i][0]]].r),
                                 colors[colorVals[edges[i][0]]].g + mu * (colors[colorVals[edges[i][1]]].g - colors[colorVals[edges[i][0]]].g),
                                 colors[colorVals[edges[i][0]]].b + mu * (colors[colorVals[edges[i][1]]].b - colors[colorVals[edges[i][0]]].b),
                                 colors[colorVals[edges[i][0]]].a + mu * (colors[colorVals[edges[i][1]]].a - colors[colorVals[edges[i][0]]].a)
-                                );
+                            );
 
                             tmpS3DVertex.TCoords.set(0.0,0.0);
 
