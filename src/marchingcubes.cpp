@@ -2,23 +2,20 @@
 
 using namespace irr;
 
-scene::SMeshBuffer * generateIsoSurface(ValueArray * values, MaterialArray * materials)
+void generateIsoSurface(scene::SMesh& Mesh, ValueArray& values, MaterialArray& materials)
 {
     printf("Entered Generate Iso Surface\n");
-    scene::SMeshBuffer *buf = 0;
-    buf = new scene::SMeshBuffer();
-    buf->drop();
+    scene::SMeshBuffer buf;
+    //buf.drop();
 
-    buf->Vertices.clear();
-    buf->Indices.clear();
+    buf.Vertices.clear();
+    buf.Indices.clear();
 
-    printf("Getting Block Shape\n");
+    int xDim = values.shape()[0];
+    int yDim = values.shape()[1];
+    int zDim = values.shape()[2];
 
-    int xDim = values->shape()[0];
-    int yDim = values->shape()[1];
-    int zDim = values->shape()[2];
-
-    printf("Blockshape %i,%i,%i",xDim,yDim,zDim);
+    printf("Blockshape %i,%i,%i\n",xDim,yDim,zDim);
 
     int x,y,z,i,cubeIndex,cacheIndex,ntriang;
     float pointVals[8];
@@ -40,11 +37,12 @@ scene::SMeshBuffer * generateIsoSurface(ValueArray * values, MaterialArray * mat
     for (z = 0; z < zDim -1; z++) {
         for (y = 0; y < yDim -1; y++) {
             for (x = 0; x < xDim -1; x++) {
+                
                 //Grab density and color data
                 cubeIndex = 0;
                 for (i = 0; i < 8; i++) {
-                    pointVals[i] = (*values)[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
-                    colorVals[i] = (*materials)[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
+                    pointVals[i] = values[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
+                    colorVals[i] = materials[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
                     if(pointVals[i] > isolevel) cubeIndex |= (1 << i);
                 }
 
@@ -76,10 +74,9 @@ scene::SMeshBuffer * generateIsoSurface(ValueArray * values, MaterialArray * mat
 
                             tmpS3DVertex.Normal.set(0.0,0.0,0.0);
 
-                            generatedPoints[index] = buf->Vertices.size();
-                            buf->Vertices.push_back(tmpS3DVertex); //FIXME this should just build the vertex here and now.
+                            generatedPoints[index] = buf.Vertices.size();
+                            buf.Vertices.push_back(tmpS3DVertex); //FIXME this should just build the vertex here and now.
                         } else {
-                            
                         }
                         
                         vertList[i] = index;
@@ -87,25 +84,23 @@ scene::SMeshBuffer * generateIsoSurface(ValueArray * values, MaterialArray * mat
                 }
 
                 for (i=0;triTable[cubeIndex][i]!=-1;i++) {
-                    buf->Indices.push_back(generatedPoints[vertList[triTable[cubeIndex][i]]]);
+                    buf.Indices.push_back(generatedPoints[vertList[triTable[cubeIndex][i]]]);
                 }
             }
         }
     }
 
-    for (i = 0; i < buf->Indices.size(); i += 3) {
+    for (i = 0; i < buf.Indices.size(); i += 3) {
         tmpVec3D = (
-            buf->Vertices[buf->Indices[i+1]].Pos - buf->Vertices[buf->Indices[i]].Pos
+            buf.Vertices[buf.Indices[i+1]].Pos - buf.Vertices[buf.Indices[i]].Pos
         ).crossProduct(
-            buf->Vertices[buf->Indices[i]].Pos - buf->Vertices[buf->Indices[i + 2]].Pos
+            buf.Vertices[buf.Indices[i]].Pos - buf.Vertices[buf.Indices[i + 2]].Pos
         );
 
-        buf->Vertices[buf->Indices[i]].Normal   = buf->Vertices[buf->Indices[i]].Normal + tmpVec3D;
-        buf->Vertices[buf->Indices[i+1]].Normal = buf->Vertices[buf->Indices[i+1]].Normal + tmpVec3D;
-        buf->Vertices[buf->Indices[i+2]].Normal = buf->Vertices[buf->Indices[i+2]].Normal + tmpVec3D;
+        buf.Vertices[buf.Indices[i]].Normal   = buf.Vertices[buf.Indices[i]].Normal + tmpVec3D;
+        buf.Vertices[buf.Indices[i+1]].Normal = buf.Vertices[buf.Indices[i+1]].Normal + tmpVec3D;
+        buf.Vertices[buf.Indices[i+2]].Normal = buf.Vertices[buf.Indices[i+2]].Normal + tmpVec3D;
     }
 
-    buf->recalculateBoundingBox();
-
-    return buf;
+    buf.recalculateBoundingBox();
 }

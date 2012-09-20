@@ -34,8 +34,8 @@ struct TerrainChunk {
     	materials = new MaterialArray();
     	printf("Spawning New Chunk\n");
         status = C_NEW;
-        values->resize(boost::extents[32][32][32]);
-        materials->resize(boost::extents[32][32][32]);
+        values->resize(boost::extents[16][16][16]);
+        materials->resize(boost::extents[16][16][16]);
     }
 };
 
@@ -66,6 +66,8 @@ public:
     anl::CImplicitXML noiseTree;
     std::map<TerrainLocation, TerrainChunk> worldMap;
 
+    irr::scene::SMesh Mesh;
+
 	ScalarTerrain();
 
 	~ScalarTerrain(){};
@@ -75,7 +77,7 @@ public:
 	void generateChunk(int, int, int);
 	void bresenham(irr::core::vector3df, irr::core::vector3df);
 	void generateNavMesh();
-	std::vector<irr::scene::SMesh*> getMesh(/*frustum*/);
+	void getMesh(/*frustum*/);
 };
 
 #endif

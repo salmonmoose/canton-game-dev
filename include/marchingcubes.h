@@ -340,6 +340,6 @@ static int triTable[256][16] = {
         { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
 };
 
-irr::scene::SMeshBuffer * generateIsoSurface(ValueArray * values, MaterialArray * materials);
+void generateIsoSurface(irr::scene::SMesh& Mesh, ValueArray& values, MaterialArray& materials);
 
 #endif

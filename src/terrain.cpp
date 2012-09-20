@@ -9,9 +9,9 @@
 #include "terrain.h"
 
 
-static int x_chunk = 32;
-static int y_chunk = 32;
-static int z_chunk = 32;
+static int x_chunk = 16;
+static int y_chunk = 16;
+static int z_chunk = 16;
 
 using namespace irr;
 
@@ -31,10 +31,8 @@ Not sure exactly how this will work
 -get back mesh
 -PROFIT!!!
 */
-std::vector<irr::scene::SMesh*>ScalarTerrain::getMesh(/*frustum*/)
+void ScalarTerrain::getMesh(/*frustum*/)
 {
-    std::vector<irr::scene::SMesh*> meshList;
-
     //Loop through all chunks in frustum
     printf("Spawn Chunk\n");
     worldMap[TerrainLocation(0,0,0)] = TerrainChunk();
@@ -42,20 +40,16 @@ std::vector<irr::scene::SMesh*>ScalarTerrain::getMesh(/*frustum*/)
     renderChunk(worldMap[TerrainLocation(0,0,0)]);
 
     printf("Add mesh\n");
-    worldMap[TerrainLocation(0,0,0)].Mesh = new scene::SMesh();
 
-    printf("Generate Mesh\n");
-    worldMap[TerrainLocation(0,0,0)].Mesh->addMeshBuffer(generateIsoSurface(
-        worldMap[TerrainLocation(0,0,0)].values,
-        worldMap[TerrainLocation(0,0,0)].materials
-    ));
+    printf("setting up buf\n");
 
-    printf("Pushback Mesh\n");
-    //Push generated meshes back on pile.
-    meshList.push_back(worldMap[TerrainLocation(0,0,0)].Mesh);
+    generateIsoSurface(
+        Mesh,
+        (* worldMap[TerrainLocation(0,0,0)].values),
+        (* worldMap[TerrainLocation(0,0,0)].materials)
+        );
 
-    printf("Return mesh\n");
-    return meshList;
+    printf("buf setup\n");
 }
 
 void ScalarTerrain::generateNavMesh()
@@ -76,9 +70,7 @@ void ScalarTerrain::renderChunk(TerrainChunk &tc) {
                         (double) y/y_chunk * 2, 
                         (double) z/z_chunk * 2
                     );
-                    if (value > 0) {
-                    printf("Position %i,%i,%i is %f\n",x,y,z,value);
-                    }
+
                     (*tc.values)[x][y][z] = value;
 
                     if(value < -0.5) (*tc.materials)[x][y][z] = 0;

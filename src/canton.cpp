@@ -139,24 +139,20 @@ int main(int argc, char* argv[])
 	//FIXME: This code should be part of Terrain
 	//MCubeMesh mesh(world.tc); old
 
-	std::vector<irr::scene::SMesh*> meshList = world.getMesh(/*frustum*/);
+	world.getMesh(/*frustum*/);
 
-	for(std::vector<irr::scene::SMesh*>::iterator it = meshList.begin(); it != meshList.end(); it++)
-	{	
-		//FIXME, need to maintain a list of active scene nodes so that culling can take place.
-		scene::IMeshSceneNode * meshnode = smgr->addMeshSceneNode(*it);
+	scene::IMeshSceneNode * meshnode = smgr->addMeshSceneNode(&world.Mesh);
 
-		meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, settings->FirstChildElement("mesh")->BoolAttribute("cullbackface"));
-		meshnode->setMaterialFlag(video::EMF_WIREFRAME, settings->FirstChildElement("mesh")->BoolAttribute("wireframe"));
-		meshnode->setMaterialFlag(video::EMF_LIGHTING, true);
-		meshnode->setMaterialTexture(0, driver->getTexture("./resources/dirt.jpg"));
-		meshnode->setMaterialTexture(1, driver->getTexture("./resources/clay.jpg"));
-		meshnode->setMaterialTexture(2, driver->getTexture("./resources/grass.jpg"));
-		meshnode->setMaterialTexture(3, driver->getTexture("./resources/rock.jpg"));
-		meshnode->setMaterialTexture(4, driver->getTexture("./resources/sand.jpg"));
-		meshnode->setMaterialTexture(5, driver->getTexture("./resources/void.jpg"));
-		meshnode->setMaterialType((video::E_MATERIAL_TYPE) terrainMaterial);
-	}
+	meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, settings->FirstChildElement("mesh")->BoolAttribute("cullbackface"));
+	meshnode->setMaterialFlag(video::EMF_WIREFRAME, settings->FirstChildElement("mesh")->BoolAttribute("wireframe"));
+	meshnode->setMaterialFlag(video::EMF_LIGHTING, true);
+	meshnode->setMaterialTexture(0, driver->getTexture("./resources/dirt.jpg"));
+	meshnode->setMaterialTexture(1, driver->getTexture("./resources/clay.jpg"));
+	meshnode->setMaterialTexture(2, driver->getTexture("./resources/grass.jpg"));
+	meshnode->setMaterialTexture(3, driver->getTexture("./resources/rock.jpg"));
+	meshnode->setMaterialTexture(4, driver->getTexture("./resources/sand.jpg"));
+	meshnode->setMaterialTexture(5, driver->getTexture("./resources/void.jpg"));
+	meshnode->setMaterialType((video::E_MATERIAL_TYPE) terrainMaterial);
 
 	scene::ILightSceneNode *node = smgr->addLightSceneNode(0,core::vector3df(0,0,0),
 		video::SColorf(1.0f, 1.0f, 1.0f, 1.0f), 20.0f);
