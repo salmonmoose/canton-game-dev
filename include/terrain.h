@@ -1,6 +1,7 @@
 #ifndef TERRAIN_H
 #define TERRAIN_H
 #include <iostream>
+#include <thread>
 #include "tinyxml2.h"
 #include "pugixml.hpp"
 
@@ -36,7 +37,8 @@ struct TerrainLocation
     }
 };
 
-struct TerrainChunk {
+class TerrainChunk {
+public:
     ValueArray * values;
     MaterialArray * materials;
     TerrainLocation * localPoint;
@@ -44,19 +46,24 @@ struct TerrainChunk {
 
     irr::scene::SMesh * Mesh;
 
+    bool clean;
+    //FIXME Push this to .cpp file
     TerrainChunk(
         int xDim = 32, int yDim = 32, int zDim = 32,
         int xPos = 0, int yPos = 0, int zPos = 0
         ) : status(C_NEW)
     {
         localPoint = new TerrainLocation(xPos,yPos,zPos);
+        clean = false;
     	values = new ValueArray();
     	materials = new MaterialArray();
     	printf("Spawning New Chunk\n");
         status = C_NEW;
-        values->resize(boost::extents[xDim][yDim][zDim]);
-        materials->resize(boost::extents[xDim][yDim][zDim]);
+        values->resize(boost::extents[xDim+1][yDim+1][zDim+1]);
+        materials->resize(boost::extents[xDim+1][yDim+1][zDim+1]);
     }
+
+    void renderChunk(anl::CImplicitXML & noiseTree);
 };
 
 
@@ -78,7 +85,7 @@ public:
 	~ScalarTerrain(){};
 
 	void setupAccidentalNoise();
-	void renderChunk(TerrainChunk &tc);
+	//void renderChunk(TerrainChunk &tc);
 	void generateChunk(int, int, int);
 	void bresenham(irr::core::vector3df, irr::core::vector3df);
 	void generateNavMesh();

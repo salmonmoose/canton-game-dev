@@ -2,6 +2,6 @@
 <document>
 	<settings>
 		<resolution x='320' y='240'/>
-        <mesh wireframe='false' cullbackface='true'/>
+        <mesh wireframe='false' cullbackface='false'/>
 	</settings>
 </document>

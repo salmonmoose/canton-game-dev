@@ -36,24 +36,25 @@ void ScalarTerrain::getMesh(/*frustum*/)
     //Loop through all chunks in frustum
     printf("Spawn Chunk\n");
 
-    for(int z = -1; z <= 1; z++) {
-        for(int x = -1; x <= 1; x++) {
+    for(int z = -4; z <= 4; z++) {
+        for(int x = -4; x <= 4; x++) {
             printf("generating chunk %i,0,%i ... ",x,z);
             worldMap[TerrainLocation(x,0,z)] = TerrainChunk(x_chunk,y_chunk,z_chunk,x,0,z);
-            renderChunk(worldMap[TerrainLocation(x,0,z)]);
+            worldMap[TerrainLocation(x,0,z)].renderChunk(noiseTree);
+            //renderChunk(worldMap[TerrainLocation(x,0,z)]);
         }
     }
 }
 
 void ScalarTerrain::generateMesh() {
     int y = 0;
-    for(int z = -1; z <= 1; z++) {
-        for(int x = -1; x <= 1; x++) {
+    for(int z = -4; z <= 4; z++) {
+        for(int x = -4; x <= 4; x++) {
             printf("setting up buf %i,%i,%i ... ",x,y,z);
             generateIsoSurface(
                 Mesh,
-                (* worldMap[TerrainLocation(x,0,z)].values),
-                (* worldMap[TerrainLocation(x,0,z)].materials),
+                (* worldMap[TerrainLocation(x,y,z)].values),
+                (* worldMap[TerrainLocation(x,y,z)].materials),
                 x * x_chunk, y * y_chunk, z * z_chunk
             );
             printf("buf setup\n");
@@ -69,28 +70,29 @@ void ScalarTerrain::generateNavMesh()
 /**
 Using noise tree, populates an array with values
 **/
-void ScalarTerrain::renderChunk(TerrainChunk &tc) {
-    double xPos = tc.localPoint->X * x_chunk;
-    double yPos = tc.localPoint->Y * y_chunk;
-    double zPos = tc.localPoint->Z * z_chunk;
+void TerrainChunk::renderChunk(anl::CImplicitXML & noiseTree) {
+    double value;
+    double xPos = localPoint->X * x_chunk;
+    double yPos = localPoint->Y * y_chunk;
+    double zPos = localPoint->Z * z_chunk;
 
     try {
-        for(int z = 0; z < z_chunk; z++) {
-            for(int y = 0; y < y_chunk; y++) {
-                for(int x = 0; x < x_chunk; x++) {
+        for(int z = 0; z <= z_chunk; z++) {
+            for(int y = 0; y <= y_chunk; y++) {
+                for(int x = 0; x <= x_chunk; x++) {
                     
                     value = noiseTree.get(
-                        ((double)x/x_chunk) + xPos, 
-                        ((double)y/y_chunk) + yPos, 
-                        ((double)z/z_chunk) + zPos
+                        (x + xPos) / (double) x_chunk, 
+                        (y + yPos) / (double) y_chunk, 
+                        (z + zPos) / (double) z_chunk
                     );
 
-                    (*tc.values)[x][y][z] = value;
+                    (*values)[x][y][z] = value;
 
-                    if(value < -0.5) (*tc.materials)[x][y][z] = 0;
-                    else if (value < 0) (*tc.materials)[x][y][z] = 1;
-                    else if (value < 0.5) (*tc.materials)[x][y][z] = 2;
-                    else (*tc.materials)[x][y][z] = 3;
+                    if(value < -0.5) (*materials)[x][y][z] = 0;
+                    else if (value < 0) (*materials)[x][y][z] = 1;
+                    else if (value < 0.5) (*materials)[x][y][z] = 2;
+                    else (*materials)[x][y][z] = 3;
                 }
             }
         }

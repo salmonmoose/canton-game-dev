@@ -42,11 +42,12 @@ void generateIsoSurface(
     float mu;
 
     int index;
+    int indexSize = (xDim+1) * (yDim+1) * (zDim+1) * 3;
 
     core::vector3df tmpVec3D;
-    int generatedPoints[xDim * yDim * zDim * 3];
+    int generatedPoints[indexSize];
 
-    std::fill_n(generatedPoints, xDim * yDim * zDim * 3, -1);
+    std::fill_n(generatedPoints, indexSize, -1);
 
     printf("Pushing vertexes onto buf ");
 

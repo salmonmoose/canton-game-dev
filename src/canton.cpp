@@ -196,15 +196,22 @@ int main(int argc, char* argv[])
 		{
 			core::vector3df cameraPosition = camera->getTarget();
 
-			if(receiver.IsKeyDown(irr::KEY_KEY_W))
+			if(receiver.IsKeyDown(irr::KEY_KEY_W) || receiver.IsKeyDown(irr::KEY_UP))
 				cameraPosition.Z += MOVEMENT_SPEED * frameDeltaTime;
-			else if(receiver.IsKeyDown(irr::KEY_KEY_S))
+			else if(receiver.IsKeyDown(irr::KEY_KEY_S) || receiver.IsKeyDown(irr::KEY_DOWN))
 				cameraPosition.Z -= MOVEMENT_SPEED * frameDeltaTime;
 
-			if(receiver.IsKeyDown(irr::KEY_KEY_A))
+			if(receiver.IsKeyDown(irr::KEY_KEY_A) || receiver.IsKeyDown(irr::KEY_LEFT))
 				cameraPosition.X += MOVEMENT_SPEED * frameDeltaTime;
-			else if(receiver.IsKeyDown(irr::KEY_KEY_D))
+			else if(receiver.IsKeyDown(irr::KEY_KEY_D) || receiver.IsKeyDown(irr::KEY_RIGHT))
 				cameraPosition.X -= MOVEMENT_SPEED * frameDeltaTime;
+
+            if(receiver.IsKeyDown(irr::KEY_KEY_Q))
+                cameraPosition.Y += MOVEMENT_SPEED * frameDeltaTime;
+            else if(receiver.IsKeyDown(irr::KEY_KEY_Z))
+                cameraPosition.Y -= MOVEMENT_SPEED * frameDeltaTime;
+
+
 
 			camera->setTarget(cameraPosition);
 			camera->setPosition(cameraPosition+offset);
