@@ -5,21 +5,16 @@
 #include "tinyxml2.h"
 #include "pugixml.hpp"
 
+#include "backgroundtask.h"
 
 #include "anl.h"
 #include <irrlicht.h>
 #include "marchingcubes.h"
-#include <boost/multi_array.hpp>
+#include "boost/multi_array.hpp"
+
 
 typedef boost::multi_array<double, 3> ValueArray;
 typedef boost::multi_array<int, 3> MaterialArray;
-
-enum EChunkStatus
-{
-    C_NEW,  //New Chunk no data, no mesh
-    C_DIRTY, //Chunk, data does not match mesh
-    C_CLEAN //Chunk data matches mesh
-};
 
 struct TerrainLocation
 {
@@ -37,7 +32,8 @@ struct TerrainLocation
     }
 };
 
-class TerrainChunk {
+class TerrainChunk
+{
 public:
     ValueArray * values;
     MaterialArray * materials;
@@ -51,23 +47,23 @@ public:
     TerrainChunk(
         int xDim = 32, int yDim = 32, int zDim = 32,
         int xPos = 0, int yPos = 0, int zPos = 0
-        ) : status(C_NEW)
+        )
     {
         localPoint = new TerrainLocation(xPos,yPos,zPos);
         clean = false;
     	values = new ValueArray();
     	materials = new MaterialArray();
     	printf("Spawning New Chunk\n");
-        status = C_NEW;
         values->resize(boost::extents[xDim+1][yDim+1][zDim+1]);
         materials->resize(boost::extents[xDim+1][yDim+1][zDim+1]);
     }
 
     void renderChunk(anl::CImplicitXML & noiseTree);
+
 };
 
 
-class ScalarTerrain
+class ScalarTerrain : protected BackgroundTask
 {
 private:
 	double value;
@@ -91,6 +87,7 @@ public:
 	void generateNavMesh();
 	void getMesh(/*frustum*/);
     void generateMesh();
+    void GenerateBackground(TerrainLocation tl);
 };
 
 #endif

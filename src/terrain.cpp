@@ -15,7 +15,7 @@ static int z_chunk = 32;
 
 using namespace irr;
 
-ScalarTerrain::ScalarTerrain()
+ScalarTerrain::ScalarTerrain() : BackgroundTask(1)
 {
 	printf("Loading Terrain Document\n");
 
@@ -36,17 +36,24 @@ void ScalarTerrain::getMesh(/*frustum*/)
     //Loop through all chunks in frustum
     printf("Spawn Chunk\n");
 
+
+
     for(int z = -4; z <= 4; z++) {
         for(int x = -4; x <= 4; x++) {
             printf("generating chunk %i,0,%i ... ",x,z);
             worldMap[TerrainLocation(x,0,z)] = TerrainChunk(x_chunk,y_chunk,z_chunk,x,0,z);
-            worldMap[TerrainLocation(x,0,z)].renderChunk(noiseTree);
-            //renderChunk(worldMap[TerrainLocation(x,0,z)]);
+            GenerateBackground(TerrainLocation(x,0,z));
         }
     }
 }
 
-void ScalarTerrain::generateMesh() {
+void ScalarTerrain::GenerateBackground(TerrainLocation tl) 
+{
+    addBackgroundTask(boost::bind(&worldMap[tl].renderChunk, this, noiseTree));
+}
+
+void ScalarTerrain::generateMesh() 
+{
     int y = 0;
     for(int z = -4; z <= 4; z++) {
         for(int x = -4; x <= 4; x++) {
@@ -96,6 +103,8 @@ void TerrainChunk::renderChunk(anl::CImplicitXML & noiseTree) {
                 }
             }
         }
+        //Chunk is clean, allow rendering.
+        clean = true;
     } catch (char * exception) {
         printf("Exception raised: %s\n", exception);
     }
