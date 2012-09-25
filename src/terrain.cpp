@@ -15,13 +15,13 @@ static int z_chunk = 32;
 
 using namespace irr;
 
-ScalarTerrain::ScalarTerrain() : BackgroundTask(1)
+ScalarTerrain::ScalarTerrain()
 {
 	printf("Loading Terrain Document\n");
 
     noiseTree.loadFile("basicTerrain.xml");
 
-    printf("Terrain Loaded");
+    printf("Terrain Loaded\n");
 }
 
 /*
@@ -36,20 +36,29 @@ void ScalarTerrain::getMesh(/*frustum*/)
     //Loop through all chunks in frustum
     printf("Spawn Chunk\n");
 
-
-
     for(int z = -4; z <= 4; z++) {
         for(int x = -4; x <= 4; x++) {
             printf("generating chunk %i,0,%i ... ",x,z);
             worldMap[TerrainLocation(x,0,z)] = TerrainChunk(x_chunk,y_chunk,z_chunk,x,0,z);
-            GenerateBackground(TerrainLocation(x,0,z));
+            std::thread t1(&ScalarTerrain::GenerateBackground, this, TerrainLocation(x,0,z));
+            t1.detach();
         }
     }
 }
 
 void ScalarTerrain::GenerateBackground(TerrainLocation tl) 
 {
-    addBackgroundTask(boost::bind(&worldMap[tl].renderChunk, this, noiseTree));
+    printf(
+        "Starting Threadded Generation at (%i,%i,%i)\n",
+        tl.X, tl.Y, tl.Z
+        );
+    
+    worldMap[tl].renderChunk(noiseTree);
+    
+    printf(
+        "Finished Threadded Generation at (%i,%i,%i)\n",
+        tl.X, tl.Y, tl.Z
+        );
 }
 
 void ScalarTerrain::generateMesh() 

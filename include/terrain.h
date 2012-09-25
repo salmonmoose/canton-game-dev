@@ -5,8 +5,6 @@
 #include "tinyxml2.h"
 #include "pugixml.hpp"
 
-#include "backgroundtask.h"
-
 #include "anl.h"
 #include <irrlicht.h>
 #include "marchingcubes.h"
@@ -63,7 +61,7 @@ public:
 };
 
 
-class ScalarTerrain : protected BackgroundTask
+class ScalarTerrain
 {
 private:
 	double value;
