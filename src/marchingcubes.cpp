@@ -3,22 +3,13 @@
 using namespace irr;
 
 void generateIsoSurface(
-        scene::SMesh& Mesh, 
+        scene::SMeshBuffer * buf, 
         ValueArray& values, 
         MaterialArray& materials,
         int x_offset, int y_offset, int z_offset
     )
 {
     printf("Entered Generate Iso Surface\n");
-    scene::SMeshBuffer *buf = 0;
-    
-    buf = new irr::scene::SMeshBuffer();
-
-    printf("Adding buffer to mesh\n");
-    Mesh.addMeshBuffer(buf);
-
-    printf("Drop buffer\n");
-    //buf->drop();
 
     printf("Clear buffer\n");
     buf->Vertices.clear();
@@ -92,7 +83,6 @@ void generateIsoSurface(
                             tmpS3DVertex.Normal.set(0.0,0.0,0.0);
 
                             generatedPoints[index] = buf->Vertices.size();
-                            printf(".");
                             buf->Vertices.push_back(tmpS3DVertex); //FIXME this should just build the vertex here and now.
                         } else {
                         }

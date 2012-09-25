@@ -140,9 +140,7 @@ int main(int argc, char* argv[])
 	//FIXME: This code should be part of Terrain
 	//MCubeMesh mesh(world.tc); old
 
-	world.getMesh(/*frustum*/);
 
-	world.generateMesh();
 
 	scene::IMeshSceneNode * meshnode = smgr->addMeshSceneNode(&world.Mesh);
 
@@ -191,6 +189,8 @@ int main(int argc, char* argv[])
 		const u32 now = device->getTimer()->getTime();
 		const f32 frameDeltaTime = (f32) (now - then) / 1000.f;
 
+        world.generateMesh();
+
 		then = now;
 
 		if(device->isWindowActive())
@@ -212,15 +212,11 @@ int main(int argc, char* argv[])
             else if(receiver.IsKeyDown(irr::KEY_KEY_Z))
                 cameraPosition.Y -= MOVEMENT_SPEED * frameDeltaTime;
 
-
-
 			//camera->setTarget(cameraPosition);
 			//camera->setPosition(cameraPosition+offset);
 
 			driver->beginScene(true, true, video::SColor(255,255,0,255));
-
-			
-			
+	
 			smgr->drawAll();
 			driver->endScene();
 

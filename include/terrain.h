@@ -39,7 +39,7 @@ public:
     int status;
 
     irr::scene::SMesh * Mesh;
-
+    irr::scene::SMeshBuffer * buf;
     bool clean;
     bool filled;
     //FIXME Push this to .cpp file
@@ -48,6 +48,7 @@ public:
         int xPos = 0, int yPos = 0, int zPos = 0
         )
     {
+        buf = new irr::scene::SMeshBuffer();
         localPoint = new TerrainLocation(xPos,yPos,zPos);
         clean = false;
         filled = false;
@@ -59,6 +60,7 @@ public:
     }
 
     void renderChunk(anl::CImplicitXML & noiseTree);
+    void GenerateMesh();
 
 };
 

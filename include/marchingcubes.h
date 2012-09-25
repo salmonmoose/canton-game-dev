@@ -341,7 +341,7 @@ static int triTable[256][16] = {
 };
 
 void generateIsoSurface(
-    irr::scene::SMesh& Mesh, 
+    irr::scene::SMeshBuffer * Mesh, 
     ValueArray& values, 
     MaterialArray& materials,
     int x_offset, int y_offset, int z_offset

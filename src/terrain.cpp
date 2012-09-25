@@ -68,21 +68,50 @@ void ScalarTerrain::GenerateBackground(TerrainLocation tl)
         );
 }
 
+void TerrainChunk::GenerateMesh()
+{
+    printf("Starting Mesh Generation\n");
+    generateIsoSurface(buf, * values, * materials, localPoint->X * x_chunk, localPoint->Y * y_chunk, localPoint->Z * z_chunk);
+    clean = true;
+    printf("Mesh Generated\n");
+}
+
 void ScalarTerrain::generateMesh() 
 {
+    for(int i = 0; i < Mesh.getMeshBufferCount(); i ++) {
+        Mesh.getMeshBuffer(i)->drop();
+    }
+    Mesh.MeshBuffers.erase(0,Mesh.getMeshBufferCount());
+
     int y = 0;
     for(int z = -4; z <= 4; z++) {
         for(int x = -4; x <= 4; x++) {
-            printf("setting up buf %i,%i,%i ... \n",x,y,z);
-            generateIsoSurface(
-                Mesh,
-                (* worldMap[TerrainLocation(x,y,z)].values),
-                (* worldMap[TerrainLocation(x,y,z)].materials),
-                x * x_chunk, y * y_chunk, z * z_chunk
-            );
-            printf("buf setup\n");
+            if(worldMap.find(TerrainLocation(x,y,z)) == worldMap.end())
+            {
+                printf("No Chunk - Adding (%i,%i,%i)\n",x,y,z);
+                worldMap[TerrainLocation(x,y,z)] = TerrainChunk(x_chunk, y_chunk, z_chunk, x, y, z);
+            }
+            if(!worldMap[TerrainLocation(x,y,z)].filled)
+            {
+                printf("Empty Chunk - filling (%i,%i,%i)\n",x,y,z);
+                std::thread t1(&ScalarTerrain::GenerateBackground, this, TerrainLocation(x,y,z));
+                t1.join();
+            }
+            else if(!worldMap[TerrainLocation(x,y,z)].clean)
+            {
+                printf("Unclean Chunk - rendering (%i,%i,%i)\n",x,y,z);
+                worldMap[TerrainLocation(x,y,z)].GenerateMesh(); 
+                Mesh.addMeshBuffer(worldMap[TerrainLocation(x,y,z)].buf);
+            }
+            else
+            {
+                Mesh.addMeshBuffer(worldMap[TerrainLocation(x,y,z)].buf);
+            }
         }
     }
+    Mesh.recalculateBoundingBox();
+    //Mesh.setDirty();
+    //printf("Mesh has %i buffers\n", Mesh.getMeshBufferCount());
 }
 
 void ScalarTerrain::generateNavMesh()
