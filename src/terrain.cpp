@@ -36,12 +36,19 @@ void ScalarTerrain::getMesh(/*frustum*/)
     //Loop through all chunks in frustum
     printf("Spawn Chunk\n");
 
+    int y = 0;
+
     for(int z = -4; z <= 4; z++) {
         for(int x = -4; x <= 4; x++) {
-            printf("generating chunk %i,0,%i ... ",x,z);
-            worldMap[TerrainLocation(x,0,z)] = TerrainChunk(x_chunk,y_chunk,z_chunk,x,0,z);
-            std::thread t1(&ScalarTerrain::GenerateBackground, this, TerrainLocation(x,0,z));
-            t1.detach();
+            if (worldMap.find(TerrainLocation(x,y,z)) == worldMap.end()) {
+                printf("Adding Chunk %i,%i,%i ... \n",x,y,z);
+                worldMap[TerrainLocation(x,y,z)] = TerrainChunk(x_chunk,y_chunk,z_chunk,x,y,z);
+            }
+            if(!worldMap[TerrainLocation(x,y,z)].filled) {
+                printf("generating chunk %i,%i,%i ... \n",x,y,z);
+                std::thread t1(&ScalarTerrain::GenerateBackground, this, TerrainLocation(x,y,z));
+                t1.detach();
+            }
         }
     }
 }
@@ -66,7 +73,7 @@ void ScalarTerrain::generateMesh()
     int y = 0;
     for(int z = -4; z <= 4; z++) {
         for(int x = -4; x <= 4; x++) {
-            printf("setting up buf %i,%i,%i ... ",x,y,z);
+            printf("setting up buf %i,%i,%i ... \n",x,y,z);
             generateIsoSurface(
                 Mesh,
                 (* worldMap[TerrainLocation(x,y,z)].values),
@@ -113,7 +120,7 @@ void TerrainChunk::renderChunk(anl::CImplicitXML & noiseTree) {
             }
         }
         //Chunk is clean, allow rendering.
-        clean = true;
+        filled = true;
     } catch (char * exception) {
         printf("Exception raised: %s\n", exception);
     }

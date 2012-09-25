@@ -41,6 +41,7 @@ public:
     irr::scene::SMesh * Mesh;
 
     bool clean;
+    bool filled;
     //FIXME Push this to .cpp file
     TerrainChunk(
         int xDim = 32, int yDim = 32, int zDim = 32,
@@ -49,6 +50,7 @@ public:
     {
         localPoint = new TerrainLocation(xPos,yPos,zPos);
         clean = false;
+        filled = false;
     	values = new ValueArray();
     	materials = new MaterialArray();
     	printf("Spawning New Chunk\n");

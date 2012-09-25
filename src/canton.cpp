@@ -65,6 +65,7 @@ public:
 
         int index[6] = { 0, 1, 2, 3, 4, 5 }; 
 
+        //fixme: this should be pushed to terrain.cpp
         services->setPixelShaderConstant("dirtTex",  &index[0], 1);
         services->setPixelShaderConstant("clayTex",  &index[1], 1);
         services->setPixelShaderConstant("grassTex", &index[2], 1);
@@ -173,11 +174,11 @@ int main(int argc, char* argv[])
 	core::vector3df position = core::vector3df(16.f, 16.f, 16.f);
 	core::vector3df offset = core::vector3df(-8.f,8.f,-8.f);
 
-	scene::ICameraSceneNode *camera = smgr->addCameraSceneNode(
-		0, 
-		position+offset,
-		position
-		);
+	//scene::ICameraSceneNode *camera = smgr->addCameraSceneNode(0, position+offset, position);
+
+	scene::ICameraSceneNode* camera = smgr->addCameraSceneNodeFPS();
+	camera->setPosition(position+offset);
+	camera->setTarget(position);
 
 	int lastFPS = -1;
 
@@ -213,10 +214,13 @@ int main(int argc, char* argv[])
 
 
 
-			camera->setTarget(cameraPosition);
-			camera->setPosition(cameraPosition+offset);
+			//camera->setTarget(cameraPosition);
+			//camera->setPosition(cameraPosition+offset);
 
 			driver->beginScene(true, true, video::SColor(255,255,0,255));
+
+			
+			
 			smgr->drawAll();
 			driver->endScene();
 
