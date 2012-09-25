@@ -9,9 +9,9 @@
 #include "terrain.h"
 
 
-static int x_chunk = 16;
-static int y_chunk = 16;
-static int z_chunk = 16;
+static int x_chunk = 32;
+static int y_chunk = 32;
+static int z_chunk = 32;
 
 using namespace irr;
 
@@ -21,7 +21,7 @@ ScalarTerrain::ScalarTerrain()
 
     noiseTree.loadFile("basicTerrain.xml");
 
-    printf("Terrain Loaded");
+    printf("Terrain Loaded\n");
 }
 
 /*
@@ -35,21 +35,47 @@ void ScalarTerrain::getMesh(/*frustum*/)
 {
     //Loop through all chunks in frustum
     printf("Spawn Chunk\n");
-    worldMap[TerrainLocation(0,0,0)] = TerrainChunk();
-    printf("RenderChunk\n");
-    renderChunk(worldMap[TerrainLocation(0,0,0)]);
 
-    printf("Add mesh\n");
+    for(int z = -4; z <= 4; z++) {
+        for(int x = -4; x <= 4; x++) {
+            printf("generating chunk %i,0,%i ... ",x,z);
+            worldMap[TerrainLocation(x,0,z)] = TerrainChunk(x_chunk,y_chunk,z_chunk,x,0,z);
+            std::thread t1(&ScalarTerrain::GenerateBackground, this, TerrainLocation(x,0,z));
+            t1.detach();
+        }
+    }
+}
 
-    printf("setting up buf\n");
-
-    generateIsoSurface(
-        Mesh,
-        (* worldMap[TerrainLocation(0,0,0)].values),
-        (* worldMap[TerrainLocation(0,0,0)].materials)
+void ScalarTerrain::GenerateBackground(TerrainLocation tl) 
+{
+    printf(
+        "Starting Threadded Generation at (%i,%i,%i)\n",
+        tl.X, tl.Y, tl.Z
         );
+    
+    worldMap[tl].renderChunk(noiseTree);
+    
+    printf(
+        "Finished Threadded Generation at (%i,%i,%i)\n",
+        tl.X, tl.Y, tl.Z
+        );
+}
 
-    printf("buf setup\n");
+void ScalarTerrain::generateMesh() 
+{
+    int y = 0;
+    for(int z = -4; z <= 4; z++) {
+        for(int x = -4; x <= 4; x++) {
+            printf("setting up buf %i,%i,%i ... ",x,y,z);
+            generateIsoSurface(
+                Mesh,
+                (* worldMap[TerrainLocation(x,y,z)].values),
+                (* worldMap[TerrainLocation(x,y,z)].materials),
+                x * x_chunk, y * y_chunk, z * z_chunk
+            );
+            printf("buf setup\n");
+        }
+    }
 }
 
 void ScalarTerrain::generateNavMesh()
@@ -60,26 +86,34 @@ void ScalarTerrain::generateNavMesh()
 /**
 Using noise tree, populates an array with values
 **/
-void ScalarTerrain::renderChunk(TerrainChunk &tc) {
+void TerrainChunk::renderChunk(anl::CImplicitXML & noiseTree) {
+    double value;
+    double xPos = localPoint->X * x_chunk;
+    double yPos = localPoint->Y * y_chunk;
+    double zPos = localPoint->Z * z_chunk;
+
     try {
-        for(int z = 0; z < z_chunk; z++) {
-            for(int y = 0; y < y_chunk; y++) {
-                for(int x = 0; x < x_chunk; x++) {
+        for(int z = 0; z <= z_chunk; z++) {
+            for(int y = 0; y <= y_chunk; y++) {
+                for(int x = 0; x <= x_chunk; x++) {
+                    
                     value = noiseTree.get(
-                        (double) x/x_chunk * 2, 
-                        (double) y/y_chunk * 2, 
-                        (double) z/z_chunk * 2
+                        (x + xPos) / (double) x_chunk, 
+                        (y + yPos) / (double) y_chunk, 
+                        (z + zPos) / (double) z_chunk
                     );
 
-                    (*tc.values)[x][y][z] = value;
+                    (*values)[x][y][z] = value;
 
-                    if(value < -0.5) (*tc.materials)[x][y][z] = 0;
-                    else if (value < 0) (*tc.materials)[x][y][z] = 1;
-                    else if (value < 0.5) (*tc.materials)[x][y][z] = 2;
-                    else (*tc.materials)[x][y][z] = 3;
+                    if(value < -0.5) (*materials)[x][y][z] = 0;
+                    else if (value < 0) (*materials)[x][y][z] = 1;
+                    else if (value < 0.5) (*materials)[x][y][z] = 2;
+                    else (*materials)[x][y][z] = 3;
                 }
             }
         }
+        //Chunk is clean, allow rendering.
+        clean = true;
     } catch (char * exception) {
         printf("Exception raised: %s\n", exception);
     }
