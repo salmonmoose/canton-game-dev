@@ -5,7 +5,7 @@ Target = Canton
 Sources = ../libs/tinyxml2/tinyxml2.cpp ../libs/pugixml-1.2/src/*.cpp ../libs/accidentalnoise/src/*.cpp ./src/*.cpp
 
 # general compiler settings
-CPPFLAGS += -I../libs/boost_1_50_0 -I../libs/pugixml/src -I../libs/tinyxml2 -I../libs/accidentalnoise/include -I../libs/irrlicht-1.8.0/include -I./include -I/usr/X11R6/include
+CPPFLAGS += -I../libs/boost_1_50_0 -I../libs/threadpool -I../libs/pugixml/src -I../libs/tinyxml2 -I../libs/accidentalnoise/include -I../libs/irrlicht-1.8.0/include -I./include -I/usr/X11R6/include
 CXXFLAGS += -O3 -ffast-math -std=c++0x -g
 #CXXFLAGS = -g -Wall
 
