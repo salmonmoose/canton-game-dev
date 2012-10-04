@@ -38,10 +38,12 @@ public:
     TerrainLocation * localPoint;
     int status;
 
-    irr::scene::SMesh * Mesh;
+    //irr::scene::SMesh * Mesh;
     irr::scene::SMeshBuffer * buf;
     bool clean;
     bool filled;
+    bool filling;
+    bool meshing;
     //FIXME Push this to .cpp file
     TerrainChunk(
         int xDim = 32, int yDim = 32, int zDim = 32,
@@ -49,9 +51,16 @@ public:
         )
     {
         buf = new irr::scene::SMeshBuffer();
+        buf->setBoundingBox(irr::core::aabbox3df(
+            (double) (xDim * xPos), (double) (yDim * yPos), (double) (zDim * zPos),
+            (double) (xDim * xPos + xDim), (double) (yDim * yPos + yDim), (double) (zDim * zPos + zDim)
+        ));
         localPoint = new TerrainLocation(xPos,yPos,zPos);
         clean = false;
         filled = false;
+        filling = false;
+        meshing = false;
+
     	values = new ValueArray();
     	materials = new MaterialArray();
     	printf("Spawning New Chunk\n");
@@ -59,8 +68,8 @@ public:
         materials->resize(boost::extents[xDim+1][yDim+1][zDim+1]);
     }
 
-    void renderChunk(anl::CImplicitXML & noiseTree);
-    void GenerateMesh();
+    void FillChunk(anl::CImplicitXML & noiseTree);
+    void MeshChunk();
 
 };
 
@@ -88,8 +97,9 @@ public:
 	void bresenham(irr::core::vector3df, irr::core::vector3df);
 	void generateNavMesh();
 	void getMesh(/*frustum*/);
-    void generateMesh();
+    void generateMesh(irr::core::vector3df center);
     void GenerateBackground(TerrainLocation tl);
+    void MeshBackground(TerrainLocation tl);
 };
 
 #endif

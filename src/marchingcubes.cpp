@@ -3,7 +3,7 @@
 using namespace irr;
 
 void generateIsoSurface(
-        scene::SMeshBuffer * buf, 
+        scene::SMeshBuffer& buf, 
         ValueArray& values, 
         MaterialArray& materials,
         int x_offset, int y_offset, int z_offset
@@ -12,8 +12,8 @@ void generateIsoSurface(
     printf("Entered Generate Iso Surface\n");
 
     printf("Clear buffer\n");
-    buf->Vertices.clear();
-    buf->Indices.clear();
+    buf.Vertices.clear();
+    buf.Indices.clear();
 
     printf("Getting shapes\n");
     int xDim = values.shape()[0];
@@ -82,8 +82,9 @@ void generateIsoSurface(
 
                             tmpS3DVertex.Normal.set(0.0,0.0,0.0);
 
-                            generatedPoints[index] = buf->Vertices.size();
-                            buf->Vertices.push_back(tmpS3DVertex); //FIXME this should just build the vertex here and now.
+                            generatedPoints[index] = buf.Vertices.size();
+                            
+                            buf.Vertices.push_back(tmpS3DVertex); //FIXME this should just build the vertex here and now.
                         } else {
                         }
                         
@@ -92,7 +93,7 @@ void generateIsoSurface(
                 }
 
                 for (i=0;triTable[cubeIndex][i]!=-1;i++) {
-                    buf->Indices.push_back(generatedPoints[vertList[triTable[cubeIndex][i]]]);
+                    buf.Indices.push_back(generatedPoints[vertList[triTable[cubeIndex][i]]]);
                 }
             }
         }
@@ -100,17 +101,18 @@ void generateIsoSurface(
 
     printf("done\n");
 
-    for (i = 0; i < buf->Indices.size(); i += 3) {
+    for (i = 0; i < buf.Indices.size(); i += 3) {
         tmpVec3D = (
-            buf->Vertices[buf->Indices[i+1]].Pos - buf->Vertices[buf->Indices[i]].Pos
+            buf.Vertices[buf.Indices[i+1]].Pos - buf.Vertices[buf.Indices[i]].Pos
         ).crossProduct(
-            buf->Vertices[buf->Indices[i]].Pos - buf->Vertices[buf->Indices[i + 2]].Pos
+            buf.Vertices[buf.Indices[i]].Pos - buf.Vertices[buf.Indices[i + 2]].Pos
         );
 
-        buf->Vertices[buf->Indices[i]].Normal   = buf->Vertices[buf->Indices[i]].Normal + tmpVec3D;
-        buf->Vertices[buf->Indices[i+1]].Normal = buf->Vertices[buf->Indices[i+1]].Normal + tmpVec3D;
-        buf->Vertices[buf->Indices[i+2]].Normal = buf->Vertices[buf->Indices[i+2]].Normal + tmpVec3D;
+        buf.Vertices[buf.Indices[i]].Normal   = buf.Vertices[buf.Indices[i]].Normal + tmpVec3D;
+        buf.Vertices[buf.Indices[i+1]].Normal = buf.Vertices[buf.Indices[i+1]].Normal + tmpVec3D;
+        buf.Vertices[buf.Indices[i+2]].Normal = buf.Vertices[buf.Indices[i+2]].Normal + tmpVec3D;
     }
     printf("recalculateBoundingBox\n");
-    buf->recalculateBoundingBox();
+    buf.setDirty();
+    //buf.recalculateBoundingBox();
 }

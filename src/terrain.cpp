@@ -24,35 +24,6 @@ ScalarTerrain::ScalarTerrain()
     printf("Terrain Loaded\n");
 }
 
-/*
-Not sure exactly how this will work
--pass the terrain frustum 
--????
--get back mesh
--PROFIT!!!
-*/
-void ScalarTerrain::getMesh(/*frustum*/)
-{
-    //Loop through all chunks in frustum
-    printf("Spawn Chunk\n");
-
-    int y = 0;
-
-    for(int z = -4; z <= 4; z++) {
-        for(int x = -4; x <= 4; x++) {
-            if (worldMap.find(TerrainLocation(x,y,z)) == worldMap.end()) {
-                printf("Adding Chunk %i,%i,%i ... \n",x,y,z);
-                worldMap[TerrainLocation(x,y,z)] = TerrainChunk(x_chunk,y_chunk,z_chunk,x,y,z);
-            }
-            if(!worldMap[TerrainLocation(x,y,z)].filled) {
-                printf("generating chunk %i,%i,%i ... \n",x,y,z);
-                std::thread t1(&ScalarTerrain::GenerateBackground, this, TerrainLocation(x,y,z));
-                t1.detach();
-            }
-        }
-    }
-}
-
 void ScalarTerrain::GenerateBackground(TerrainLocation tl) 
 {
     printf(
@@ -60,7 +31,7 @@ void ScalarTerrain::GenerateBackground(TerrainLocation tl)
         tl.X, tl.Y, tl.Z
         );
     
-    worldMap[tl].renderChunk(noiseTree);
+    worldMap[tl].FillChunk(noiseTree);
     
     printf(
         "Finished Threadded Generation at (%i,%i,%i)\n",
@@ -68,61 +39,81 @@ void ScalarTerrain::GenerateBackground(TerrainLocation tl)
         );
 }
 
-void TerrainChunk::GenerateMesh()
+void ScalarTerrain::MeshBackground(TerrainLocation tl) {
+    printf(
+        "Starting Threadded Meshing at (%i,%i,%i)\n",
+        tl.X, tl.Y, tl.Z
+        );
+
+    worldMap[tl].MeshChunk();
+    Mesh.addMeshBuffer(worldMap[tl].buf);
+    Mesh.setDirty();
+
+    printf(
+        "Finished Threadded Meshing at (%i,%i,%i)\n",
+        tl.X, tl.Y, tl.Z
+        );
+}
+
+void TerrainChunk::MeshChunk()
 {
     printf("Starting Mesh Generation\n");
-    generateIsoSurface(buf, * values, * materials, localPoint->X * x_chunk, localPoint->Y * y_chunk, localPoint->Z * z_chunk);
+    generateIsoSurface(* buf, * values, * materials, localPoint->X * x_chunk, localPoint->Y * y_chunk, localPoint->Z * z_chunk);
     clean = true;
     printf("Mesh Generated\n");
 }
 
-void ScalarTerrain::generateMesh() 
+void ScalarTerrain::generateMesh(irr::core::vector3df center) 
 {
-    for(int i = 0; i < Mesh.getMeshBufferCount(); i ++) {
-        Mesh.getMeshBuffer(i)->drop();
-    }
-    Mesh.MeshBuffers.erase(0,Mesh.getMeshBufferCount());
+    int xCenter = ((int) center.X) / x_chunk;
+    int yCenter = ((int) center.Y) / y_chunk;
+    int zCenter = ((int) center.Z) / z_chunk;
 
-    int y = 0;
-    for(int z = -4; z <= 4; z++) {
-        for(int x = -4; x <= 4; x++) {
-            if(worldMap.find(TerrainLocation(x,y,z)) == worldMap.end())
-            {
-                printf("No Chunk - Adding (%i,%i,%i)\n",x,y,z);
-                worldMap[TerrainLocation(x,y,z)] = TerrainChunk(x_chunk, y_chunk, z_chunk, x, y, z);
-            }
-            if(!worldMap[TerrainLocation(x,y,z)].filled)
-            {
-                printf("Empty Chunk - filling (%i,%i,%i)\n",x,y,z);
-                std::thread t1(&ScalarTerrain::GenerateBackground, this, TerrainLocation(x,y,z));
-                t1.join();
-            }
-            else if(!worldMap[TerrainLocation(x,y,z)].clean)
-            {
-                printf("Unclean Chunk - rendering (%i,%i,%i)\n",x,y,z);
-                worldMap[TerrainLocation(x,y,z)].GenerateMesh(); 
-                Mesh.addMeshBuffer(worldMap[TerrainLocation(x,y,z)].buf);
-            }
-            else
-            {
-                Mesh.addMeshBuffer(worldMap[TerrainLocation(x,y,z)].buf);
+    for(int z = zCenter-1; z <= zCenter+1; z++) {
+        for(int y = yCenter-1; y <= yCenter+1; y++) {
+            for(int x = xCenter-1; x <= xCenter+1; x++) {
+                if(worldMap.find(TerrainLocation(x,y,z)) == worldMap.end())
+                {
+                    printf("No Chunk - Adding (%i,%i,%i)\n",x,y,z);
+                    worldMap[TerrainLocation(x,y,z)] = TerrainChunk(x_chunk, y_chunk, z_chunk, x, y, z);
+                }
+                if(!worldMap[TerrainLocation(x,y,z)].filled && !worldMap[TerrainLocation(x,y,z)].filling)
+                {
+                    printf("Empty Chunk - filling (%i,%i,%i)\n",x,y,z);
+                    std::thread t1(&ScalarTerrain::GenerateBackground, this, TerrainLocation(x,y,z));
+                    t1.detach(); //Background Operations
+                    //t1.join(); //Foreground Operations
+                }
+                else if(
+                    !worldMap[TerrainLocation(x,y,z)].clean && 
+                    !worldMap[TerrainLocation(x,y,z)].filling && 
+                    worldMap[TerrainLocation(x,y,z)].filled
+                    )
+                {
+                    printf("Unclean Chunk - rendering (%i,%i,%i)\n",x,y,z);
+                    std::thread t1(&ScalarTerrain::MeshBackground, this, TerrainLocation(x,y,z));
+                    //t1.detach();
+                    t1.join();
+                    //worldMap[TerrainLocation(x,y,z)].MeshChunk();
+                    
+                    //Mesh.setDirty();
+                }
+                else if(worldMap[TerrainLocation(x,y,z)].clean)
+                {
+                    //Mesh.addMeshBuffer(worldMap[TerrainLocation(x,y,z)].buf);
+                }
             }
         }
     }
-    Mesh.recalculateBoundingBox();
-    //Mesh.setDirty();
+    //Mesh.recalculateBoundingBox();
     //printf("Mesh has %i buffers\n", Mesh.getMeshBufferCount());
-}
-
-void ScalarTerrain::generateNavMesh()
-{
-
 }
 
 /**
 Using noise tree, populates an array with values
 **/
-void TerrainChunk::renderChunk(anl::CImplicitXML & noiseTree) {
+void TerrainChunk::FillChunk(anl::CImplicitXML & noiseTree) {
+    filling = true;
     double value;
     double xPos = localPoint->X * x_chunk;
     double yPos = localPoint->Y * y_chunk;
@@ -150,6 +141,7 @@ void TerrainChunk::renderChunk(anl::CImplicitXML & noiseTree) {
         }
         //Chunk is clean, allow rendering.
         filled = true;
+        filling = false;
     } catch (char * exception) {
         printf("Exception raised: %s\n", exception);
     }

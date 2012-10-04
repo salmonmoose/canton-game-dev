@@ -116,8 +116,28 @@ int main(int argc, char* argv[])
 	if(device == 0)
 		return 1;
 
-	video::IVideoDriver *driver = device->getVideoDriver();
-	scene::ISceneManager *smgr = device->getSceneManager();
+	video::IVideoDriver * driver = device->getVideoDriver();
+	scene::ISceneManager * smgr = device->getSceneManager();
+    gui::IGUIEnvironment * env = device->getGUIEnvironment();
+
+    gui::IGUIStaticText * fpsBox = env->addStaticText(L"FPS", core::rect<s32>(0,0,200,10), true);
+    fpsBox->setDrawBorder(false);
+    gui::IGUIStaticText * primBox = env->addStaticText(L"PRIMS", core::rect<s32>(0,10,200,20), true);
+    primBox->setDrawBorder(false);
+    gui::IGUIStaticText * bufferBox = env->addStaticText(L"BUFFERS", core::rect<s32>(0,20,200,30), true);
+    bufferBox->setDrawBorder(false);
+    gui::IGUIStaticText * vertBox = env->addStaticText(L"VERTS", core::rect<s32>(0,30,200,40), true);
+    vertBox->setDrawBorder(false);
+    gui::IGUIStaticText * indBox = env->addStaticText(L"INDEXES", core::rect<s32>(0,40,200,50), true);
+    indBox->setDrawBorder(false);
+
+
+    gui::IGUISkin* skin = env->getSkin();
+    gui::IGUIFont* font = env->getFont("../../media/fonthaettenschweiler.bmp");
+    if (font)
+        skin->setFont(font);
+
+    skin->setFont(env->getBuiltInFont(), gui::EGDF_TOOLTIP);
 
 	psFileName = "./shaders/terrain.frag";
 	vsFileName = "./shaders/terrain.vert";
@@ -143,6 +163,12 @@ int main(int argc, char* argv[])
 
 
 	scene::IMeshSceneNode * meshnode = smgr->addMeshSceneNode(&world.Mesh);
+	
+    meshnode->setName("MeshNode");
+
+	meshnode->setAutomaticCulling(scene::EAC_OFF);
+	meshnode->setDebugDataVisible(scene::EDS_BBOX_BUFFERS);
+	//meshnode->setHardwareMappingHint(scene::EHM_STREAM);
 
 	meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, settings->FirstChildElement("mesh")->BoolAttribute("cullbackface"));
 	meshnode->setMaterialFlag(video::EMF_WIREFRAME, settings->FirstChildElement("mesh")->BoolAttribute("wireframe"));
@@ -181,15 +207,17 @@ int main(int argc, char* argv[])
 	int lastFPS = -1;
 
 	u32 then = device->getTimer()->getTime();
-
-	const f32 MOVEMENT_SPEED = 10.f;
+    
+    const f32 MOVEMENT_SPEED = 10.f;
 
 	while(device->run())
 	{
 		const u32 now = device->getTimer()->getTime();
 		const f32 frameDeltaTime = (f32) (now - then) / 1000.f;
 
-        world.generateMesh();
+        world.generateMesh(camera->getPosition());
+		
+        //meshnode = smgr->addMeshSceneNode(&world.Mesh);
 
 		then = now;
 
@@ -215,23 +243,59 @@ int main(int argc, char* argv[])
 			//camera->setTarget(cameraPosition);
 			//camera->setPosition(cameraPosition+offset);
 
-			driver->beginScene(true, true, video::SColor(255,255,0,255));
+			driver->beginScene(true, true, video::SColor(0,0,0,255));
 	
 			smgr->drawAll();
+
+			//driver->setMaterial(terrainMaterial);
+			/**
+			* This is a horrible horrible hack - I don't know why my mesh does not render through
+			* sceneManager, I can pick it up by hand and render it though.
+			**/
+			for(int i = 0; i < meshnode->getMesh()->getMeshBufferCount(); i++)
+            {
+            	driver->drawMeshBuffer(meshnode->getMesh()->getMeshBuffer(i));
+            }
+
+            //meshnode->render();
+
+            env->drawAll();
+
 			driver->endScene();
 
 			int fps = driver->getFPS();
+            int prims = driver->getPrimitiveCountDrawn();
 
-			if(lastFPS != fps)
-			{
-				core::stringw str = L"Canton InDev [";
-				str += driver->getName();
-				str += "] FPS:";
-				str += fps;
-				device->setWindowCaption(str.c_str());
+            int maxvert = 0;
+            int maxind = 0;
 
-				lastFPS = fps;
-			}
+            core::list<scene::ISceneNode*> children = smgr->getRootSceneNode()->getChildren();
+
+            for(int i = 0; i < meshnode->getMesh()->getMeshBufferCount(); i++)
+            {
+                if(meshnode->getMesh()->getMeshBuffer(i)->getVertexCount() > maxvert) 
+                {
+                    maxvert = meshnode->getMesh()->getMeshBuffer(i)->getVertexCount();
+                }
+
+                if(meshnode->getMesh()->getMeshBuffer(i)->getIndexCount() > maxind) 
+                {
+                    maxind = meshnode->getMesh()->getMeshBuffer(i)->getIndexCount();
+                }
+            }
+
+            fpsBox->setText(core::stringw(L"FPS:").append(core::stringw(fps)).c_str());
+            bufferBox->setText(core::stringw(L"BUFFERS:").append(core::stringw(meshnode->getMesh()->getMeshBufferCount())).c_str());
+            vertBox->setText(core::stringw(L"VERTEXES:").append(core::stringw(maxvert)).c_str());
+            indBox->setText(core::stringw(L"INDEXES:").append(core::stringw(maxind)).c_str());
+            primBox->setText(core::stringw(L"PRIMITIVES:").append(core::stringw(prims)).c_str());
+
+
+			core::stringw str = L"Canton InDev [";
+			str += driver->getName();
+			str += "]";
+			device->setWindowCaption(str.c_str());
+
 		}
 	}
 
