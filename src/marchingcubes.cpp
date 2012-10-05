@@ -57,8 +57,10 @@ void generateIsoSurface(
                             (((int)points[edges[i][0]].Y + y) * xDim) +
                             (((int)points[edges[i][0]].Z + z) * xDim * yDim);
                     
-                    if(edgeTable[cubeIndex] & (1 << i)) {
-                        if (generatedPoints[index] == -1) {
+                    if(edgeTable[cubeIndex] & (1 << i)) 
+                    {
+                        if (generatedPoints[index] == -1)
+                        {
                             mu = (isolevel - pointVals[edges[i][0]]) / (pointVals[edges[i][1]] - pointVals[edges[i][0]]);
                             
                             tmpS3DVertex.Pos.set(
@@ -106,6 +108,12 @@ void generateIsoSurface(
         buf.Vertices[buf.Indices[i+1]].Normal = buf.Vertices[buf.Indices[i+1]].Normal + tmpVec3D;
         buf.Vertices[buf.Indices[i+2]].Normal = buf.Vertices[buf.Indices[i+2]].Normal + tmpVec3D;
     }
+
+    for (i = 0; i < buf.Vertices.size(); i++)
+    {
+        buf.Vertices[i].Normal.normalize();
+    }
+
     buf.setDirty();
     //buf.recalculateBoundingBox();
 }

@@ -36,6 +36,4 @@ void ShaderCallBack::OnSetConstants(irr::video::IMaterialRendererServices * serv
 	world = world.getTransposed();
 
 	services->setVertexShaderConstant("mTransWorld", world.pointer(), 16);
-
-	printf("Hitting the callback!\n");
 }

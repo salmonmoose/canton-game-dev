@@ -45,11 +45,11 @@ ScalarTerrain::ScalarTerrain()
     Material.setFlag(irr::video::EMF_LIGHTING, true);
 
     Material.setTexture(0, IRR.driver->getTexture("./resources/dirt.jpg"));
-    Material.setTexture(0, IRR.driver->getTexture("./resources/clay.jpg"));
-    Material.setTexture(0, IRR.driver->getTexture("./resources/grass.jpg"));
-    Material.setTexture(0, IRR.driver->getTexture("./resources/rock.jpg"));
-    Material.setTexture(0, IRR.driver->getTexture("./resources/sand.jpg"));
-    Material.setTexture(0, IRR.driver->getTexture("./resources/void.jpg"));
+    Material.setTexture(1, IRR.driver->getTexture("./resources/clay.jpg"));
+    Material.setTexture(2, IRR.driver->getTexture("./resources/grass.jpg"));
+    Material.setTexture(3, IRR.driver->getTexture("./resources/rock.jpg"));
+    Material.setTexture(4, IRR.driver->getTexture("./resources/sand.jpg"));
+    Material.setTexture(5, IRR.driver->getTexture("./resources/void.jpg"));
 
     Material.MaterialType = (video::E_MATERIAL_TYPE) terrainMaterial;
 }
@@ -101,9 +101,9 @@ void ScalarTerrain::generateMesh(irr::core::vector3df center)
     int yCenter = ((int) center.Y) / y_chunk;
     int zCenter = ((int) center.Z) / z_chunk;
 
-    for(int z = zCenter-1; z <= zCenter+1; z++) {
+    for(int z = zCenter-2; z <= zCenter+2; z++) {
         for(int y = yCenter-1; y <= yCenter+1; y++) {
-            for(int x = xCenter-1; x <= xCenter+1; x++) {
+            for(int x = xCenter-2; x <= xCenter+2; x++) {
                 if(worldMap.find(TerrainLocation(x,y,z)) == worldMap.end())
                 {
                     //printf("No Chunk - Adding (%i,%i,%i)\n",x,y,z);

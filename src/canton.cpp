@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 		{
 			IRR.driver->beginScene(true, true, video::SColor(0,0,0,255));
 	
-			IRR.smgr->drawAll();
+			
 
 			IRR.driver->setMaterial(terrain.Material);
 
@@ -109,6 +109,8 @@ int main(int argc, char* argv[])
             {
             	IRR.driver->drawMeshBuffer(meshnode->getMesh()->getMeshBuffer(i));
             }
+
+            IRR.smgr->drawAll();
 
             //meshnode->render();
 
