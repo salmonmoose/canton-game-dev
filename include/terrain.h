@@ -1,8 +1,6 @@
 #ifndef TERRAIN_H
 #define TERRAIN_H
-#include <iostream>
 #include <thread>
-#include "tinyxml2.h"
 #include "pugixml.hpp"
 
 #include "anl.h"
@@ -84,8 +82,11 @@ public:
     
     anl::CImplicitXML noiseTree;
     std::map<TerrainLocation, TerrainChunk> worldMap;
-
+    irr::io::path vsFileName;
+    irr::io::path psFileName;
     irr::scene::SMesh Mesh;
+    irr::video::SMaterial Material;
+    irr::s32 terrainMaterial;
 
 	ScalarTerrain();
 

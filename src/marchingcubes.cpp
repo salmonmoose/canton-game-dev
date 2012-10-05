@@ -20,8 +20,6 @@ void generateIsoSurface(
     int yDim = values.shape()[1];
     int zDim = values.shape()[2];
 
-    printf("Blockshape %i,%i,%i\n",xDim,yDim,zDim);
-
     int x,y,z,i,cubeIndex,cacheIndex,ntriang;
     float pointVals[8];
     int colorVals[8];
@@ -39,8 +37,6 @@ void generateIsoSurface(
     int generatedPoints[indexSize];
 
     std::fill_n(generatedPoints, indexSize, -1);
-
-    printf("Pushing vertexes onto buf ");
 
     for (z = 0; z < zDim -1; z++) {
         for (y = 0; y < yDim -1; y++) {
@@ -99,8 +95,6 @@ void generateIsoSurface(
         }
     }
 
-    printf("done\n");
-
     for (i = 0; i < buf.Indices.size(); i += 3) {
         tmpVec3D = (
             buf.Vertices[buf.Indices[i+1]].Pos - buf.Vertices[buf.Indices[i]].Pos
@@ -112,7 +106,6 @@ void generateIsoSurface(
         buf.Vertices[buf.Indices[i+1]].Normal = buf.Vertices[buf.Indices[i+1]].Normal + tmpVec3D;
         buf.Vertices[buf.Indices[i+2]].Normal = buf.Vertices[buf.Indices[i+2]].Normal + tmpVec3D;
     }
-    printf("recalculateBoundingBox\n");
     buf.setDirty();
     //buf.recalculateBoundingBox();
 }
