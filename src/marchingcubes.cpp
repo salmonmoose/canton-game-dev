@@ -3,33 +3,22 @@
 using namespace irr;
 
 void generateIsoSurface(
-        scene::SMesh& Mesh, 
+        scene::SMeshBuffer& buf, 
         ValueArray& values, 
         MaterialArray& materials,
         int x_offset, int y_offset, int z_offset
     )
 {
     printf("Entered Generate Iso Surface\n");
-    scene::SMeshBuffer *buf = 0;
-    
-    buf = new irr::scene::SMeshBuffer();
-
-    printf("Adding buffer to mesh\n");
-    Mesh.addMeshBuffer(buf);
-
-    printf("Drop buffer\n");
-    //buf->drop();
 
     printf("Clear buffer\n");
-    buf->Vertices.clear();
-    buf->Indices.clear();
+    buf.Vertices.clear();
+    buf.Indices.clear();
 
     printf("Getting shapes\n");
     int xDim = values.shape()[0];
     int yDim = values.shape()[1];
     int zDim = values.shape()[2];
-
-    printf("Blockshape %i,%i,%i\n",xDim,yDim,zDim);
 
     int x,y,z,i,cubeIndex,cacheIndex,ntriang;
     float pointVals[8];
@@ -48,8 +37,6 @@ void generateIsoSurface(
     int generatedPoints[indexSize];
 
     std::fill_n(generatedPoints, indexSize, -1);
-
-    printf("Pushing vertexes onto buf ");
 
     for (z = 0; z < zDim -1; z++) {
         for (y = 0; y < yDim -1; y++) {
@@ -70,8 +57,10 @@ void generateIsoSurface(
                             (((int)points[edges[i][0]].Y + y) * xDim) +
                             (((int)points[edges[i][0]].Z + z) * xDim * yDim);
                     
-                    if(edgeTable[cubeIndex] & (1 << i)) {
-                        if (generatedPoints[index] == -1) {
+                    if(edgeTable[cubeIndex] & (1 << i)) 
+                    {
+                        if (generatedPoints[index] == -1)
+                        {
                             mu = (isolevel - pointVals[edges[i][0]]) / (pointVals[edges[i][1]] - pointVals[edges[i][0]]);
                             
                             tmpS3DVertex.Pos.set(
@@ -91,9 +80,9 @@ void generateIsoSurface(
 
                             tmpS3DVertex.Normal.set(0.0,0.0,0.0);
 
-                            generatedPoints[index] = buf->Vertices.size();
-                            printf(".");
-                            buf->Vertices.push_back(tmpS3DVertex); //FIXME this should just build the vertex here and now.
+                            generatedPoints[index] = buf.Vertices.size();
+                            
+                            buf.Vertices.push_back(tmpS3DVertex); //FIXME this should just build the vertex here and now.
                         } else {
                         }
                         
@@ -102,25 +91,29 @@ void generateIsoSurface(
                 }
 
                 for (i=0;triTable[cubeIndex][i]!=-1;i++) {
-                    buf->Indices.push_back(generatedPoints[vertList[triTable[cubeIndex][i]]]);
+                    buf.Indices.push_back(generatedPoints[vertList[triTable[cubeIndex][i]]]);
                 }
             }
         }
     }
 
-    printf("done\n");
-
-    for (i = 0; i < buf->Indices.size(); i += 3) {
+    for (i = 0; i < buf.Indices.size(); i += 3) {
         tmpVec3D = (
-            buf->Vertices[buf->Indices[i+1]].Pos - buf->Vertices[buf->Indices[i]].Pos
+            buf.Vertices[buf.Indices[i+1]].Pos - buf.Vertices[buf.Indices[i]].Pos
         ).crossProduct(
-            buf->Vertices[buf->Indices[i]].Pos - buf->Vertices[buf->Indices[i + 2]].Pos
+            buf.Vertices[buf.Indices[i]].Pos - buf.Vertices[buf.Indices[i + 2]].Pos
         );
 
-        buf->Vertices[buf->Indices[i]].Normal   = buf->Vertices[buf->Indices[i]].Normal + tmpVec3D;
-        buf->Vertices[buf->Indices[i+1]].Normal = buf->Vertices[buf->Indices[i+1]].Normal + tmpVec3D;
-        buf->Vertices[buf->Indices[i+2]].Normal = buf->Vertices[buf->Indices[i+2]].Normal + tmpVec3D;
+        buf.Vertices[buf.Indices[i]].Normal   = buf.Vertices[buf.Indices[i]].Normal + tmpVec3D;
+        buf.Vertices[buf.Indices[i+1]].Normal = buf.Vertices[buf.Indices[i+1]].Normal + tmpVec3D;
+        buf.Vertices[buf.Indices[i+2]].Normal = buf.Vertices[buf.Indices[i+2]].Normal + tmpVec3D;
     }
-    printf("recalculateBoundingBox\n");
-    buf->recalculateBoundingBox();
+
+    for (i = 0; i < buf.Vertices.size(); i++)
+    {
+        buf.Vertices[i].Normal.normalize();
+    }
+
+    buf.setDirty();
+    //buf.recalculateBoundingBox();
 }
