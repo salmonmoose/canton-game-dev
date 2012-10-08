@@ -83,9 +83,9 @@ void ScalarTerrain::generateMesh(irr::core::vector3df center)
     int yCenter = ((int) center.Y) / y_chunk;
     int zCenter = ((int) center.Z) / z_chunk;
 
-    for(int z = zCenter-2; z <= zCenter+2; z++) {
+    for(int z = zCenter-3; z <= zCenter+3; z++) {
         for(int y = yCenter-1; y <= yCenter+1; y++) {
-            for(int x = xCenter-2; x <= xCenter+2; x++) {
+            for(int x = xCenter-3; x <= xCenter+3; x++) {
                 if(worldMap.find(TerrainLocation(x,y,z)) == worldMap.end())
                 {
                     //printf("No Chunk - Adding (%i,%i,%i)\n",x,y,z);

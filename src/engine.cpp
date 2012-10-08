@@ -60,59 +60,33 @@ void IrrlichtEngineManager::Update()
 } 
 
 void IrrlichtEngineManager::Shutdown()
-
 {
-
-	// any object that was created with a function that starts with "create" needs to be
-
-	// deleted with a call to drop
-
 	device->drop();
 
-	// reset our other variables for consistency
-
 	InitialiseVariables();
-
 }
 
- 
+void IrrlichtEngineManager::DrawAxis(const irr::core::vector3df & pos, const irr::core::vector3df & size)
+{
+		driver->draw3DLine(pos, pos + irr::core::vector3df(size.X,0,0), SColor(255,255,0,0));
+		driver->draw3DLine(pos, pos + irr::core::vector3df(0,size.Y,0), SColor(255,0,255,0));
+		driver->draw3DLine(pos, pos + irr::core::vector3df(0,0,size.Z), SColor(255,0,0,255));
+}
 
 void IrrlichtEngineManager::StartRenderLoop()
 
 {
-
 	while(device->run())
-
 	{
-
-		/*
-
-			The render loop. Begin the scene, draw the various elements, and then end the scene
-
-		*/
-
 		driver->beginScene(true, true, SColor(127,127,127,255));
-
- 
 
 		smgr->drawAll();
 
- 
-
 		driver->endScene();
-
 	}
-
 }
 
- 
-
 void IrrlichtEngineManager::EndRenderLoop()
-
 {
-
-	// make device->Run() return false
-
 	device->closeDevice();
-
 }

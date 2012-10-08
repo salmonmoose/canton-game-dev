@@ -69,15 +69,9 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	core::vector3df position = core::vector3df(16.f, 16.f, 16.f);
-	core::vector3df offset = core::vector3df(-8.f,8.f,-8.f);
+	core::vector3df offset = core::vector3df(-24.f,16.f,-24.f);
 
-	scene::ICameraSceneNode *camera = IRR.smgr->addCameraSceneNode(0, position+offset, position);
-
-	//scene::ICameraSceneNode* camera = IRR.smgr->addCameraSceneNodeFPS();
-
-	camera->setPosition(position+offset);
-	camera->setTarget(position);
+	scene::ICameraSceneNode *camera = IRR.smgr->addCameraSceneNode(0, player.getPosition()+offset, player.getPosition());
 
 	int lastFPS = -1;
 	
@@ -100,14 +94,17 @@ int main(int argc, char* argv[])
 			
 			IRR.smgr->drawAll();
 
-			//HACK: Something doesn't work in scenemanager, this is a workaround.
+			//HACK: Something doesn't work in scenemanager, this is a workaround
+            //NB: should be moved into a scenenode
 			IRR.driver->setMaterial(terrain.Material);
+            IRR.driver->setTransform(video::ETS_WORLD, meshnode->getAbsoluteTransformation());
 			for(int i = 0; i < meshnode->getMesh()->getMeshBufferCount(); i++)
             {
             	IRR.driver->drawMeshBuffer(meshnode->getMesh()->getMeshBuffer(i));
             }
 
-            
+            IRR.DrawAxis(core::vector3df(0,0,0));
+            IRR.DrawAxis(player.getPosition());
 
             IRR.env->drawAll();
 
