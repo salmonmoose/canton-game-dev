@@ -4,7 +4,7 @@
 #include "canton.h"
 #include "engine.h"
 #include "terrain.h"
-
+#include "player.h"
 //#include "marchingcubes.cpp"
 //#include "terrain.cpp"
 
@@ -49,12 +49,11 @@ int main(int argc, char* argv[])
 
 	ScalarTerrain terrain;
 
-	MyEventReceiver receiver;
+	scene::IMeshSceneNode * meshnode = IRR.smgr->addMeshSceneNode(&terrain.Mesh); //Maybe this should be handled in terrain.cpp
 
-	scene::IMeshSceneNode * meshnode = IRR.smgr->addMeshSceneNode(&terrain.Mesh);
-	scene::IMeshSceneNode * cube = IRR.smgr->addCubeSceneNode();
+	Player player;
 	
-    meshnode->setName("MeshNode");
+	player.playerMesh->setParent(meshnode);
 
 	scene::ILightSceneNode * node = IRR.smgr->addLightSceneNode(0,core::vector3df(0,0,0),
 		video::SColorf(1.0f, 1.0f, 1.0f, 1.0f), 20.0f);
@@ -73,46 +72,42 @@ int main(int argc, char* argv[])
 	core::vector3df position = core::vector3df(16.f, 16.f, 16.f);
 	core::vector3df offset = core::vector3df(-8.f,8.f,-8.f);
 
-	//scene::ICameraSceneNode *camera = smgr->addCameraSceneNode(0, position+offset, position);
+	scene::ICameraSceneNode *camera = IRR.smgr->addCameraSceneNode(0, position+offset, position);
 
-	scene::ICameraSceneNode* camera = IRR.smgr->addCameraSceneNodeFPS();
+	//scene::ICameraSceneNode* camera = IRR.smgr->addCameraSceneNodeFPS();
 
 	camera->setPosition(position+offset);
 	camera->setTarget(position);
 
 	int lastFPS = -1;
-
-	u32 then = IRR.device->getTimer()->getTime();
-    
-    const f32 MOVEMENT_SPEED = 10.f;
-
+	
 	while(IRR.device->run())
 	{
-		const u32 now = IRR.device->getTimer()->getTime();
-		const f32 frameDeltaTime = (f32) (now - then) / 1000.f;
+		IRR.Update();
+		player.Update();
 
-        terrain.generateMesh(camera->getPosition());
-		
-        //meshnode = smgr->addMeshSceneNode(&world.Mesh);
+		camera->setTarget(player.getPosition());
+		camera->setPosition(player.getPosition() + offset);
 
-		then = now;
+        terrain.generateMesh(camera->getPosition()); //FIXME: Perhaps this should depend on an active window.
+
+
 
 		if(IRR.device->isWindowActive())
 		{
+
 			IRR.driver->beginScene(true, true, video::SColor(0,0,0,255));
-	
 			
+			IRR.smgr->drawAll();
 
+			//HACK: Something doesn't work in scenemanager, this is a workaround.
 			IRR.driver->setMaterial(terrain.Material);
-
 			for(int i = 0; i < meshnode->getMesh()->getMeshBufferCount(); i++)
             {
             	IRR.driver->drawMeshBuffer(meshnode->getMesh()->getMeshBuffer(i));
             }
 
-            IRR.smgr->drawAll();
-
-            //meshnode->render();
+            
 
             IRR.env->drawAll();
 
@@ -121,27 +116,14 @@ int main(int argc, char* argv[])
 			int fps = IRR.driver->getFPS();
             int prims = IRR.driver->getPrimitiveCountDrawn();
 
-            int maxvert = 0;
-            int maxind = 0;
-
             core::list<scene::ISceneNode*> children = IRR.smgr->getRootSceneNode()->getChildren();
-
-            for(int i = 0; i < meshnode->getMesh()->getMeshBufferCount(); i++)
-            {
-                if(meshnode->getMesh()->getMeshBuffer(i)->getVertexCount() > maxvert) 
-                {
-                    maxvert = meshnode->getMesh()->getMeshBuffer(i)->getVertexCount();
-                }
-
-                if(meshnode->getMesh()->getMeshBuffer(i)->getIndexCount() > maxind) 
-                {
-                    maxind = meshnode->getMesh()->getMeshBuffer(i)->getIndexCount();
-                }
-            }
 
 			core::stringw str = L"Canton InDev [";
 			str += IRR.driver->getName();
-			str += "]";
+			str += "] fps:";
+			str += fps;
+			str += " rendered primitives: ";
+			str += prims;
 			IRR.device->setWindowCaption(str.c_str());
 
 		}

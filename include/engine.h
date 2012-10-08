@@ -2,7 +2,7 @@
 #define _IRRLICHTENGINEMANAGER_H__
 
 #include <irrlicht.h>
-
+#include "eventhandler.h"
 /**
 * A handy macro that allows us to access the IrrlichtEngineManager singelton instance
 */
@@ -42,25 +42,32 @@ public:
 	/**
 		Initialises the resources needed for the Irrlicht3D engine
 	*/
-
 	void Startup();
+	
 	/**
 		Cleans up the Irrlicht3D engine resources
 	*/
-
 	void Shutdown();
+
 	/**
 		Enters the render loop
 	*/
-
 	void StartRenderLoop();
+
 	/**
 		Stops the render loop
 	*/
-
 	void EndRenderLoop();
 
+	/**
+		Updates the world
+	*/
+	void Update();
+
+
 	IrrlichtDevice * device;
+
+	EventReceiver receiver;
 
 	IVideoDriver * driver;
 
@@ -69,6 +76,8 @@ public:
 	gui::IGUIEnvironment * env;
 
 	video::IGPUProgrammingServices * gpu;
+
+	irr::f32 frameDeltaTime;
 
 protected:
 	/**
@@ -82,6 +91,8 @@ protected:
 	*/
 
 	void InitialiseVariables();
+
+	irr::u32 then;
 
 };
 #endif

@@ -10,18 +10,23 @@ CXXFLAGS += -O3 -ffast-math -std=c++0x -g
 #CXXFLAGS = -g -Wall
 
 #default target is Linux
+ifeq ($(OS), Windows_NT)
+all: all_win32
+	else
 all: all_linux
+endif
+
 
 ifeq ($(HOSTTYPE), x86_64)
 LIBSELECT=64
 endif
 
 # target specific settings
-all_linux: LDFLAGS = -L/usr/X11R6/lib$(LIBSELECT) -L../libs/irrlicht-1.8.0/lib/Linux -L../libs/accidentalnoise/src -lIrrlicht -lGL -lXxf86vm -lXext -lX11
+all_linux: LDFLAGS = -L/usr/X11R6/lib$(LIBSELECT) -L../libs/irrlicht-1.8.0/lib/Linux -lIrrlicht -lGL -lXxf86vm -lXext -lX11
 all_linux clean_linux: SYSTEM=Linux
-all_win32: LDFLAGS = -L../../lib/Win32-gcc -lIrrlicht -lopengl32 -lm
+all_win32: LDFLAGS = -L../libs/irrlicht-1.8.0/lib/Win32-gcc -lIrrlicht -lopengl32 -lm
 all_win32 clean_win32: SYSTEM=Win32-gcc
-all_win32 clean_win32: SUF=.exe
+#all_win32 clean_win32: SUF=.exe
 # name of the binary - only valid for targets which set SYSTEM
 DESTPATH = ./bin/$(SYSTEM)/$(Target)$(SUF)
 

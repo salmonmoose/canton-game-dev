@@ -56,38 +56,20 @@ ScalarTerrain::ScalarTerrain()
 
 void ScalarTerrain::GenerateBackground(TerrainLocation tl) 
 {
-    printf(
-        "Starting Threadded Generation at (%i,%i,%i)\n",
-        tl.X, tl.Y, tl.Z
-        );
-    
     worldMap[tl].FillChunk(noiseTree);
-    
-    printf(
-        "Finished Threadded Generation at (%i,%i,%i)\n",
-        tl.X, tl.Y, tl.Z
-        );
 }
 
 void ScalarTerrain::MeshBackground(TerrainLocation tl) {
-    printf(
-        "Starting Threadded Meshing at (%i,%i,%i)\n",
-        tl.X, tl.Y, tl.Z
-        );
-
     worldMap[tl].MeshChunk();
     Mesh.addMeshBuffer(worldMap[tl].buf);
     Mesh.setDirty();
-
-    printf(
-        "Finished Threadded Meshing at (%i,%i,%i)\n",
-        tl.X, tl.Y, tl.Z
-        );
 }
 
 void TerrainChunk::MeshChunk()
 {
+    meshing = true;
     generateIsoSurface(* buf, * values, * materials, localPoint->X * x_chunk, localPoint->Y * y_chunk, localPoint->Z * z_chunk);
+    meshing = false;
     clean = true;
 }
 
@@ -119,6 +101,7 @@ void ScalarTerrain::generateMesh(irr::core::vector3df center)
                 else if(
                     !worldMap[TerrainLocation(x,y,z)].clean && 
                     !worldMap[TerrainLocation(x,y,z)].filling && 
+                    !worldMap[TerrainLocation(x,y,z)].meshing &&
                     worldMap[TerrainLocation(x,y,z)].filled
                     )
                 {

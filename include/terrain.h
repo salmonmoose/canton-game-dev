@@ -1,6 +1,7 @@
 #ifndef TERRAIN_H
 #define TERRAIN_H
-#include <thread>
+#include <thread>// Apparently not in windows
+//#include "boost/thread.hpp"
 #include "pugixml.hpp"
 
 #include "anl.h"
@@ -61,7 +62,6 @@ public:
 
     	values = new ValueArray();
     	materials = new MaterialArray();
-    	printf("Spawning New Chunk\n");
         values->resize(boost::extents[xDim+1][yDim+1][zDim+1]);
         materials->resize(boost::extents[xDim+1][yDim+1][zDim+1]);
     }
@@ -93,7 +93,6 @@ public:
 	~ScalarTerrain(){};
 
 	void setupAccidentalNoise();
-	//void renderChunk(TerrainChunk &tc);
 	void generateChunk(int, int, int);
 	void bresenham(irr::core::vector3df, irr::core::vector3df);
 	void generateNavMesh();

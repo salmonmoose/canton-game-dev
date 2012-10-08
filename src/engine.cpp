@@ -22,13 +22,7 @@ void IrrlichtEngineManager::Startup()
 {
 	irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_OPENGL;
 
-	device = createDevice(driverType, dimension2d<u32>(640, 480));
-
-	// Set the window title
-
-	device->setWindowCaption(L"Irrlicht Tutorial");
-
-	// get pointers to the video driver and the scene manager for convenience
+	device = createDevice(driverType, dimension2d<u32>(640, 480), 16, false, false, false, &receiver);
 
 	driver = device->getVideoDriver();
 
@@ -55,9 +49,15 @@ void IrrlichtEngineManager::Startup()
     vertBox->setDrawBorder(false);
     gui::IGUIStaticText * indBox = env->addStaticText(L"INDEXES", core::rect<s32>(0,40,200,50), true);
     indBox->setDrawBorder(false);
+
+    then = device->getTimer()->getTime();
 }
 
- 
+void IrrlichtEngineManager::Update()
+{
+	const u32 now = device->getTimer()->getTime();
+	frameDeltaTime = (f32) (now - then) / 1000.f;
+} 
 
 void IrrlichtEngineManager::Shutdown()
 

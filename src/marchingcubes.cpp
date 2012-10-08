@@ -9,13 +9,9 @@ void generateIsoSurface(
         int x_offset, int y_offset, int z_offset
     )
 {
-    printf("Entered Generate Iso Surface\n");
-
-    printf("Clear buffer\n");
     buf.Vertices.clear();
     buf.Indices.clear();
 
-    printf("Getting shapes\n");
     int xDim = values.shape()[0];
     int yDim = values.shape()[1];
     int zDim = values.shape()[2];
@@ -115,5 +111,4 @@ void generateIsoSurface(
     }
 
     buf.setDirty();
-    //buf.recalculateBoundingBox();
 }
