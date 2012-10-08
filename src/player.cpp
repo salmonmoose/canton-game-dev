@@ -40,13 +40,12 @@ void Player::Update()
 
 irr::core::vector3df Player::getIrrIn()
 {
-         Matrix.setRotationDegrees(Rotation);
-         Matrix.setTranslation(Position);
-         Matrix.setScale(core::vector3df(1.f,1.f,1.f));
+    irr::core::vector3df dir (core::vector3df(0,0,1));
 
-         vector3df in(Matrix[8],Matrix[9],Matrix[10]); 
-         in.normalize(); 
-         return in;
+    Matrix.setRotationDegrees(Rotation);
+    Matrix.rotateVect(dir);
+
+    return dir;
 }
 
 const irr::core::vector3df & Player::getPosition()
