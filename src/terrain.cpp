@@ -9,9 +9,9 @@
 #include "terrain.h"
 #include "shadercallback.h"
 
-static int x_chunk = 32;
-static int y_chunk = 32;
-static int z_chunk = 32;
+static int x_chunk = 16;
+static int y_chunk = 16;
+static int z_chunk = 16;
 
 using namespace irr;
 
@@ -57,12 +57,12 @@ ScalarTerrain::ScalarTerrain()
 void ScalarTerrain::GenerateBackground(TerrainLocation tl) 
 {
     worldMap[tl].FillChunk(noiseTree);
+    worldMap[tl].status = DIRTY;
 }
 
 void ScalarTerrain::MeshBackground(TerrainLocation tl) {
     worldMap[tl].MeshChunk();
-    Mesh.addMeshBuffer(worldMap[tl].buf);
-    Mesh.setDirty();
+    worldMap[tl].status = CLEAN;
 }
 
 void TerrainChunk::MeshChunk()
@@ -73,50 +73,60 @@ void TerrainChunk::MeshChunk()
     clean = true;
 }
 
-void ScalarTerrain::generateMesh(irr::core::vector3df center) 
+void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum) 
 {
+    irr::core::aabbox3df bounding = Frustum->getBoundingBox();
+
+    int x_start = (int)floor(bounding.MinEdge.X / x_chunk);
+    int y_start = (int)floor(bounding.MinEdge.Y / y_chunk);
+    int z_start = (int)floor(bounding.MinEdge.Z / z_chunk);
+
+    int x_finish = (int)ceil(bounding.MaxEdge.X / x_chunk);
+    int y_finish = (int)ceil(bounding.MaxEdge.Y / y_chunk);
+    int z_finish = (int)ceil(bounding.MaxEdge.Z / z_chunk);
+
+    int mesh_request = abs(x_finish - x_start) * abs(y_finish - y_start) * abs(z_finish - z_start);
+
+    if(mesh_request > 1000) 
+    {
+        printf("too many chunks\n");
+    return; //Don't try to work with too many chunks this should be more elegant.
+    }
+
     for(int i = 0; i < Mesh.getMeshBufferCount(); i ++) {
         Mesh.MeshBuffers.erase(i);
     }
 
-    int xCenter = ((int) center.X) / x_chunk;
-    int yCenter = ((int) center.Y) / y_chunk;
-    int zCenter = ((int) center.Z) / z_chunk;
+    TerrainLocation tl(0,0,0);
 
-    for(int z = zCenter-3; z <= zCenter+3; z++) {
-        for(int y = yCenter-1; y <= yCenter+1; y++) {
-            for(int x = xCenter-3; x <= xCenter+3; x++) {
-                if(worldMap.find(TerrainLocation(x,y,z)) == worldMap.end())
+    for(int z = z_start; z <= z_finish; z++) {
+        for(int y = y_start; y <= y_finish; y++) {
+            for(int x = x_start; x <= x_finish; x++) {
+
+                tl.set(x,y,z);
+                
+                if(worldMap.find(tl) == worldMap.end())
                 {
-                    //printf("No Chunk - Adding (%i,%i,%i)\n",x,y,z);
-                    worldMap[TerrainLocation(x,y,z)] = TerrainChunk(x_chunk, y_chunk, z_chunk, x, y, z);
+                    worldMap[tl] = TerrainChunk(x_chunk, y_chunk, z_chunk, x, y, z);
                 }
-                if(!worldMap[TerrainLocation(x,y,z)].filled && !worldMap[TerrainLocation(x,y,z)].filling)
+                
+                if(worldMap[tl].status == EMPTY)
                 {
-                    //printf("Empty Chunk - filling (%i,%i,%i)\n",x,y,z);
-                    std::thread t1(&ScalarTerrain::GenerateBackground, this, TerrainLocation(x,y,z));
+                    worldMap[tl].status == FILLING;
+                    std::thread t1(&ScalarTerrain::GenerateBackground, this, tl);
                     t1.detach(); //Background Operations
                     //t1.join(); //Foreground Operations
                 }
-                else if(
-                    !worldMap[TerrainLocation(x,y,z)].clean && 
-                    !worldMap[TerrainLocation(x,y,z)].filling && 
-                    !worldMap[TerrainLocation(x,y,z)].meshing &&
-                    worldMap[TerrainLocation(x,y,z)].filled
-                    )
+                else if(worldMap[tl].status == FILLED || worldMap[tl].status == DIRTY)
                 {
-                    //printf("Unclean Chunk - rendering (%i,%i,%i)\n",x,y,z);
-                    std::thread t1(&ScalarTerrain::MeshBackground, this, TerrainLocation(x,y,z));
-                    //t1.detach();
-                    t1.join(); //I can't do this in the background yet.
-                    //worldMap[TerrainLocation(x,y,z)].MeshChunk();
-                    
-                    //Mesh.setDirty();
+                    worldMap[tl].status = MESHING;
+                    std::thread t1(&ScalarTerrain::MeshBackground, this, tl);
+                    t1.detach();
+                    //t1.join(); //I can't do this in the background yet.
                 }
-                else if(worldMap[TerrainLocation(x,y,z)].clean)
+                else if(worldMap[tl].status == CLEAN)
                 {
-                    //printf("Clean Chunk - grabbing from cache (%i,%i,%i)\n",x,y,z);
-                    Mesh.addMeshBuffer(worldMap[TerrainLocation(x,y,z)].buf);
+                    Mesh.addMeshBuffer(worldMap[tl].buf);
                 }
             }
         }
@@ -129,7 +139,6 @@ void ScalarTerrain::generateMesh(irr::core::vector3df center)
 Using noise tree, populates an array with values
 **/
 void TerrainChunk::FillChunk(anl::CImplicitXML & noiseTree) {
-    filling = true;
     double value;
     double xPos = localPoint->X * x_chunk;
     double yPos = localPoint->Y * y_chunk;
@@ -156,8 +165,6 @@ void TerrainChunk::FillChunk(anl::CImplicitXML & noiseTree) {
             }
         }
         //Chunk is clean, allow rendering.
-        filled = true;
-        filling = false;
     } catch (char * exception) {
         printf("Exception raised: %s\n", exception);
     }

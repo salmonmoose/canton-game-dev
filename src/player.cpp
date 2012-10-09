@@ -4,7 +4,7 @@ Player::Player()
 {
 	playerMesh = IRR.smgr->addAnimatedMeshSceneNode(IRR.smgr->getMesh("./resources/indevship.obj"));
 
-	Position.Y = 24.f;
+	Position.Y = 16.f;
     Speed = 0.3f;
 }
 

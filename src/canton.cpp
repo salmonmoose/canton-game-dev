@@ -73,8 +73,9 @@ int main(int argc, char* argv[])
 
 	scene::ICameraSceneNode *camera = IRR.smgr->addCameraSceneNode(0, player.getPosition()+offset, player.getPosition());
 
-	int lastFPS = -1;
-	
+	camera->setFarValue(64.f);
+	camera->setNearValue(1.f);
+
 	while(IRR.device->run())
 	{
 		IRR.Update();
@@ -83,7 +84,7 @@ int main(int argc, char* argv[])
 		camera->setTarget(player.getPosition());
 		camera->setPosition(player.getPosition() + offset);
 
-        terrain.generateMesh(camera->getPosition()); //FIXME: Perhaps this should depend on an active window.
+        terrain.generateMesh(camera->getViewFrustum()); //FIXME: Perhaps this should depend on an active window.
 
 
 

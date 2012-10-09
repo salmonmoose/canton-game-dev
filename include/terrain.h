@@ -13,13 +13,36 @@
 typedef boost::multi_array<double, 3> ValueArray;
 typedef boost::multi_array<int, 3> MaterialArray;
 
+enum EChunkStatus {
+    EMPTY,      //This node has not yet been assigned data
+    FILLING,    //Currently assigning data to this node
+    FILLED,     //This node needs to be meshed
+    DIRTY,      //This node needs to be remeshed
+    MESHING,    //This node is currently meshing
+    CLEAN       //This node doesn't need
+};
+
 struct TerrainLocation
 {
+public:
     int X,Y,Z;
 
-    TerrainLocation(int x, int y, int z) : X(x), Y(y), Z(z) {}
+    TerrainLocation(int x, int y, int z)
+    {
+        X = x;
+        Y = y;
+        Z = z;
+    }
+    
+    void set(int x, int y, int z)
+    {
+        X = x;
+        Y = y;
+        Z = z;
+    }
 
-    bool operator < (const TerrainLocation & tl ) const {
+    bool operator < (const TerrainLocation & tl ) const 
+    {
         if(X != tl.X)
             return (X < tl.X);
         if(Y != tl.Y)
@@ -45,7 +68,7 @@ public:
     bool meshing;
     //FIXME Push this to .cpp file
     TerrainChunk(
-        int xDim = 32, int yDim = 32, int zDim = 32,
+        int xDim = 16, int yDim = 16, int zDim = 16,
         int xPos = 0, int yPos = 0, int zPos = 0
         )
     {
@@ -55,10 +78,8 @@ public:
             (double) (xDim * xPos + xDim), (double) (yDim * yPos + yDim), (double) (zDim * zPos + zDim)
         ));
         localPoint = new TerrainLocation(xPos,yPos,zPos);
-        clean = false;
-        filled = false;
-        filling = false;
-        meshing = false;
+
+        status = EMPTY;
 
     	values = new ValueArray();
     	materials = new MaterialArray();
@@ -97,7 +118,7 @@ public:
 	void bresenham(irr::core::vector3df, irr::core::vector3df);
 	void generateNavMesh();
 	void getMesh(/*frustum*/);
-    void generateMesh(irr::core::vector3df center);
+    void generateMesh(const irr::scene::SViewFrustum * Frustum);
     void GenerateBackground(TerrainLocation tl);
     void MeshBackground(TerrainLocation tl);
 };

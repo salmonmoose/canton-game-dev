@@ -21,10 +21,11 @@ public:
 protected:
 	irr::core::vector3df Position;
 	irr::core::vector3df Velocity;
-	irr::core::vector3df Rotation;
+    irr::core::vector3df Rotation;
     irr::core::matrix4 Matrix;
 
     double Speed;
+    double Drag;
 };
 
 #endif
