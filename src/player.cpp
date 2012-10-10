@@ -4,6 +4,8 @@ Player::Player()
 {
 	playerMesh = IRR.smgr->addAnimatedMeshSceneNode(IRR.smgr->getMesh("./resources/indevship.obj"));
 
+	//playerMesh->setMaterialFlag(EMF_GOURAUD_SHADING,false);
+
 	Position.Y = 16.f;
     Speed = 0.3f;
 }

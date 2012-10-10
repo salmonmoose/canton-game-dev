@@ -39,17 +39,15 @@ void IrrlichtEngineManager::Startup()
 
     skin->setFont(env->getBuiltInFont(), gui::EGDF_TOOLTIP);
 
-    gui::IGUIStaticText * fpsBox = env->addStaticText(L"FPS", core::rect<s32>(0,0,200,10), true);
-    fpsBox->setDrawBorder(false);
-    gui::IGUIStaticText * primBox = env->addStaticText(L"PRIMS", core::rect<s32>(0,10,200,20), true);
-    primBox->setDrawBorder(false);
-    gui::IGUIStaticText * bufferBox = env->addStaticText(L"BUFFERS", core::rect<s32>(0,20,200,30), true);
-    bufferBox->setDrawBorder(false);
-    gui::IGUIStaticText * vertBox = env->addStaticText(L"VERTS", core::rect<s32>(0,30,200,40), true);
-    vertBox->setDrawBorder(false);
-    gui::IGUIStaticText * indBox = env->addStaticText(L"INDEXES", core::rect<s32>(0,40,200,50), true);
-    indBox->setDrawBorder(false);
-
+    gui::IGUIStaticText * fillThreads = env->addStaticText(L"fillThreads", core::rect<s32>(0,0,200,10), true);
+    fillThreads->setDrawBorder(false);
+    gui::IGUIStaticText * meshThreads = env->addStaticText(L"meshThreads", core::rect<s32>(0,10,200,20), true);
+    meshThreads->setDrawBorder(false);
+    gui::IGUIStaticText * boxBuffers = env->addStaticText(L"boxBuffers", core::rect<s32>(0,20,200,30), true);
+    boxBuffers->setDrawBorder(false);
+    gui::IGUIStaticText * frustumBuffers = env->addStaticText(L"frustumBuffers", core::rect<s32>(0,30,200,40), true);
+    frustumBuffers->setDrawBorder(false);
+    
     then = device->getTimer()->getTime();
 }
 

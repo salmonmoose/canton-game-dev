@@ -69,12 +69,12 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	core::vector3df offset = core::vector3df(-24.f,16.f,-24.f);
+	core::vector3df offset = core::vector3df(0.f,16.f,-24.f);
 
 	scene::ICameraSceneNode *camera = IRR.smgr->addCameraSceneNode(0, player.getPosition()+offset, player.getPosition());
 
-	camera->setFarValue(64.f);
-	camera->setNearValue(1.f);
+	camera->setFarValue(128.f);
+	camera->setNearValue(16.f);
 
 	while(IRR.device->run())
 	{

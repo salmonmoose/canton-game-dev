@@ -15,6 +15,30 @@ static int z_chunk = 16;
 
 using namespace irr;
 
+bool pointInFrustum(const irr::scene::SViewFrustum * Frustum, const irr::core::vector3df & Point)
+{
+    for (int i=0; i<6; i++) {
+        if(Frustum->planes[i].classifyPointRelation(Point) == irr::core::ISREL3D_FRONT) return false;
+    }
+
+    return true;
+}
+
+bool AABBoxInFrustum(const irr::scene::SViewFrustum * Frustum, const irr::core::aabbox3df & Box)
+{
+    //loop through each box point.
+    if(pointInFrustum(Frustum, irr::core::vector3df(Box.MinEdge.X, Box.MinEdge.Y, Box.MinEdge.Z))) return true;
+    if(pointInFrustum(Frustum, irr::core::vector3df(Box.MaxEdge.X, Box.MinEdge.Y, Box.MinEdge.Z))) return true;
+    if(pointInFrustum(Frustum, irr::core::vector3df(Box.MinEdge.X, Box.MaxEdge.Y, Box.MinEdge.Z))) return true;
+    if(pointInFrustum(Frustum, irr::core::vector3df(Box.MinEdge.X, Box.MinEdge.Y, Box.MaxEdge.Z))) return true;
+    if(pointInFrustum(Frustum, irr::core::vector3df(Box.MaxEdge.X, Box.MaxEdge.Y, Box.MinEdge.Z))) return true;
+    if(pointInFrustum(Frustum, irr::core::vector3df(Box.MaxEdge.X, Box.MinEdge.Y, Box.MaxEdge.Z))) return true;
+    if(pointInFrustum(Frustum, irr::core::vector3df(Box.MinEdge.X, Box.MaxEdge.Y, Box.MaxEdge.Z))) return true;
+    if(pointInFrustum(Frustum, irr::core::vector3df(Box.MaxEdge.X, Box.MaxEdge.Y, Box.MaxEdge.Z))) return true;
+
+    return false;
+}
+
 ScalarTerrain::ScalarTerrain()
 {
 
@@ -54,14 +78,18 @@ ScalarTerrain::ScalarTerrain()
     Material.MaterialType = (video::E_MATERIAL_TYPE) terrainMaterial;
 }
 
-void ScalarTerrain::GenerateBackground(TerrainLocation tl) 
+void ScalarTerrain::FillBackground(TerrainLocation tl) 
 {
     worldMap[tl].FillChunk(noiseTree);
+    threads--;
+    fillThreads--;
     worldMap[tl].status = DIRTY;
 }
 
 void ScalarTerrain::MeshBackground(TerrainLocation tl) {
     worldMap[tl].MeshChunk();
+    threads--;
+    meshThreads--;
     worldMap[tl].status = CLEAN;
 }
 
@@ -87,7 +115,7 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
 
     int mesh_request = abs(x_finish - x_start) * abs(y_finish - y_start) * abs(z_finish - z_start);
 
-    if(mesh_request > 1000) 
+    if(mesh_request > 5000) 
     {
         printf("too many chunks\n");
     return; //Don't try to work with too many chunks this should be more elegant.
@@ -97,11 +125,15 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
         Mesh.MeshBuffers.erase(i);
     }
 
+    int boxCount = 0;
+    int frustumCount = 0;
+
     TerrainLocation tl(0,0,0);
 
     for(int z = z_start; z <= z_finish; z++) {
         for(int y = y_start; y <= y_finish; y++) {
             for(int x = x_start; x <= x_finish; x++) {
+                boxCount ++;
 
                 tl.set(x,y,z);
                 
@@ -109,28 +141,42 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
                 {
                     worldMap[tl] = TerrainChunk(x_chunk, y_chunk, z_chunk, x, y, z);
                 }
-                
-                if(worldMap[tl].status == EMPTY)
+                if(AABBoxInFrustum(Frustum, worldMap[tl].buf->getBoundingBox()))
                 {
-                    worldMap[tl].status == FILLING;
-                    std::thread t1(&ScalarTerrain::GenerateBackground, this, tl);
-                    t1.detach(); //Background Operations
-                    //t1.join(); //Foreground Operations
-                }
-                else if(worldMap[tl].status == FILLED || worldMap[tl].status == DIRTY)
-                {
-                    worldMap[tl].status = MESHING;
-                    std::thread t1(&ScalarTerrain::MeshBackground, this, tl);
-                    t1.detach();
-                    //t1.join(); //I can't do this in the background yet.
-                }
-                else if(worldMap[tl].status == CLEAN)
-                {
-                    Mesh.addMeshBuffer(worldMap[tl].buf);
+                    frustumCount ++;
+                    if(worldMap[tl].status == CLEAN)
+                    {
+                        Mesh.addMeshBuffer(worldMap[tl].buf);
+                    }
+
+                    if((worldMap[tl].status == FILLED || worldMap[tl].status == DIRTY) && threads < MAXTHREADS)
+                    {
+                        worldMap[tl].status = MESHING;
+                        threads++;
+                        meshThreads++;
+                        std::thread t1(&ScalarTerrain::MeshBackground, this, tl);
+                        //t1.detach();
+                        t1.join(); //This still doesn't quite work
+                    }
+
+                    if(worldMap[tl].status == EMPTY && threads < MAXTHREADS)
+                    {
+                        worldMap[tl].status == FILLING;
+                        threads++;
+                        fillThreads++;
+                        std::thread t1(&ScalarTerrain::FillBackground, this, tl);
+                        t1.detach(); //Background Operations
+                        //t1.join(); //Foreground Operations
+                    }
                 }
             }
         }
     }
+
+    IRR::boxBuffers.setText();
+    IRR::frustumBuffers.setText();
+    IRR::meshThreads.setText();
+    IRR::fillThreads.setText();
     //Mesh.recalculateBoundingBox();
     //printf("Mesh has %i buffers\n", Mesh.getMeshBufferCount());
 }

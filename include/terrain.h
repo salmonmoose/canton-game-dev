@@ -98,6 +98,8 @@ class ScalarTerrain
 private:
 	double value;
 
+    static const int MAXTHREADS = 10;
+
 public:
     TerrainChunk tc;
     
@@ -109,6 +111,10 @@ public:
     irr::video::SMaterial Material;
     irr::s32 terrainMaterial;
 
+    int threads;
+    int meshThreads;
+    int fillThreads;
+
 	ScalarTerrain();
 
 	~ScalarTerrain(){};
@@ -119,7 +125,7 @@ public:
 	void generateNavMesh();
 	void getMesh(/*frustum*/);
     void generateMesh(const irr::scene::SViewFrustum * Frustum);
-    void GenerateBackground(TerrainLocation tl);
+    void FillBackground(TerrainLocation tl);
     void MeshBackground(TerrainLocation tl);
 };
 
