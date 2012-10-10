@@ -50,6 +50,10 @@ public:
 	video::IGPUProgrammingServices * gpu;
 
 	irr::f32 frameDeltaTime;
+	irr::gui::IGUIStaticText * fillThreads;
+	irr::gui::IGUIStaticText * meshThreads;
+	irr::gui::IGUIStaticText * boxBuffers;
+	irr::gui::IGUIStaticText * frustumBuffers;
 
 protected:
 	IrrlichtEngineManager();

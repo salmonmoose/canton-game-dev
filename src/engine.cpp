@@ -39,13 +39,16 @@ void IrrlichtEngineManager::Startup()
 
     skin->setFont(env->getBuiltInFont(), gui::EGDF_TOOLTIP);
 
-    gui::IGUIStaticText * fillThreads = env->addStaticText(L"fillThreads", core::rect<s32>(0,0,200,10), true);
+    fillThreads = env->addStaticText(L"fillThreads", core::rect<s32>(0,0,200,10), true);
     fillThreads->setDrawBorder(false);
-    gui::IGUIStaticText * meshThreads = env->addStaticText(L"meshThreads", core::rect<s32>(0,10,200,20), true);
+
+    meshThreads = env->addStaticText(L"meshThreads", core::rect<s32>(0,10,200,20), true);
     meshThreads->setDrawBorder(false);
-    gui::IGUIStaticText * boxBuffers = env->addStaticText(L"boxBuffers", core::rect<s32>(0,20,200,30), true);
+
+    boxBuffers = env->addStaticText(L"boxBuffers", core::rect<s32>(0,20,200,30), true);
     boxBuffers->setDrawBorder(false);
-    gui::IGUIStaticText * frustumBuffers = env->addStaticText(L"frustumBuffers", core::rect<s32>(0,30,200,40), true);
+    
+    frustumBuffers = env->addStaticText(L"frustumBuffers", core::rect<s32>(0,30,200,40), true);
     frustumBuffers->setDrawBorder(false);
     
     then = device->getTimer()->getTime();

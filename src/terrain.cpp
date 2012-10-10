@@ -113,13 +113,11 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
     int y_finish = (int)ceil(bounding.MaxEdge.Y / y_chunk);
     int z_finish = (int)ceil(bounding.MaxEdge.Z / z_chunk);
 
-    int mesh_request = abs(x_finish - x_start) * abs(y_finish - y_start) * abs(z_finish - z_start);
-
-    if(mesh_request > 5000) 
+    if((x_finish - x_start) * (y_finish - y_start) * (z_finish - z_start) > 10000)
     {
-        printf("too many chunks\n");
-    return; //Don't try to work with too many chunks this should be more elegant.
-    }
+        printf("too many buffers");
+        return;
+    }           
 
     for(int i = 0; i < Mesh.getMeshBufferCount(); i ++) {
         Mesh.MeshBuffers.erase(i);
@@ -173,10 +171,10 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
         }
     }
 
-    IRR::boxBuffers.setText();
-    IRR::frustumBuffers.setText();
-    IRR::meshThreads.setText();
-    IRR::fillThreads.setText();
+    IRR.boxBuffers->setText(core::stringw(L"AABBox Buffers: ").append(core::stringw(boxCount)).c_str());
+    IRR.frustumBuffers->setText(core::stringw(L"Frustum Buffers: ").append(core::stringw(frustumCount)).c_str());
+    IRR.meshThreads->setText(core::stringw(L"Mesh Threads: ").append(core::stringw(meshThreads)).c_str());
+    IRR.fillThreads->setText(core::stringw(L"Fill Threads: ").append(core::stringw(fillThreads)).c_str());
     //Mesh.recalculateBoundingBox();
     //printf("Mesh has %i buffers\n", Mesh.getMeshBufferCount());
 }
@@ -196,9 +194,9 @@ void TerrainChunk::FillChunk(anl::CImplicitXML & noiseTree) {
                 for(int x = 0; x <= x_chunk; x++) {
                     
                     value = noiseTree.get(
-                        (x + xPos) / (double) x_chunk, 
-                        (y + yPos) / (double) y_chunk, 
-                        (z + zPos) / (double) z_chunk
+                        (double) (x + xPos) / 32.f, // (double) x_chunk, 
+                        (double) (y + yPos) / 32.f, // (double) y_chunk, 
+                        (double) (z + zPos) / 32.f // (double) z_chunk
                     );
 
                     (*values)[x][y][z] = value;
