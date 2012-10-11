@@ -60,18 +60,22 @@ public:
     TerrainLocation * localPoint;
     int status;
 
+    bool empty; //No visible cubes;
+    bool obstruct; //At least one horizontal plane is filled
+
+
     //irr::scene::SMesh * Mesh;
     irr::scene::SMeshBuffer * buf;
-    bool clean;
-    bool filled;
-    bool filling;
-    bool meshing;
+
     //FIXME Push this to .cpp file
     TerrainChunk(
         int xDim = 16, int yDim = 16, int zDim = 16,
         int xPos = 0, int yPos = 0, int zPos = 0
         )
     {
+        empty = true;
+        obstruct = false;
+
         buf = new irr::scene::SMeshBuffer();
         buf->setBoundingBox(irr::core::aabbox3df(
             (double) (xDim * xPos), (double) (yDim * yPos), (double) (zDim * zPos),

@@ -95,10 +95,7 @@ void ScalarTerrain::MeshBackground(TerrainLocation tl) {
 
 void TerrainChunk::MeshChunk()
 {
-    meshing = true;
     generateIsoSurface(* buf, * values, * materials, localPoint->X * x_chunk, localPoint->Y * y_chunk, localPoint->Z * z_chunk);
-    meshing = false;
-    clean = true;
 }
 
 void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum) 
@@ -125,11 +122,11 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
 
     int boxCount = 0;
     int frustumCount = 0;
-
+    int actualCount = 0;
     TerrainLocation tl(0,0,0);
 
-    for(int z = z_start; z <= z_finish; z++) {
-        for(int y = y_start; y <= y_finish; y++) {
+    for(int y = y_finish; y >= y_start; y--) { //start picking from the top.
+        for(int z = z_finish; z >= z_start; z--) { //todo should probably pick towards player first
             for(int x = x_start; x <= x_finish; x++) {
                 boxCount ++;
 
@@ -142,29 +139,48 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
                 if(AABBoxInFrustum(Frustum, worldMap[tl].buf->getBoundingBox()))
                 {
                     frustumCount ++;
-                    if(worldMap[tl].status == CLEAN)
-                    {
-                        Mesh.addMeshBuffer(worldMap[tl].buf);
-                    }
+                    
+                    if(!worldMap[TerrainLocation(tl.X, tl.Y+1, tl.Z)].obstruct) 
+                    { //If the layer above me doesn't obsrtuct, render
+                        
+                        /**
+                        * if the chunk is Clean, just pass the buffer empty chunk will never be made clean
+                        */
+                        if(worldMap[tl].status == CLEAN)
+                        {
+                            actualCount++;
+                            Mesh.addMeshBuffer(worldMap[tl].buf);
+                        }
 
-                    if((worldMap[tl].status == FILLED || worldMap[tl].status == DIRTY) && threads < MAXTHREADS)
-                    {
-                        worldMap[tl].status = MESHING;
-                        threads++;
-                        meshThreads++;
-                        std::thread t1(&ScalarTerrain::MeshBackground, this, tl);
-                        //t1.detach();
-                        t1.join(); //This still doesn't quite work
-                    }
+                        /**
+                        * if the chunk is filled, unmeshed, there are threads free and there is data, render
+                        */
+                        if((worldMap[tl].status == FILLED || worldMap[tl].status == DIRTY) && threads < MAXTHREADS && !worldMap[tl].empty)
+                        {
+                            worldMap[tl].status = MESHING;
+                            threads++;
+                            meshThreads++;
+                            std::thread t1(&ScalarTerrain::MeshBackground, this, tl);
+                            //t1.detach();
+                            t1.join(); //This still doesn't quite work
+                        }
 
-                    if(worldMap[tl].status == EMPTY && threads < MAXTHREADS)
+                        /**
+                        * if the chunk has no data, and there are threads free, generate chunk data.
+                        */
+                        if(worldMap[tl].status == EMPTY && threads < MAXTHREADS)
+                        {
+                            worldMap[tl].status == FILLING;
+                            threads++;
+                            fillThreads++;
+                            std::thread t1(&ScalarTerrain::FillBackground, this, tl);
+                            t1.detach(); //Background Operations
+                            //t1.join(); //Foreground Operations
+                        }
+                    }
+                    else
                     {
-                        worldMap[tl].status == FILLING;
-                        threads++;
-                        fillThreads++;
-                        std::thread t1(&ScalarTerrain::FillBackground, this, tl);
-                        t1.detach(); //Background Operations
-                        //t1.join(); //Foreground Operations
+                        worldMap[tl].obstruct = true;
                     }
                 }
             }
@@ -173,6 +189,7 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
 
     IRR.boxBuffers->setText(core::stringw(L"AABBox Buffers: ").append(core::stringw(boxCount)).c_str());
     IRR.frustumBuffers->setText(core::stringw(L"Frustum Buffers: ").append(core::stringw(frustumCount)).c_str());
+    IRR.actualBuffers->setText(core::stringw(L"Actual Buffers: ").append(core::stringw(actualCount)).c_str());
     IRR.meshThreads->setText(core::stringw(L"Mesh Threads: ").append(core::stringw(meshThreads)).c_str());
     IRR.fillThreads->setText(core::stringw(L"Fill Threads: ").append(core::stringw(fillThreads)).c_str());
     //Mesh.recalculateBoundingBox();
@@ -188,10 +205,13 @@ void TerrainChunk::FillChunk(anl::CImplicitXML & noiseTree) {
     double yPos = localPoint->Y * y_chunk;
     double zPos = localPoint->Z * z_chunk;
 
+    bool solid;
+
     try {
-        for(int z = 0; z <= z_chunk; z++) {
-            for(int y = 0; y <= y_chunk; y++) {
-                for(int x = 0; x <= x_chunk; x++) {
+        for(int y = 0; y <= y_chunk; y++) {
+            solid=true; //fresh layer, assume solid
+            for(int x = 0; x <= x_chunk; x++) {
+                for(int z = 0; z <= z_chunk; z++) {
                     
                     value = noiseTree.get(
                         (double) (x + xPos) / 32.f, // (double) x_chunk, 
@@ -199,14 +219,17 @@ void TerrainChunk::FillChunk(anl::CImplicitXML & noiseTree) {
                         (double) (z + zPos) / 32.f // (double) z_chunk
                     );
 
-                    (*values)[x][y][z] = value;
+                    if(value > 0.5) {
+                        empty = false; //a value has been found, block must be meshed
+                    } else {
+                        solid = false; //a hole has been found, this layer is not solid
+                    }
 
-                    if(value < -0.5) (*materials)[x][y][z] = 0;
-                    else if (value < 0) (*materials)[x][y][z] = 1;
-                    else if (value < 0.5) (*materials)[x][y][z] = 2;
-                    else (*materials)[x][y][z] = 3;
+                    (*values)[x][y][z] = value;
+                    (*materials)[x][y][z] = 0;
                 }
             }
+            if(solid) obstruct=true; //if an entire layer is solid, chunk obstructs vertically
         }
         //Chunk is clean, allow rendering.
     } catch (char * exception) {

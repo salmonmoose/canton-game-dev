@@ -50,6 +50,9 @@ void IrrlichtEngineManager::Startup()
     
     frustumBuffers = env->addStaticText(L"frustumBuffers", core::rect<s32>(0,30,200,40), true);
     frustumBuffers->setDrawBorder(false);
+
+    actualBuffers = env->addStaticText(L"frustumBuffers", core::rect<s32>(0,40,200,50), true);
+    actualBuffers->setDrawBorder(false);
     
     then = device->getTimer()->getTime();
 }

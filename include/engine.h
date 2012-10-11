@@ -54,6 +54,7 @@ public:
 	irr::gui::IGUIStaticText * meshThreads;
 	irr::gui::IGUIStaticText * boxBuffers;
 	irr::gui::IGUIStaticText * frustumBuffers;
+	irr::gui::IGUIStaticText * actualBuffers;
 
 protected:
 	IrrlichtEngineManager();
