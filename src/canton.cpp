@@ -61,20 +61,18 @@ int main(int argc, char* argv[])
 	if(node)
 	{
 		node->getLightData().Attenuation.set(0.f, 1.f/500.f, 0.f);
-		scene::ISceneNodeAnimator * anim = IRR.smgr->createFlyCircleAnimator(core::vector3df(0,10,0),20.0f);
-		if(anim)
-		{
-			node->addAnimator(anim);
-			anim->drop();
-		}
 	}
 
 	core::vector3df offset = core::vector3df(0.f,16.f,24.f);
 
 	scene::ICameraSceneNode *camera = IRR.smgr->addCameraSceneNode(0, player.getPosition()+offset, player.getPosition());
 
-	camera->setFarValue(96.f);
-	camera->setNearValue(16.f);
+    core::matrix4 mat;
+    mat.buildProjectionMatrixOrthoLH(120, 90, 0, 256);
+    camera->setProjectionMatrix(mat, true);
+
+	//camera->setFarValue(160.f);
+	//camera->setNearValue(8.f);
 
 	while(IRR.device->run())
 	{
@@ -82,6 +80,7 @@ int main(int argc, char* argv[])
 		player.Update();
 
 		camera->setTarget(player.getPosition());
+        node->setPosition(player.getPosition());
 		camera->setPosition(player.getPosition() + offset);
 
         terrain.generateMesh(camera->getViewFrustum()); //FIXME: Perhaps this should depend on an active window.

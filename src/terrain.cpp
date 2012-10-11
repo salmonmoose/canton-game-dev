@@ -68,10 +68,10 @@ ScalarTerrain::ScalarTerrain()
     Material.setFlag(irr::video::EMF_WIREFRAME, false);
     Material.setFlag(irr::video::EMF_LIGHTING, true);
 
-    Material.setTexture(0, IRR.driver->getTexture("./resources/dirt.jpg"));
-    Material.setTexture(1, IRR.driver->getTexture("./resources/clay.jpg"));
-    Material.setTexture(2, IRR.driver->getTexture("./resources/grass.jpg"));
-    Material.setTexture(3, IRR.driver->getTexture("./resources/rock.jpg"));
+    Material.setTexture(0, IRR.driver->getTexture("./resources/grass.jpg"));
+    Material.setTexture(1, IRR.driver->getTexture("./resources/rock.jpg"));
+    Material.setTexture(2, IRR.driver->getTexture("./resources/dirt.jpg"));
+    Material.setTexture(3, IRR.driver->getTexture("./resources/clay.jpg"));
     Material.setTexture(4, IRR.driver->getTexture("./resources/sand.jpg"));
     Material.setTexture(5, IRR.driver->getTexture("./resources/void.jpg"));
 

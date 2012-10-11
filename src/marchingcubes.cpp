@@ -76,7 +76,8 @@ void generateIsoSurface(
 
                             tmpS3DVertex.Normal.set(0.0,0.0,0.0);
 
-                            generatedPoints[index] = buf.Vertices.size();
+                            //generatedPoints[index] = buf.Vertices.size(); //cached;
+                            index = buf.Vertices.size(); //uncached;
                             
                             buf.Vertices.push_back(tmpS3DVertex); //FIXME this should just build the vertex here and now.
                         } else {
@@ -86,8 +87,9 @@ void generateIsoSurface(
                     }
                 }
 
-                for (i=0;triTable[cubeIndex][i]!=-1;i++) {
-                    buf.Indices.push_back(generatedPoints[vertList[triTable[cubeIndex][i]]]);
+                for (i=0; triTable[cubeIndex][i] != -1; i++) {
+                    //buf.Indices.push_back(generatedPoints[vertList[triTable[cubeIndex][i]]]); //cached;
+                    buf.Indices.push_back(vertList[triTable[cubeIndex][i]]); //uncached;
                 }
             }
         }

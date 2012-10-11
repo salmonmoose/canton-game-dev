@@ -6,7 +6,7 @@ Player::Player()
 
 	//playerMesh->setMaterialFlag(EMF_GOURAUD_SHADING,false);
 
-	Position.Y = 16.f;
+	Position.Y = 32.f;
     Speed = 0.3f;
 }
 
