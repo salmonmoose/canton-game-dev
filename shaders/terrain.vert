@@ -1,24 +1,19 @@
 varying vec4 vNormal;
 varying vec4 vColor;
-void main() {
 
-    vec3 normal, lightDir;
-    vec4 diffuse, ambient, globalAmbient;
-    float NdotL;
+varying vec4 diffuse,ambient;
+varying vec3 normal,lightDir,halfVector;
+void main() {
 
     normal = normalize(gl_NormalMatrix * gl_Normal);
     lightDir = normalize(vec3(gl_LightSource[0].position));
-    NdotL = max(dot(normal, lightDir), 0.0);
+
+    halfVector = normalize(gl_LightSource[0].halfVector.xyz);
+
     diffuse = gl_FrontMaterial.diffuse * gl_LightSource[0].diffuse;
-    /* Compute the ambient and globalAmbient terms */
-
     ambient = gl_FrontMaterial.ambient * gl_LightSource[0].ambient;
-    globalAmbient = gl_LightModel.ambient * gl_FrontMaterial.ambient;
-    gl_FrontColor =  NdotL * diffuse + globalAmbient + ambient;
+    ambient += gl_LightModel.ambient * gl_FrontMaterial.ambient;
 
-    gl_Position = ftransform();
-
-    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
     vNormal.xyz = gl_Normal;
     gl_TexCoord[1] = gl_Vertex;
     vColor = gl_Color;

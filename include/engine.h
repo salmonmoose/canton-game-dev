@@ -35,7 +35,11 @@ public:
 
 	void Update();
 
-	void DrawAxis(const irr::core::vector3df & pos, const irr::core::vector3df & size = irr::core::vector3df(10,10,10));
+	void DrawAxis(const irr::core::vector3df & Position, const irr::core::vector3df & Value = irr::core::vector3df(10,10,10));
+
+    void DrawAxis(const irr::core::vector3df & Position, const irr::core::vector3df & Value, const irr::core::vector3df & Rotation);
+
+    irr::core::vector3df getRotatedVector(const irr::core::vector3df & Direction, const irr::core::vector3df & Rotation);
 
 	IrrlichtDevice * device;
 
@@ -44,6 +48,8 @@ public:
 	IVideoDriver * driver;
 
 	ISceneManager * smgr;
+
+	irr::video::ITexture * renderTarget;
 
 	gui::IGUIEnvironment * env;
 
@@ -55,6 +61,7 @@ public:
 	irr::gui::IGUIStaticText * boxBuffers;
 	irr::gui::IGUIStaticText * frustumBuffers;
 	irr::gui::IGUIStaticText * actualBuffers;
+
 
 protected:
 	IrrlichtEngineManager();

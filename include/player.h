@@ -15,6 +15,8 @@ public:
     void Update();
 
     const irr::core::vector3df & getPosition();
+    const irr::core::vector3df & getRotation();
+    const irr::core::vector3df & getVelocity();
 	irr::scene::IAnimatedMeshSceneNode * playerMesh;
     irr::core::vector3df getIrrIn();
 
@@ -25,6 +27,7 @@ protected:
     irr::core::matrix4 Matrix;
 
     double Speed;
+    double Steering;
     double Drag;
 };
 

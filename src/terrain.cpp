@@ -68,6 +68,7 @@ ScalarTerrain::ScalarTerrain()
     Material.setFlag(irr::video::EMF_WIREFRAME, false);
     Material.setFlag(irr::video::EMF_LIGHTING, true);
 
+    //Material.diffuseColor(irr::video::SColor(255,255,196,255));
     Material.setTexture(0, IRR.driver->getTexture("./resources/grass.jpg"));
     Material.setTexture(1, IRR.driver->getTexture("./resources/rock.jpg"));
     Material.setTexture(2, IRR.driver->getTexture("./resources/dirt.jpg"));

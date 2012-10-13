@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 	scene::ICameraSceneNode *camera = IRR.smgr->addCameraSceneNode(0, player.getPosition()+offset, player.getPosition());
 
     core::matrix4 mat;
-    mat.buildProjectionMatrixOrthoLH(120, 90, 0, 256);
+    mat.buildProjectionMatrixOrthoLH(60, 45, 0, 256);
     camera->setProjectionMatrix(mat, true);
 
 	//camera->setFarValue(160.f);
@@ -103,8 +103,8 @@ int main(int argc, char* argv[])
             	IRR.driver->drawMeshBuffer(meshnode->getMesh()->getMeshBuffer(i));
             }
 
-            IRR.DrawAxis(core::vector3df(0,0,0));
-            IRR.DrawAxis(player.getPosition());
+            IRR.DrawAxis(player.getPosition(), irr::core::vector3df(10.f,10.f,10.f), player.getRotation());
+            IRR.DrawAxis(player.getPosition(), player.getVelocity());
 
             IRR.env->drawAll();
 

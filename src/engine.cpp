@@ -27,6 +27,7 @@ void IrrlichtEngineManager::Startup()
 	driver = device->getVideoDriver();
 
 	smgr = device->getSceneManager();
+    smgr->setAmbientLight(video::SColorf(0.5f,0.5f,0.5f,0.5f));
 
 	env = device->getGUIEnvironment();
 
@@ -61,6 +62,8 @@ void IrrlichtEngineManager::Update()
 {
 	const u32 now = device->getTimer()->getTime();
 	frameDeltaTime = (f32) (now - then) / 1000.f;
+
+    then = now;
 } 
 
 void IrrlichtEngineManager::Shutdown()
@@ -70,11 +73,27 @@ void IrrlichtEngineManager::Shutdown()
 	InitialiseVariables();
 }
 
-void IrrlichtEngineManager::DrawAxis(const irr::core::vector3df & pos, const irr::core::vector3df & size)
+void IrrlichtEngineManager::DrawAxis(const irr::core::vector3df & Position, const irr::core::vector3df & Value)
 {
-		driver->draw3DLine(pos, pos + irr::core::vector3df(size.X,0,0), SColor(255,255,0,0));
-		driver->draw3DLine(pos, pos + irr::core::vector3df(0,size.Y,0), SColor(255,0,255,0));
-		driver->draw3DLine(pos, pos + irr::core::vector3df(0,0,size.Z), SColor(255,0,0,255));
+    DrawAxis(Position, Value, irr::core::vector3df(0.f, 0.f, 0.f));
+}
+
+void IrrlichtEngineManager::DrawAxis(const irr::core::vector3df & Position, const irr::core::vector3df & Value, const irr::core::vector3df & Rotation)
+{
+        driver->draw3DLine(Position, Position + getRotatedVector(irr::core::vector3df(Value.X,0,0), Rotation), SColor(255,255,0,0));
+        driver->draw3DLine(Position, Position + getRotatedVector(irr::core::vector3df(0,Value.Y,0), Rotation), SColor(255,0,255,0));
+        driver->draw3DLine(Position, Position + getRotatedVector(irr::core::vector3df(0,0,Value.Z), Rotation), SColor(255,0,0,255));
+}
+
+irr::core::vector3df IrrlichtEngineManager::getRotatedVector(const irr::core::vector3df & Direction, const irr::core::vector3df & Rotation)
+{
+    irr::core::vector3df dir = Direction;
+    irr::core::matrix4 Matrix;
+
+    Matrix.setRotationDegrees(Rotation);
+    Matrix.rotateVect(dir);
+
+    return dir;
 }
 
 void IrrlichtEngineManager::StartRenderLoop()
