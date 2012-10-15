@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
 		node->getLightData().Attenuation.set(0.f, 1.f/500.f, 0.f);
 	}
 
-	core::vector3df offset = core::vector3df(0.f,16.f,24.f);
+	core::vector3df offset = core::vector3df(24.f,16.f,0.f);
 
 	scene::ICameraSceneNode *camera = IRR.smgr->addCameraSceneNode(0, player.getPosition()+offset, player.getPosition());
 

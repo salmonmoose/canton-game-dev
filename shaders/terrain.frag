@@ -16,19 +16,19 @@ varying vec3 normal,lightDir,halfVector;
 void main()
 {
     vec4 blend_weights = abs(vNormal);
-    blend_weights = (blend_weights) * 9.0;
+    blend_weights = (blend_weights) - 0.5f;//0.2679f;
     blend_weights = max(blend_weights, 0);
     blend_weights /= blend_weights.x + blend_weights.y + blend_weights.z;
 
     vec4 blended_color;
     float tex_scale = 1.0 / 16.0;
 
-    vec2 coord_x = gl_TexCoord[1].yz * tex_scale;
+    vec2 coord_x = -gl_TexCoord[1].zy * tex_scale;
     vec2 coord_y = gl_TexCoord[1].zx * tex_scale;
-    vec2 coord_z = gl_TexCoord[1].xy * tex_scale;
+    vec2 coord_z = -gl_TexCoord[1].xy * tex_scale;
 
-    vec4 map0_x = texture2D(sideTex0, coord_y);
-    vec4 map0_y = texture2D(topTex0, coord_x);
+    vec4 map0_x = texture2D(sideTex0, coord_x);
+    vec4 map0_y = texture2D(topTex0, coord_y);
     vec4 map0_z = texture2D(sideTex0, coord_z);
 
     vec4 map1_x = texture2D(sideTex1, coord_x);
@@ -60,8 +60,8 @@ void main()
     NdotL = max(dot(n,lightDir),0.0);
 
     if (NdotL > 0.0) {
-        color += diffuse * NdotL;
-        halfV = normalize(halfVector);
+        color += NdotL;
+        //halfV = normalize(halfVector);
         NdotHV = max(dot(n,halfV),0.0);
         color += gl_FrontMaterial.specular *
                 gl_LightSource[0].specular *
@@ -69,7 +69,7 @@ void main()
     }
 
 
-    gl_FragColor = color;
+    gl_FragColor = color * blended_color;
     //gl_FragColor = blended_color;
 }
 

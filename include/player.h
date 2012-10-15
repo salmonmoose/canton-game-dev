@@ -18,7 +18,8 @@ public:
     const irr::core::vector3df & getRotation();
     const irr::core::vector3df & getVelocity();
 	irr::scene::IAnimatedMeshSceneNode * playerMesh;
-    irr::core::vector3df getIrrIn();
+    irr::scene::IParticleSystemSceneNode * playerEngine;
+    irr::scene::IParticleEmitter * playerEngineEmitter;
 
 protected:
 	irr::core::vector3df Position;
@@ -27,6 +28,7 @@ protected:
     irr::core::matrix4 Matrix;
 
     double Speed;
+    double Strafe;
     double Steering;
     double Drag;
 };
