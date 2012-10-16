@@ -3,34 +3,19 @@
 
 #include "irrlicht.h"
 #include "engine.h"
+#include "mob.h"
 
-class Player
+class Player : public Mob
 {
 public:
 
-    Player();
-
-    ~Player();
-
-    void Update();
-
-    const irr::core::vector3df & getPosition();
-    const irr::core::vector3df & getRotation();
-    const irr::core::vector3df & getVelocity();
-	irr::scene::IAnimatedMeshSceneNode * playerMesh;
     irr::scene::IParticleSystemSceneNode * playerEngine;
     irr::scene::IParticleEmitter * playerEngineEmitter;
+    Player();
+    ~Player();
+    void Update();
 
 protected:
-	irr::core::vector3df Position;
-	irr::core::vector3df Velocity;
-    irr::core::vector3df Rotation;
-    irr::core::matrix4 Matrix;
-
-    double Speed;
-    double Strafe;
-    double Steering;
-    double Drag;
 };
 
 #endif

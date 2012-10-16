@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 
 	Player player;
 	
-	player.playerMesh->setParent(meshnode);
+	player.mainMesh->setParent(meshnode);
 
 	scene::ILightSceneNode * node = IRR.smgr->addLightSceneNode(0,core::vector3df(0,0,0),
 		video::SColorf(1.0f, 1.0f, 1.0f, 1.0f), 20.0f);

@@ -22,7 +22,7 @@ void IrrlichtEngineManager::Startup()
 {
 	irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_OPENGL;
 
-	device = createDevice(driverType, dimension2d<u32>(1024, 768), 16, false, false, false, &receiver);
+	device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
 
 	driver = device->getVideoDriver();
 
@@ -83,6 +83,10 @@ void IrrlichtEngineManager::DrawAxis(const irr::core::vector3df & Position, cons
         driver->draw3DLine(Position, Position + getRotatedVector(irr::core::vector3df(Value.X,0,0), Rotation), SColor(255,255,0,0));
         driver->draw3DLine(Position, Position + getRotatedVector(irr::core::vector3df(0,Value.Y,0), Rotation), SColor(255,0,255,0));
         driver->draw3DLine(Position, Position + getRotatedVector(irr::core::vector3df(0,0,Value.Z), Rotation), SColor(255,0,0,255));
+}
+
+void IrrlichtEngineManager::DrawAABBox(const irr::core::aabbox3df & BoundingBox) {
+
 }
 
 irr::core::vector3df IrrlichtEngineManager::getRotatedVector(const irr::core::vector3df & Direction, const irr::core::vector3df & Rotation)

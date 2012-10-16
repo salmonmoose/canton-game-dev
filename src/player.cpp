@@ -2,8 +2,10 @@
 
 Player::Player()
 {
-	playerMesh = IRR.smgr->addAnimatedMeshSceneNode(IRR.smgr->getMesh("./resources/indevship.obj"));
+	mainMesh = IRR.smgr->addAnimatedMeshSceneNode(IRR.smgr->getMesh("./resources/indevship.obj"));
     playerEngine = IRR.smgr->addParticleSystemSceneNode(false);
+
+    playerEngine->setParent(mainMesh);
 
     //TODO: this AABBox should come from engine meshes.
     playerEngineEmitter = playerEngine->createBoxEmitter(
@@ -23,9 +25,9 @@ Player::Player()
 	//playerMesh->setMaterialFlag(EMF_GOURAUD_SHADING,false);
 
 	Position.Y = 32.f;
-    Speed = 64.f;
-    Strafe = 32.f;
-    Steering = 90.f;
+    MaxSpeed = 64.f;
+    MaxStrafe = 32.f;
+    MaxTurnRate = 90.f;
     Drag = 0.5f;
 
 }
@@ -39,53 +41,32 @@ void Player::Update()
 {
     if(IRR.receiver.IsKeyDown(irr::KEY_KEY_A))
     {
-        Velocity += IRR.getRotatedVector(core::vector3df(-1,0,0), Rotation) * Strafe * IRR.frameDeltaTime;
+        Velocity += IRR.getRotatedVector(core::vector3df(-1,0,0), Rotation) * MaxStrafe * IRR.frameDeltaTime;
     }
-    else if(IRR.receiver.IsKeyDown(irr::KEY_KEY_D))
+    
+    if(IRR.receiver.IsKeyDown(irr::KEY_KEY_D))
     {
-        Velocity += IRR.getRotatedVector(core::vector3df(1,0,0), Rotation) * Strafe * IRR.frameDeltaTime;
+        Velocity += IRR.getRotatedVector(core::vector3df(1,0,0), Rotation) * MaxStrafe * IRR.frameDeltaTime;
     }
 
     if(IRR.receiver.IsKeyDown(irr::KEY_COMMA))
     {
-        Rotation.Y -= Steering * IRR.frameDeltaTime;
+        Rotation.Y -= MaxTurnRate * IRR.frameDeltaTime;
     }
-    else if(IRR.receiver.IsKeyDown(irr::KEY_PERIOD))
+    if(IRR.receiver.IsKeyDown(irr::KEY_PERIOD))
     {
-        Rotation.Y += Steering * IRR.frameDeltaTime;
+        Rotation.Y += MaxTurnRate * IRR.frameDeltaTime;
     }
 
 	if(IRR.receiver.IsKeyDown(irr::KEY_KEY_W))
 	{
-        Velocity += IRR.getRotatedVector(core::vector3df(0,0,1), Rotation) * Speed * IRR.frameDeltaTime;
+        Velocity += IRR.getRotatedVector(core::vector3df(0,0,1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
 	}
-	else if(IRR.receiver.IsKeyDown(irr::KEY_KEY_S))
+	
+    if(IRR.receiver.IsKeyDown(irr::KEY_KEY_S))
 	{
-		Velocity += IRR.getRotatedVector(core::vector3df(0,0,-1), Rotation) * Speed * IRR.frameDeltaTime;
+		Velocity += IRR.getRotatedVector(core::vector3df(0,0,-1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
 	}
 
-    Velocity -= Velocity * Drag * IRR.frameDeltaTime;
-
-    if(Velocity.getLength() > Speed) Velocity.setLength(Speed);
-
-    Position += IRR.frameDeltaTime * Velocity;
-    
-    playerEngine->setPosition(Position);
-	playerMesh->setPosition(Position);
-	playerMesh->setRotation(Rotation);
-}
-
-const irr::core::vector3df & Player::getPosition()
-{
-	return Position;
-}
-
-const irr::core::vector3df & Player::getRotation()
-{
-    return Rotation;
-}
-
-const irr::core::vector3df & Player::getVelocity()
-{
-    return Velocity;
+    Mob::Update();
 }

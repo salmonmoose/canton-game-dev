@@ -39,6 +39,8 @@ public:
 
     void DrawAxis(const irr::core::vector3df & Position, const irr::core::vector3df & Value, const irr::core::vector3df & Rotation);
 
+    void DrawAABBox(const irr::core::aabbox3df & BoundingBox);
+
     irr::core::vector3df getRotatedVector(const irr::core::vector3df & Direction, const irr::core::vector3df & Rotation);
 
 	IrrlichtDevice * device;
