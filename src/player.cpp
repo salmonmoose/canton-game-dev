@@ -3,24 +3,50 @@
 Player::Player()
 {
 	mainMesh = IRR.smgr->addAnimatedMeshSceneNode(IRR.smgr->getMesh("./resources/indevship.obj"));
-    playerEngine = IRR.smgr->addParticleSystemSceneNode(false);
+    playerEngine1 = IRR.smgr->addParticleSystemSceneNode(false);
+    playerEngine2 = IRR.smgr->addParticleSystemSceneNode(false);
 
-    playerEngine->setParent(mainMesh);
+    playerEngine1->setParent(mainMesh);
+    playerEngine2->setParent(mainMesh);
 
     //TODO: this AABBox should come from engine meshes.
-    playerEngineEmitter = playerEngine->createBoxEmitter(
-                core::aabbox3d<f32>(-1,-0.25,-1,-0.75,0,-1),
+    playerEngineEmitter1 = playerEngine1->createBoxEmitter(
+                core::aabbox3d<f32>(-0.5,-0.25,-1,-0.25,0,-1),
                 core::vector3df(0.0f,0.0f,0.0f),
-                80,100, 
+                5000,6000, 
                 video::SColor(0,255,255,255),
                 video::SColor(0,255,255,255), 
-                800,2000);
+                200,400);
     
-    playerEngineEmitter->setMinStartSize(core::dimension2d<f32>(0.25f, 0.25f));
-    playerEngineEmitter->setMaxStartSize(core::dimension2d<f32>(0.25f, 0.25f));
+    playerEngineEmitter2 = playerEngine2->createBoxEmitter(
+                core::aabbox3d<f32>(0.5,-0.25,-1,0.25,0,-1),
+                core::vector3df(0.0f,0.0f,0.0f),
+                5000,6000,
+                video::SColor(0,255,255,255),
+                video::SColor(0,255,255,255),
+                200,400);
 
-    playerEngine->setEmitter(playerEngineEmitter);
-    playerEngineEmitter->drop();
+    playerEngineEmitter1->setMinStartSize(core::dimension2d<f32>(0.5f, 0.5f));
+    playerEngineEmitter1->setMaxStartSize(core::dimension2d<f32>(0.5f, 0.5f));
+
+    playerEngineEmitter2->setMinStartSize(core::dimension2d<f32>(0.5f, 0.5f));
+    playerEngineEmitter2->setMaxStartSize(core::dimension2d<f32>(0.5f, 0.5f));
+
+    playerEngine1->setEmitter(playerEngineEmitter1);
+    playerEngine2->setEmitter(playerEngineEmitter2);
+    playerEngineEmitter1->drop();
+    playerEngineEmitter2->drop();
+
+    //playerEngine1->setMaterialFlag(video::EMF_LIGHTING, false);
+    //playerEngine2->setMaterialFlag(video::EMF_LIGHTING, false);
+
+    //playerEngine1->setMaterialFlag(video::EMF_ZWRITE_ENABLE, false);
+    //playerEngine2->setMaterialFlag(video::EMF_ZWRITE_ENABLE, false);
+
+    playerEngine1->setMaterialTexture(0, IRR.driver->getTexture("./resources/fireball.bmp"));
+    playerEngine2->setMaterialTexture(0, IRR.driver->getTexture("./resources/fireball.bmp"));
+    //playerEngine1->setMaterialType(video::EMT_TRANSPARENT_VERTEX_ALPHA);
+    //playerEngine2->setMaterialType(video::EMT_TRANSPARENT_VERTEX_ALPHA);
 
 	//playerMesh->setMaterialFlag(EMF_GOURAUD_SHADING,false);
 

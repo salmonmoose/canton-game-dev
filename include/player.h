@@ -9,8 +9,11 @@ class Player : public Mob
 {
 public:
 
-    irr::scene::IParticleSystemSceneNode * playerEngine;
-    irr::scene::IParticleEmitter * playerEngineEmitter;
+    irr::scene::IParticleSystemSceneNode * playerEngine1;
+    irr::scene::IParticleSystemSceneNode * playerEngine2;
+    
+    irr::scene::IParticleEmitter * playerEngineEmitter1;
+    irr::scene::IParticleEmitter * playerEngineEmitter2;
     Player();
     ~Player();
     void Update();
