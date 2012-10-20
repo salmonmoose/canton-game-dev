@@ -1,10 +1,10 @@
 #include <iostream>
 #include <irrlicht.h>
 
-#include "canton.h"
-#include "engine.h"
-#include "terrain.h"
-#include "player.h"
+#include <canton.h>
+#include <engine.h>
+#include <terrain.h>
+#include <player.h>
 //#include "marchingcubes.cpp"
 //#include "terrain.cpp"
 

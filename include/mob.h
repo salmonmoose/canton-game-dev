@@ -2,7 +2,7 @@
 #define MOB_H
 
 #include "irrlicht.h"
-#include "engine.h"
+#include <memory>
 
 class Mob
 {
@@ -13,19 +13,9 @@ public:
 	}
 
 
-	~Mob(){};
-
-	void Update()
-	{
-		Velocity -= Velocity * Drag * IRR.frameDeltaTime;
-
-		if(Velocity.getLength() > MaxSpeed) Velocity.setLength(MaxSpeed);
-
-		Position += IRR.frameDeltaTime * Velocity;
-
-		mainMesh->setPosition(Position);
-		mainMesh->setRotation(Rotation);
-	}
+	virtual ~Mob(){};
+    virtual void Init();
+	virtual void Update();
 
 	const irr::core::vector3df & getPosition(){ return Position; }
 	const irr::core::vector3df & getRotation(){ return Rotation; }
@@ -44,5 +34,7 @@ protected:
 	double MaxTurnRate;
 	double Drag;
 };
+
+#include "engine.h"
 
 #endif

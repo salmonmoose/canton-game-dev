@@ -1,5 +1,6 @@
 #ifndef TERRAIN_H
 #define TERRAIN_H
+
 #include <thread>// Apparently not in windows
 //#include "boost/thread.hpp"
 #include "pugixml.hpp"

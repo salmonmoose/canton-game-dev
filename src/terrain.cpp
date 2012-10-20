@@ -5,9 +5,9 @@
 #include <boost/array.hpp>
 #include "anl.h"
 
-#include "canton.h"
-#include "terrain.h"
-#include "shadercallback.h"
+#include <canton.h>
+#include <terrain.h>
+#include <shadercallback.h>
 
 static int x_chunk = 16;
 static int y_chunk = 16;

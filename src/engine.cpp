@@ -64,6 +64,11 @@ void IrrlichtEngineManager::Update()
 	frameDeltaTime = (f32) (now - then) / 1000.f;
 
     then = now;
+
+    for(mobL_iterator = mobL.begin(); mobL_iterator != mobL.end(); ++mobL_iterator)
+    {
+        (*mobL_iterator)->Update();
+    }
 } 
 
 void IrrlichtEngineManager::Shutdown()

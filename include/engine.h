@@ -1,8 +1,11 @@
 #ifndef _IRRLICHTENGINEMANAGER_H__
 #define _IRRLICHTENGINEMANAGER_H__
 
+#include <memory>
 #include <irrlicht.h>
 #include "eventhandler.h"
+#include "mob.h"
+#include <vector>
 
 #define IRR IrrlichtEngineManager::Instance()
 
@@ -57,13 +60,15 @@ public:
 
 	video::IGPUProgrammingServices * gpu;
 
+    std::vector<std::unique_ptr<Mob>> mobL;
+    std::vector<std::unique_ptr<Mob>>::iterator mobL_iterator;
+
 	irr::f32 frameDeltaTime;
 	irr::gui::IGUIStaticText * fillThreads;
 	irr::gui::IGUIStaticText * meshThreads;
 	irr::gui::IGUIStaticText * boxBuffers;
 	irr::gui::IGUIStaticText * frustumBuffers;
 	irr::gui::IGUIStaticText * actualBuffers;
-
 
 protected:
 	IrrlichtEngineManager();

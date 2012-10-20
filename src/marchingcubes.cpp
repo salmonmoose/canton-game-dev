@@ -1,4 +1,5 @@
 #include "marchingcubes.h"
+#include <vector>
 
 using namespace irr;
 
@@ -12,9 +13,9 @@ void generateIsoSurface(
     buf.Vertices.clear();
     buf.Indices.clear();
 
-    int xDim = values.shape()[0];
-    int yDim = values.shape()[1];
-    int zDim = values.shape()[2];
+    const int xDim = values.shape()[0];
+    const int yDim = values.shape()[1];
+    const int zDim = values.shape()[2];
 
     int x,y,z,i,cubeIndex,cacheIndex,ntriang;
     float pointVals[8];
@@ -30,9 +31,8 @@ void generateIsoSurface(
     int indexSize = (xDim+1) * (yDim+1) * (zDim+1) * 3;
 
     core::vector3df tmpVec3D;
-    int generatedPoints[indexSize];
 
-    std::fill_n(generatedPoints, indexSize, -1);
+    std::vector<int> generatedPoints(indexSize, -1);
 
     for (z = 0; z < zDim -1; z++) {
         for (y = 0; y < yDim -1; y++) {

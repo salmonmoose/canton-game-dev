@@ -4,6 +4,7 @@
 #include "irrlicht.h"
 #include "engine.h"
 #include "mob.h"
+#include "pewpew.h"
 
 class Player : public Mob
 {

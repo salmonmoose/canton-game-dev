@@ -12,16 +12,16 @@ Player::Player()
     //TODO: this AABBox should come from engine meshes.
     playerEngineEmitter1 = playerEngine1->createBoxEmitter(
                 core::aabbox3d<f32>(-0.5,-0.25,-1,-0.25,0,-1),
-                core::vector3df(0.0f,0.0f,0.0f),
-                5000,6000, 
+                core::vector3df(0.0f,0.0f,-0.0f),
+                500,600, 
                 video::SColor(0,255,255,255),
                 video::SColor(0,255,255,255), 
                 200,400);
     
     playerEngineEmitter2 = playerEngine2->createBoxEmitter(
                 core::aabbox3d<f32>(0.5,-0.25,-1,0.25,0,-1),
-                core::vector3df(0.0f,0.0f,0.0f),
-                5000,6000,
+                core::vector3df(0.0f,0.0f,-0.0f),
+                500,600,
                 video::SColor(0,255,255,255),
                 video::SColor(0,255,255,255),
                 200,400);
@@ -93,6 +93,15 @@ void Player::Update()
 	{
 		Velocity += IRR.getRotatedVector(core::vector3df(0,0,-1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
 	}
+
+    if(IRR.receiver.IsKeyDown(irr::KEY_SPACE))
+    {
+        std::unique_ptr<Mob> missile = std::unique_ptr<Mob>(new PewPew(Position, Rotation));
+
+        missile->Init();
+
+        IRR.mobL.push_back(std::move(missile));
+    }
 
     Mob::Update();
 }
