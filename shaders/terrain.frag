@@ -1,38 +1,77 @@
-uniform sampler2D dirtTex;
-uniform sampler2D clayTex;
-uniform sampler2D grassTex;
-uniform sampler2D rockTex;
-uniform sampler2D sandTex;
-uniform sampler2D voidTex;
+uniform sampler2D topTex0;
+uniform sampler2D sideTex0;
+uniform sampler2D topTex1;
+uniform sampler2D sideTex1;
+uniform sampler2D topTex2;
+uniform sampler2D sideTex2;
+uniform sampler2D topTex3;
+uniform sampler2D sideTex3;
 
 varying vec4 vNormal;
 varying vec4 vColor;
-void main(void)
+
+varying vec4 diffuse,ambient;
+varying vec3 normal,lightDir,halfVector;
+
+void main()
 {
-	vec4 blend_weights = abs(vNormal);
-	blend_weights = (blend_weights) * 9.0;
-	blend_weights = max(blend_weights, 0);
-	blend_weights/= blend_weights.x + blend_weights.y + blend_weights.z;
+    vec4 blend_weights = abs(vNormal);
+    blend_weights = (blend_weights) - 0.5f;//0.2679f;
+    blend_weights = max(blend_weights, 0);
+    blend_weights /= blend_weights.x + blend_weights.y + blend_weights.z;
 
-	vec4 blended_color;
-	float tex_scale = 1.0/8.0;
+    vec4 blended_color;
+    float tex_scale = 1.0 / 16.0;
 
-	vec2 coord1 = gl_TexCoord[1].yz * tex_scale;
-	vec2 coord2 = gl_TexCoord[1].zx * tex_scale;
-	vec2 coord3 = gl_TexCoord[1].xy * tex_scale;
+    vec2 coord_x = -gl_TexCoord[1].zy * tex_scale;
+    vec2 coord_y = gl_TexCoord[1].zx * tex_scale;
+    vec2 coord_z = -gl_TexCoord[1].xy * tex_scale;
 
-	vec4 dirt_x = texture2D(dirtTex, coord1);
-	vec4 dirt_y = texture2D(grassTex, coord2);
-	vec4 dirt_z = texture2D(dirtTex, coord3);
+    vec4 map0_x = texture2D(sideTex0, coord_x);
+    vec4 map0_y = texture2D(topTex0, coord_y);
+    vec4 map0_z = texture2D(sideTex0, coord_z);
 
-	blended_color = 
-		dirt_x.xyzw * blend_weights.xxxx +
-		dirt_y.xyzw * blend_weights.yyyy +
-		dirt_z.xyzw * blend_weights.zzzz;
+    vec4 map1_x = texture2D(sideTex1, coord_x);
+    vec4 map1_y = texture2D(topTex1, coord_y);
+    vec4 map1_z = texture2D(sideTex1, coord_z);
 
-    gl_FragColor = blended_color;
+    vec4 map2_x = texture2D(sideTex2, coord_x);
+    vec4 map2_y = texture2D(topTex2, coord_y);
+    vec4 map2_z = texture2D(sideTex2, coord_z);
+
+    vec4 map3_x = texture2D(sideTex3, coord_x);
+    vec4 map3_y = texture2D(topTex3, coord_y);
+    vec4 map3_z = texture2D(sideTex3, coord_z);
+
+    blended_color = 
+        map0_x.xyzw * blend_weights.xxxx +
+        map0_y.xyzw * blend_weights.yyyy +
+        map0_z.xyzw * blend_weights.zzzz;
+
+    /**
+    * Lights
+    */
+    vec3 n,halfV;
+    float NdotL,NdotHV;
+
+    vec4 color = ambient;
+    n = normalize(normal);
+
+    NdotL = max(dot(n,lightDir),0.0);
+
+    if (NdotL > 0.0) {
+        color += NdotL;
+        //halfV = normalize(halfVector);
+        NdotHV = max(dot(n,halfV),0.0);
+        color += gl_FrontMaterial.specular *
+                gl_LightSource[0].specular *
+                pow(NdotHV, gl_FrontMaterial.shininess);
+    }
+
+
+    gl_FragColor = color * blended_color;
+    //gl_FragColor = blended_color;
 }
-
 
 /* Old shader for reference
 void fshader(
