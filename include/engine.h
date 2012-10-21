@@ -1,11 +1,11 @@
 #ifndef _IRRLICHTENGINEMANAGER_H__
 #define _IRRLICHTENGINEMANAGER_H__
 
+#include <memory>
 #include <irrlicht.h>
-
-/**
-* A handy macro that allows us to access the IrrlichtEngineManager singelton instance
-*/
+#include "eventhandler.h"
+#include "mob.h"
+#include <vector>
 
 #define IRR IrrlichtEngineManager::Instance()
 
@@ -17,71 +17,64 @@ using namespace video;
 using namespace io;
 using namespace gui;
 
-
-/**
-* IrrlichtEngineManager is used to manage the Irrlicht 3D engine
-*/
-
 class IrrlichtEngineManager
 {
 public:
-	/**
-		Standard destructor
-	*/
 	~IrrlichtEngineManager();
 
-	/**
-		Returns a reference to the singelton object
-	*/
 	static IrrlichtEngineManager& Instance()
 	{
 		static IrrlichtEngineManager instance;
 		return instance;
 	}
 
-	/**
-		Initialises the resources needed for the Irrlicht3D engine
-	*/
-
 	void Startup();
-	/**
-		Cleans up the Irrlicht3D engine resources
-	*/
-
+	
 	void Shutdown();
-	/**
-		Enters the render loop
-	*/
 
 	void StartRenderLoop();
-	/**
-		Stops the render loop
-	*/
 
 	void EndRenderLoop();
 
+	void Update();
+
+	void DrawAxis(const irr::core::vector3df & Position, const irr::core::vector3df & Value = irr::core::vector3df(10,10,10));
+
+    void DrawAxis(const irr::core::vector3df & Position, const irr::core::vector3df & Value, const irr::core::vector3df & Rotation);
+
+    void DrawAABBox(const irr::core::aabbox3df & BoundingBox);
+
+    irr::core::vector3df getRotatedVector(const irr::core::vector3df & Direction, const irr::core::vector3df & Rotation);
+
 	IrrlichtDevice * device;
+
+	EventReceiver receiver;
 
 	IVideoDriver * driver;
 
 	ISceneManager * smgr;
 
+	irr::video::ITexture * renderTarget;
+
 	gui::IGUIEnvironment * env;
 
 	video::IGPUProgrammingServices * gpu;
 
-protected:
-	/**
-		Standard constructor
-	*/
-	IrrlichtEngineManager();
+    std::vector<std::unique_ptr<Mob>> mobL;
+    std::vector<std::unique_ptr<Mob>>::iterator mobL_iterator;
 
-	/**
-		Sets all the member variables to NULL. This is called both by the constructor
-		and the Shutdown function.
-	*/
+	irr::f32 frameDeltaTime;
+	irr::gui::IGUIStaticText * fillThreads;
+	irr::gui::IGUIStaticText * meshThreads;
+	irr::gui::IGUIStaticText * boxBuffers;
+	irr::gui::IGUIStaticText * frustumBuffers;
+	irr::gui::IGUIStaticText * actualBuffers;
+
+protected:
+	IrrlichtEngineManager();
 
 	void InitialiseVariables();
 
+	irr::u32 then;
 };
 #endif

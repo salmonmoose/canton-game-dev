@@ -1,4 +1,5 @@
 #include "marchingcubes.h"
+#include <vector>
 
 using namespace irr;
 
@@ -9,16 +10,12 @@ void generateIsoSurface(
         int x_offset, int y_offset, int z_offset
     )
 {
-    printf("Entered Generate Iso Surface\n");
-
-    printf("Clear buffer\n");
     buf.Vertices.clear();
     buf.Indices.clear();
 
-    printf("Getting shapes\n");
-    int xDim = values.shape()[0];
-    int yDim = values.shape()[1];
-    int zDim = values.shape()[2];
+    const int xDim = values.shape()[0];
+    const int yDim = values.shape()[1];
+    const int zDim = values.shape()[2];
 
     int x,y,z,i,cubeIndex,cacheIndex,ntriang;
     float pointVals[8];
@@ -34,9 +31,8 @@ void generateIsoSurface(
     int indexSize = (xDim+1) * (yDim+1) * (zDim+1) * 3;
 
     core::vector3df tmpVec3D;
-    int generatedPoints[indexSize];
 
-    std::fill_n(generatedPoints, indexSize, -1);
+    std::vector<int> generatedPoints(indexSize, -1);
 
     for (z = 0; z < zDim -1; z++) {
         for (y = 0; y < yDim -1; y++) {
@@ -80,7 +76,8 @@ void generateIsoSurface(
 
                             tmpS3DVertex.Normal.set(0.0,0.0,0.0);
 
-                            generatedPoints[index] = buf.Vertices.size();
+                            //generatedPoints[index] = buf.Vertices.size(); //cached;
+                            index = buf.Vertices.size(); //uncached;
                             
                             buf.Vertices.push_back(tmpS3DVertex); //FIXME this should just build the vertex here and now.
                         } else {
@@ -90,8 +87,9 @@ void generateIsoSurface(
                     }
                 }
 
-                for (i=0;triTable[cubeIndex][i]!=-1;i++) {
-                    buf.Indices.push_back(generatedPoints[vertList[triTable[cubeIndex][i]]]);
+                for (i=0; triTable[cubeIndex][i] != -1; i++) {
+                    //buf.Indices.push_back(generatedPoints[vertList[triTable[cubeIndex][i]]]); //cached;
+                    buf.Indices.push_back(vertList[triTable[cubeIndex][i]]); //uncached;
                 }
             }
         }
@@ -115,5 +113,4 @@ void generateIsoSurface(
     }
 
     buf.setDirty();
-    //buf.recalculateBoundingBox();
 }

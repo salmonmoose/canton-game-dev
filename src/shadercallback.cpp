@@ -12,15 +12,19 @@ void ShaderCallBack::OnSetConstants(irr::video::IMaterialRendererServices * serv
 	worldViewProj*= IRR.driver->getTransform(video::ETS_VIEW);
 	worldViewProj*= IRR.driver->getTransform(video::ETS_WORLD);
 
-    int index[6] = { 0, 1, 2, 3, 4, 5 }; 
+    int index[8] = { 0, 1, 2, 3, 4, 5, 6, 7 }; 
 
     //fixme: this should be pushed to terrain.cpp
-    services->setPixelShaderConstant("dirtTex",  &index[0], 1);
-    services->setPixelShaderConstant("clayTex",  &index[1], 1);
-    services->setPixelShaderConstant("grassTex", &index[2], 1);
-    services->setPixelShaderConstant("rockTex",  &index[3], 1);
-    services->setPixelShaderConstant("sandTex",  &index[4], 1);
-    services->setPixelShaderConstant("voidTex",  &index[5], 1);
+    services->setPixelShaderConstant("topTex0",  &index[0], 1);
+    services->setPixelShaderConstant("sideTex0",  &index[1], 1);
+    services->setPixelShaderConstant("topTex1",  &index[2], 1);
+    services->setPixelShaderConstant("sideTex1",  &index[3], 1);
+    services->setPixelShaderConstant("topTex2",  &index[4], 1);
+    services->setPixelShaderConstant("sideTex2",  &index[5], 1);
+    services->setPixelShaderConstant("topTex3",  &index[6], 1);
+    services->setPixelShaderConstant("sideTex3",  &index[7], 1);
+
+
 
 	services->setVertexShaderConstant("mWorldViewProj", worldViewProj.pointer(), 16);
 
