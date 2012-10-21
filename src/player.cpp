@@ -13,18 +13,18 @@ Player::Player()
     playerEngineEmitter1 = playerEngine1->createBoxEmitter(
                 core::aabbox3d<f32>(-0.5,-0.25,-1,-0.25,0,-1),
                 core::vector3df(0.0f,0.0f,-0.0f),
-                500,600, 
+                50,60, 
                 video::SColor(0,255,255,255),
                 video::SColor(0,255,255,255), 
-                200,400);
+                100,200);
     
     playerEngineEmitter2 = playerEngine2->createBoxEmitter(
                 core::aabbox3d<f32>(0.5,-0.25,-1,0.25,0,-1),
                 core::vector3df(0.0f,0.0f,-0.0f),
-                500,600,
+                50,60,
                 video::SColor(0,255,255,255),
                 video::SColor(0,255,255,255),
-                200,400);
+                100,200);
 
     playerEngineEmitter1->setMinStartSize(core::dimension2d<f32>(0.5f, 0.5f));
     playerEngineEmitter1->setMaxStartSize(core::dimension2d<f32>(0.5f, 0.5f));
@@ -96,7 +96,7 @@ void Player::Update()
 
     if(IRR.receiver.IsKeyDown(irr::KEY_SPACE))
     {
-        std::unique_ptr<Mob> missile = std::unique_ptr<Mob>(new PewPew(Position, Rotation));
+        std::unique_ptr<Mob> missile = std::unique_ptr<Mob>(new PewPew(Position, Rotation, Velocity));
 
         missile->Init();
 

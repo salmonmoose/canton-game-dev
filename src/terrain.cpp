@@ -48,8 +48,8 @@ ScalarTerrain::ScalarTerrain()
 
     printf("Terrain Loaded\n");
 
-    psFileName = "./shaders/terrain.frag";
     vsFileName = "./shaders/terrain.vert";
+    psFileName = "./shaders/terrain.frag";
 
     if(IRR.gpu)
     {

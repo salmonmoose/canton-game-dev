@@ -76,8 +76,8 @@ int main(int argc, char* argv[])
 
 	while(IRR.device->run())
 	{
-		IRR.Update();
 		player.Update();
+        IRR.Update();
 
 		camera->setTarget(player.getPosition());
         node->setPosition(player.getPosition());
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
 
 			IRR.driver->beginScene(true, true, video::SColor(0,0,0,255));
 			
-			IRR.smgr->drawAll();
+
 
 			//HACK: Something doesn't work in scenemanager, this is a workaround
             //NB: should be moved into a scenenode
@@ -102,6 +102,7 @@ int main(int argc, char* argv[])
             {
             	IRR.driver->drawMeshBuffer(meshnode->getMesh()->getMeshBuffer(i));
             }
+            IRR.smgr->drawAll();
 
             IRR.DrawAxis(player.getPosition(), irr::core::vector3df(10.f,10.f,10.f), player.getRotation());
             IRR.DrawAxis(player.getPosition(), player.getVelocity());
