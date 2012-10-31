@@ -6,7 +6,11 @@
 
 class Mouse
 {
+public:
+	Mouse();
+	~Mouse(){};
 
+	void Update();
 };
 
 #endif

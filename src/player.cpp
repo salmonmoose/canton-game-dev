@@ -65,36 +65,36 @@ Player::~Player()
 
 void Player::Update()
 {
-    if(IRR.receiver.IsKeyDown(irr::KEY_KEY_A))
+    if(IRR.receiver.KeyDown(irr::KEY_KEY_A))
     {
         Velocity += IRR.getRotatedVector(core::vector3df(-1,0,0), Rotation) * MaxStrafe * IRR.frameDeltaTime;
     }
     
-    if(IRR.receiver.IsKeyDown(irr::KEY_KEY_D))
+    if(IRR.receiver.KeyDown(irr::KEY_KEY_D))
     {
         Velocity += IRR.getRotatedVector(core::vector3df(1,0,0), Rotation) * MaxStrafe * IRR.frameDeltaTime;
     }
 
-    if(IRR.receiver.IsKeyDown(irr::KEY_COMMA))
+    if(IRR.receiver.KeyDown(irr::KEY_COMMA))
     {
         Rotation.Y -= MaxTurnRate * IRR.frameDeltaTime;
     }
-    if(IRR.receiver.IsKeyDown(irr::KEY_PERIOD))
+    if(IRR.receiver.KeyDown(irr::KEY_PERIOD))
     {
         Rotation.Y += MaxTurnRate * IRR.frameDeltaTime;
     }
 
-	if(IRR.receiver.IsKeyDown(irr::KEY_KEY_W))
+	if(IRR.receiver.KeyDown(irr::KEY_KEY_W))
 	{
         Velocity += IRR.getRotatedVector(core::vector3df(0,0,1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
 	}
 	
-    if(IRR.receiver.IsKeyDown(irr::KEY_KEY_S))
+    if(IRR.receiver.KeyDown(irr::KEY_KEY_S))
 	{
 		Velocity += IRR.getRotatedVector(core::vector3df(0,0,-1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
 	}
 
-    if(IRR.receiver.IsKeyDown(irr::KEY_SPACE))
+    if(IRR.receiver.ButtonPressed((EventReceiver::MOUSE_BUTTON_ENUM) 0))
     {
         std::unique_ptr<Mob> missile = std::unique_ptr<Mob>(new PewPew(Position, Rotation, Velocity));
 

@@ -6,6 +6,9 @@
 #include "eventhandler.h"
 #include "mob.h"
 #include <vector>
+#include <map>
+#include <string>
+#include "glslmaterial.h"
 
 #define IRR IrrlichtEngineManager::Instance()
 
@@ -16,6 +19,8 @@ using namespace scene;
 using namespace video;
 using namespace io;
 using namespace gui;
+
+class GLSLMaterial; //Forward declaration
 
 class IrrlichtEngineManager
 {
@@ -44,6 +49,8 @@ public:
 
     void DrawAABBox(const irr::core::aabbox3df & BoundingBox);
 
+    irr::s32 getMaterialID(const std::string name);
+
     irr::core::vector3df getRotatedVector(const irr::core::vector3df & Direction, const irr::core::vector3df & Rotation);
 
 	IrrlichtDevice * device;
@@ -62,6 +69,8 @@ public:
 
     std::vector<std::unique_ptr<Mob>> mobL;
     std::vector<std::unique_ptr<Mob>>::iterator mobL_iterator;
+
+    std::map<std::string, GLSLMaterial> shaderMap;
 
 	irr::f32 frameDeltaTime;
 	irr::gui::IGUIStaticText * fillThreads;
