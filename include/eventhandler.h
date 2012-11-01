@@ -2,7 +2,7 @@
 #define EVENTHANDLER_H
 
 #include <irrlicht.h>
-
+#include <iostream>
 
 
 class EventReceiver : public irr::IEventReceiver
@@ -11,7 +11,7 @@ private:
     enum  KEY_STATE_ENUM {UP, DOWN, PRESSED, RELEASED};
     enum PROCESS_STATE_ENUM {STARTED, ENDED};
 
-    KEY_STATE_ENUM keyStates[irr::KEY_KEY_CODES_COUNT];
+    KEY_STATE_ENUM keyState[irr::KEY_KEY_CODES_COUNT];
     
     PROCESS_STATE_ENUM processState;
 
@@ -19,41 +19,47 @@ private:
     {
         irr::core::position2di Position;
         float Wheel;
-         KEY_STATE_ENUM Button[3];
+        KEY_STATE_ENUM Button[3];
     } mouseState;
 
 public:
-    enum MOUSE_BUTTON_ENUM {LEFT, MIDDLE, RIGHT};
+    enum MOUSE_BUTTON_ENUM {MOUSE_BUTTON_LEFT, MOUSE_BUTTON_MIDDLE, MOUSE_BUTTON_RIGHT};
     
-    virtual bool OnEvent(const irr::SEvent& event)
+    bool OnEvent(const irr::SEvent& event)
     {
         bool eventprocessed = false;
 
-        if(processState == STARTED)
-        {
-            if(event.EventType == irr::EET_KEY_INPUT_EVENT)
+        if(event.EventType == irr::EET_KEY_INPUT_EVENT)
+        {   
+            if(processState == STARTED)
             {
+            
                 if(event.KeyInput.PressedDown == true)
                 {
-                    if(keyStates[event.KeyInput.Key] != DOWN)
+                    if(keyState[event.KeyInput.Key] != DOWN)
                     {
-                        keyStates[event.KeyInput.Key] == PRESSED;
+                        keyState[event.KeyInput.Key] = PRESSED;
                     }
                     else
                     {
-                        keyStates[event.KeyInput.Key] == DOWN;
+                        keyState[event.KeyInput.Key] = DOWN;
                     }
                 }
                 else
                 {
-                    if(keyStates[event.KeyInput.Key] != UP)
+                    if(keyState[event.KeyInput.Key] != UP)
                     {
-                        keyStates[event.KeyInput.Key] = RELEASED;
+                        keyState[event.KeyInput.Key] = RELEASED;
                     }
                 }
             }
 
-            if(event.EventType == irr::EET_MOUSE_INPUT_EVENT)
+            eventprocessed = true;
+        }
+
+        if(event.EventType == irr::EET_MOUSE_INPUT_EVENT)
+        {
+            if(processState == STARTED)
             {
                 if(event.MouseInput.Event == irr::EMIE_MOUSE_MOVED)
                 {
@@ -68,66 +74,68 @@ public:
 
                 if(event.MouseInput.Event == irr::EMIE_LMOUSE_PRESSED_DOWN)
                 {
-                    if(mouseState.Button[LEFT] == UP || mouseState.Button[LEFT] == RELEASED)
+                    if(mouseState.Button[MOUSE_BUTTON_LEFT] == UP || mouseState.Button[MOUSE_BUTTON_LEFT] == RELEASED)
                     {
-                        mouseState.Button[LEFT] == PRESSED;
+                        mouseState.Button[MOUSE_BUTTON_LEFT] = PRESSED;
                     }
                     else
                     {
-                        mouseState.Button[LEFT] == DOWN;
+                        mouseState.Button[MOUSE_BUTTON_LEFT] = DOWN;
                     }
                 }
 
                 if(event.MouseInput.Event == irr::EMIE_LMOUSE_LEFT_UP)
                 {
-                    if(mouseState.Button[LEFT] != UP)
+                    if(mouseState.Button[MOUSE_BUTTON_LEFT] != UP)
                     {
-                        mouseState.Button[LEFT] = RELEASED;
+                        mouseState.Button[MOUSE_BUTTON_LEFT] = RELEASED;
                     }
                 }
 
                 if(event.MouseInput.Event == irr::EMIE_MMOUSE_PRESSED_DOWN)
                 {
-                    if(mouseState.Button[MIDDLE] == UP || mouseState.Button[MIDDLE] == RELEASED)
+                    if(mouseState.Button[MOUSE_BUTTON_MIDDLE] == UP || mouseState.Button[MOUSE_BUTTON_MIDDLE] == RELEASED)
                     {
-                        mouseState.Button[MIDDLE] == PRESSED;
+                        mouseState.Button[MOUSE_BUTTON_MIDDLE] = PRESSED;
                     }
                     else
                     {
-                        mouseState.Button[MIDDLE] == DOWN;
+                        mouseState.Button[MOUSE_BUTTON_MIDDLE] = DOWN;
                     }
                 }
 
                 if(event.MouseInput.Event == irr::EMIE_MMOUSE_LEFT_UP)
                 {
-                    if(mouseState.Button[MIDDLE] != UP)
+                    if(mouseState.Button[MOUSE_BUTTON_MIDDLE] != UP)
                     {
-                        mouseState.Button[MIDDLE] = RELEASED;
+                        mouseState.Button[MOUSE_BUTTON_MIDDLE] = RELEASED;
                     }
                 }
 
                 if(event.MouseInput.Event == irr::EMIE_RMOUSE_PRESSED_DOWN)
                 {
-                    if(mouseState.Button[RIGHT] == UP || mouseState.Button[RIGHT] == RELEASED)
+                    if(mouseState.Button[MOUSE_BUTTON_RIGHT] == UP || mouseState.Button[MOUSE_BUTTON_RIGHT] == RELEASED)
                     {
-                        mouseState.Button[RIGHT] == PRESSED;
+                        mouseState.Button[MOUSE_BUTTON_RIGHT] = PRESSED;
                     }
                     else
                     {
-                        mouseState.Button[RIGHT] == DOWN;
+                        mouseState.Button[MOUSE_BUTTON_RIGHT] = DOWN;
                     }
                 }
 
                 if(event.MouseInput.Event == irr::EMIE_RMOUSE_LEFT_UP)
                 {
-                    if(mouseState.Button[RIGHT] != UP)
+                    if(mouseState.Button[MOUSE_BUTTON_RIGHT] != UP)
                     {
-                        mouseState.Button[RIGHT] = RELEASED;
+                        mouseState.Button[MOUSE_BUTTON_RIGHT] = RELEASED;
                     }
                 }
             }
+
+            eventprocessed = true;
         }
-        return false;
+        return eventprocessed;
     }
 
     float Wheel()
@@ -145,9 +153,9 @@ public:
         return mouseState.Position.Y;
     }
 
-    bool KeyDown(irr::EKEY_CODE keyCode) const
+    bool KeyDown(irr::EKEY_CODE keyCode)
     {
-        if(keyStates[keyCode] == DOWN || keyStates[keyCode] == PRESSED)
+        if(keyState[keyCode] == DOWN || keyState[keyCode] == PRESSED)
         {   
             return true;
         }
@@ -157,17 +165,9 @@ public:
         }
     }
 
-    bool KeyPressed(irr::EKEY_CODE keyCode) const
+    bool KeyPressed(irr::EKEY_CODE keyCode)
     {
-        if(keyStates[keyCode] == PRESSED)
-        {
-            return true;
-        }
-    }
-
-    bool KeyUp(irr::EKEY_CODE keyCode) const
-    {
-        if(keyStates[keyCode] == UP || keyStates[keyCode] == RELEASED)
+        if(keyState[keyCode] == PRESSED)
         {
             return true;
         }
@@ -177,9 +177,9 @@ public:
         }
     }
 
-    bool KeyReleased(irr::EKEY_CODE keyCode) const
+    bool KeyUp(irr::EKEY_CODE keyCode)
     {
-        if(keyStates[keyCode] == RELEASED)
+        if(keyState[keyCode] == UP || keyState[keyCode] == RELEASED)
         {
             return true;
         }
@@ -189,7 +189,19 @@ public:
         }
     }
 
-    bool ButtonDown(MOUSE_BUTTON_ENUM buttonCode) const
+    bool KeyReleased(irr::EKEY_CODE keyCode)
+    {
+        if(keyState[keyCode] == RELEASED)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    bool ButtonDown(MOUSE_BUTTON_ENUM buttonCode)
     {
         if(mouseState.Button[buttonCode] == DOWN || mouseState.Button[buttonCode] == PRESSED)
         {   
@@ -201,15 +213,19 @@ public:
         }
     }
 
-    bool ButtonPressed(MOUSE_BUTTON_ENUM buttonCode) const
+    bool ButtonPressed(MOUSE_BUTTON_ENUM buttonCode)
     {
         if(mouseState.Button[buttonCode] == PRESSED)
         {
             return true;
         }
+        else
+        {
+            return false;
+        }
     }
 
-    bool ButtonUp(MOUSE_BUTTON_ENUM buttonCode) const
+    bool ButtonUp(MOUSE_BUTTON_ENUM buttonCode)
     {
         if(mouseState.Button[buttonCode] == UP || mouseState.Button[buttonCode] == RELEASED)
         {
@@ -221,7 +237,7 @@ public:
         }
     }
 
-    bool ButtonReleased(MOUSE_BUTTON_ENUM buttonCode) const
+    bool ButtonReleased(MOUSE_BUTTON_ENUM buttonCode)
     {
         if(mouseState.Button[buttonCode] == RELEASED)
         {
@@ -244,14 +260,14 @@ public:
 
         for(int i = 0; i < irr::KEY_KEY_CODES_COUNT; i++)
         {
-            if(keyStates[i] == RELEASED)
+            if(keyState[i] == RELEASED)
             {
-                keyStates[i] = UP;
+                keyState[i] = UP;
             }
 
-            if(keyStates[i] == PRESSED)
+            if(keyState[i] == PRESSED)
             {
-                keyStates[i] = DOWN;
+                keyState[i] = DOWN;
             }
         }
 
@@ -273,13 +289,20 @@ public:
 
     EventReceiver()
     {
-            for (irr::u32 i = 0; i < irr::KEY_KEY_CODES_COUNT; ++i)
-                    keyStates[i] = UP;
+        for(irr::u32 i = 0; i < irr::KEY_KEY_CODES_COUNT; ++i)
+        {
+            keyState[i] = UP;
+        }
+
+        for(irr::u32 i = 0; i < 3; ++i)
+        {
+            mouseState.Button[i] = UP;
+        }
+
+        mouseState.Position.X = 0;
+        mouseState.Position.Y = 0;
+        mouseState.Wheel = 0.f;
     }
-
-    
-
-
 };
 
 #endif

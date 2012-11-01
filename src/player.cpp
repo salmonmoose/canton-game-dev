@@ -94,7 +94,7 @@ void Player::Update()
 		Velocity += IRR.getRotatedVector(core::vector3df(0,0,-1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
 	}
 
-    if(IRR.receiver.ButtonPressed((EventReceiver::MOUSE_BUTTON_ENUM) 0))
+    if(IRR.receiver.ButtonPressed(EventReceiver::MOUSE_BUTTON_LEFT))
     {
         std::unique_ptr<Mob> missile = std::unique_ptr<Mob>(new PewPew(Position, Rotation, Velocity));
 

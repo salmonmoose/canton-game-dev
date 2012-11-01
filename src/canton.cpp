@@ -76,6 +76,8 @@ int main(int argc, char* argv[])
 
 	while(IRR.device->run())
 	{
+		IRR.receiver.endEventProcess();
+
 		player.Update();
         IRR.Update();
 
@@ -84,8 +86,6 @@ int main(int argc, char* argv[])
 		camera->setPosition(player.getPosition() + offset);
 
         terrain.generateMesh(camera->getViewFrustum()); //FIXME: Perhaps this should depend on an active window.
-
-
 
 		if(IRR.device->isWindowActive())
 		{
@@ -125,6 +125,8 @@ int main(int argc, char* argv[])
 			IRR.device->setWindowCaption(str.c_str());
 
 		}
+
+		IRR.receiver.startEventProcess();
 	}
 
 	IRR.device->drop();
