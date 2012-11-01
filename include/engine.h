@@ -63,6 +63,8 @@ public:
 
 	irr::video::ITexture * renderTarget;
 
+	irr::scene::ICameraSceneNode * camera;
+
 	gui::IGUIEnvironment * env;
 
 	video::IGPUProgrammingServices * gpu;

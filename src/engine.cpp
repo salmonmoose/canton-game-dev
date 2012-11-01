@@ -29,6 +29,8 @@ void IrrlichtEngineManager::Startup()
 	smgr = device->getSceneManager();
     smgr->setAmbientLight(video::SColorf(0.5f,0.5f,0.5f,0.5f));
 
+    camera = smgr->addCameraSceneNode();
+
 	env = device->getGUIEnvironment();
 
 	gpu = driver->getGPUProgrammingServices();

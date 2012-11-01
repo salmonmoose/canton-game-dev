@@ -153,6 +153,11 @@ public:
         return mouseState.Position.Y;
     }
 
+    irr::core::position2di MousePosition()
+    {
+        return mouseState.Position;
+    }
+
     bool KeyDown(irr::EKEY_CODE keyCode)
     {
         if(keyState[keyCode] == DOWN || keyState[keyCode] == PRESSED)
