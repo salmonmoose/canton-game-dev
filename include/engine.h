@@ -53,6 +53,8 @@ public:
 
     irr::core::vector3df getRotatedVector(const irr::core::vector3df & Direction, const irr::core::vector3df & Rotation);
 
+    f32 getAngleBetween(const irr::core::vector3df& Vector1, const irr::core::vector3df& Vector2);
+
 	IrrlichtDevice * device;
 
 	EventReceiver receiver;

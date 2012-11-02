@@ -51,8 +51,6 @@ int main(int argc, char* argv[])
 	scene::IMeshSceneNode * meshnode = IRR.smgr->addMeshSceneNode(&terrain.Mesh); //Maybe this should be handled in terrain.cpp
 
 	Player player;
-
-	
 	
 	player.mainMesh->setParent(meshnode);
 
@@ -73,14 +71,11 @@ int main(int argc, char* argv[])
     mat.buildProjectionMatrixOrthoLH(60, 45, 0, 256);
     IRR.camera->setProjectionMatrix(mat, true);
 
-    Mouse mouse;
-	
 	while(IRR.device->run())
 	{
 		IRR.receiver.endEventProcess();
 
 		player.Update();
-		mouse.Update();
         IRR.Update();
 
 		IRR.camera->setTarget(player.getPosition());

@@ -7,7 +7,8 @@ Mouse::Mouse()
 
 void Mouse::Update()
 {
-	mainMesh->setPosition(IntersectPlane(getRay()));
+    Position = IntersectPlane(getRay(), 32.f);
+	mainMesh->setPosition(Position); //should align with player height.
 }
 
 core::line3d<f32> Mouse::getRay()
@@ -31,10 +32,8 @@ core::line3d<f32> Mouse::getRay()
     return ln;
 }
 
-irr::core::vector3df Mouse::IntersectPlane(core::line3d<f32> myLine)
+irr::core::vector3df Mouse::IntersectPlane(core::line3d<f32> myLine, float yCoord)
 {
-    float yCoord = 32.f;
-
     float xSlope = (myLine.end.X - myLine.start.X) / (myLine.end.Y - myLine.start.Y);
     float zSlope = (myLine.end.Z - myLine.start.Z) / (myLine.end.Y - myLine.start.Y);
 

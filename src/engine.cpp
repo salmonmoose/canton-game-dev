@@ -122,6 +122,20 @@ void IrrlichtEngineManager::StartRenderLoop()
 	}
 }
 
+f32 IrrlichtEngineManager::getAngleBetween(const irr::core::vector3df& vec1, const irr::core::vector3df& vec2)
+{
+    f32 angle;
+
+    angle = vec2.getHorizontalAngle().Y - vec1.getHorizontalAngle().Y;
+
+    if(angle > 180)
+    {
+        angle += -360;        
+    }
+
+    return angle;
+}
+
 void IrrlichtEngineManager::EndRenderLoop()
 {
 	device->closeDevice();

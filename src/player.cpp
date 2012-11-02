@@ -11,20 +11,22 @@ Player::Player()
 
     //TODO: this AABBox should come from engine meshes.
     playerEngineEmitter1 = playerEngine1->createBoxEmitter(
-                core::aabbox3d<f32>(-0.5,-0.25,-1,-0.25,0,-1),
-                core::vector3df(0.0f,0.0f,-0.0f),
-                50,60, 
-                video::SColor(0,255,255,255),
-                video::SColor(0,255,255,255), 
-                100,200);
+        core::aabbox3d<f32>(-0.5,-0.25,-1,-0.25,0,-1),
+        core::vector3df(0.0f,0.0f,-0.0f),
+        50,60, 
+        video::SColor(0,255,255,255),
+        video::SColor(0,255,255,255), 
+        100,200
+    );
     
     playerEngineEmitter2 = playerEngine2->createBoxEmitter(
-                core::aabbox3d<f32>(0.5,-0.25,-1,0.25,0,-1),
-                core::vector3df(0.0f,0.0f,-0.0f),
-                50,60,
-                video::SColor(0,255,255,255),
-                video::SColor(0,255,255,255),
-                100,200);
+        core::aabbox3d<f32>(0.5,-0.25,-1,0.25,0,-1),
+        core::vector3df(0.0f,0.0f,-0.0f),
+        50,60,
+        video::SColor(0,255,255,255),
+        video::SColor(0,255,255,255),
+        100,200
+    );
 
     playerEngineEmitter1->setMinStartSize(core::dimension2d<f32>(0.5f, 0.5f));
     playerEngineEmitter1->setMaxStartSize(core::dimension2d<f32>(0.5f, 0.5f));
@@ -65,6 +67,8 @@ Player::~Player()
 
 void Player::Update()
 {
+    mouse.Update();
+
     if(IRR.receiver.KeyDown(irr::KEY_KEY_A))
     {
         Velocity += IRR.getRotatedVector(core::vector3df(-1,0,0), Rotation) * MaxStrafe * IRR.frameDeltaTime;
@@ -75,11 +79,13 @@ void Player::Update()
         Velocity += IRR.getRotatedVector(core::vector3df(1,0,0), Rotation) * MaxStrafe * IRR.frameDeltaTime;
     }
 
-    if(IRR.receiver.KeyDown(irr::KEY_COMMA))
+    float angle = IRR.getAngleBetween(IRR.getRotatedVector(core::vector3df(0,0,-10),Rotation) - Position, mouse.Position - Position);
+
+    if(angle > 0)
     {
         Rotation.Y -= MaxTurnRate * IRR.frameDeltaTime;
     }
-    if(IRR.receiver.KeyDown(irr::KEY_PERIOD))
+    if(angle < 0)
     {
         Rotation.Y += MaxTurnRate * IRR.frameDeltaTime;
     }
