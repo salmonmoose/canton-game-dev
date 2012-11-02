@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
 
 	Player player;
 
-	Mouse mouse;
+	
 	
 	player.mainMesh->setParent(meshnode);
 
@@ -73,9 +73,8 @@ int main(int argc, char* argv[])
     mat.buildProjectionMatrixOrthoLH(60, 45, 0, 256);
     IRR.camera->setProjectionMatrix(mat, true);
 
-	//camera->setFarValue(160.f);
-	//camera->setNearValue(8.f);
-
+    Mouse mouse;
+	
 	while(IRR.device->run())
 	{
 		IRR.receiver.endEventProcess();

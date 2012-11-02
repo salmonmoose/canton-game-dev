@@ -14,6 +14,8 @@ public:
 
 	void Update();
 	irr::core::vector3d<f32> IntersectPlane(core::line3d<f32> myLine);
+    core::line3d<f32> getRay();
+
 };
 
 #endif

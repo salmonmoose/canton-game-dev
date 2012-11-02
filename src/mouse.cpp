@@ -7,26 +7,39 @@ Mouse::Mouse()
 
 void Mouse::Update()
 {
-	mainMesh->setPosition(
-		IntersectPlane(
-			IRR.smgr->getSceneCollisionManager()->getRayFromScreenCoordinates(
-					IRR.receiver.MousePosition(),
-					IRR.camera
-				)
-			)
-	);
+	mainMesh->setPosition(IntersectPlane(getRay()));
 }
 
-irr::core::vector3d<f32> Mouse::IntersectPlane(core::line3d<f32> myLine)
+core::line3d<f32> Mouse::getRay()
 {
-	irr::core::vector3d<f32>intersection(0, 0, 0);
+    irr::core::line3d<f32> ln(0,0,0,0,0,0);
+    const scene::SViewFrustum* f = IRR.camera->getViewFrustum();
 
-	irr::core::plane3d<f32> plane(
-		irr::core::vector3d<f32>(0, 32.f, 0),
-		irr::core::vector3d<f32>(0, 1, 0)
-	);
+    irr::core::vector3df farLeftUp = f->getFarLeftUp();
+    irr::core::vector3df lefttoright = f->getFarRightUp() - farLeftUp;
+    irr::core::vector3df uptodown = f->getFarLeftDown() - farLeftUp;
 
-	plane.getIntersectionWithLine(myLine.start, myLine.end, intersection);
+    irr::core::dimension2d<u32> screenSize(IRR.driver->getViewPort().getWidth(), IRR.driver->getViewPort().getHeight());
 
-	return intersection;
+    irr::f32 dx = IRR.receiver.MouseX() / (f32)screenSize.Width;
+    irr::f32 dy = IRR.receiver.MouseY() / (f32)screenSize.Height;
+
+    ln.start = IRR.camera->getPosition() + (lefttoright * (dx-0.5f)) + (uptodown * (dy-0.5f));
+
+    ln.end = farLeftUp + (lefttoright * dx) + (uptodown * dy);
+
+    return ln;
+}
+
+irr::core::vector3df Mouse::IntersectPlane(core::line3d<f32> myLine)
+{
+    float yCoord = 32.f;
+
+    float xSlope = (myLine.end.X - myLine.start.X) / (myLine.end.Y - myLine.start.Y);
+    float zSlope = (myLine.end.Z - myLine.start.Z) / (myLine.end.Y - myLine.start.Y);
+
+    float xCoord = myLine.start.X + (xSlope * (yCoord - myLine.start.Y));
+    float zCoord = myLine.start.Z + (zSlope * (yCoord - myLine.start.Y));
+
+    return irr::core::vector3df(xCoord, yCoord, zCoord);
 }
