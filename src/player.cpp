@@ -65,6 +65,32 @@ Player::~Player()
 
 }
 
+float Player::getAngleToMouse()
+{
+    irr::core::vector3df ship_dir = IRR.getRotatedVector(core::vector3df(0,0,-1), Rotation);
+    irr::core::vector3df mouse_dir = mouse.Position - Position;
+
+    ship_dir.normalize();
+    mouse_dir.normalize();
+
+    float dot_product = ship_dir.dotProduct(mouse_dir);
+
+    float angle = acos(dot_product);
+
+    irr::core::vector3df mouse_normal (-mouse_dir.Z, 1, mouse_dir.X);
+
+    dot_product = ship_dir.dotProduct(mouse_normal);
+
+    if(dot_product > 0)
+    {
+        return angle;
+    }
+    else
+    {
+        return -angle;
+    }
+}
+
 void Player::Update()
 {
     mouse.Update();
@@ -79,15 +105,25 @@ void Player::Update()
         Velocity += IRR.getRotatedVector(core::vector3df(1,0,0), Rotation) * MaxStrafe * IRR.frameDeltaTime;
     }
 
-    float angle = IRR.getAngleBetween(IRR.getRotatedVector(core::vector3df(0,0,-10),Rotation) - Position, mouse.Position - Position);
+    float angle = getAngleToMouse();
+
+    printf("Mouse angle %f\n", angle);
+
+
+
+    //printf("Angle to mouse %f\n", angle);
 
     if(angle > 0)
     {
         Rotation.Y -= MaxTurnRate * IRR.frameDeltaTime;
+        if(Rotation.Y < -360)
+            Rotation.Y += 360;
     }
-    if(angle < 0)
+    else if(angle < 0)
     {
         Rotation.Y += MaxTurnRate * IRR.frameDeltaTime;
+        if(Rotation.Y > 360)
+            Rotation.Y -= 360;
     }
 
 	if(IRR.receiver.KeyDown(irr::KEY_KEY_W))

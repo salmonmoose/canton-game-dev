@@ -22,6 +22,7 @@ public:
     Player();
     ~Player();
     void Update();
+    float getAngleToMouse();
 
 protected:
 };

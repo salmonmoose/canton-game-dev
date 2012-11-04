@@ -22,7 +22,7 @@ void IrrlichtEngineManager::Startup()
 {
 	irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_OPENGL;
 
-	device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
+	device = createDevice(driverType, dimension2d<u32>(1024, 768), 16, false, false, false, &receiver);
 
 	driver = device->getVideoDriver();
 
@@ -124,14 +124,12 @@ void IrrlichtEngineManager::StartRenderLoop()
 
 f32 IrrlichtEngineManager::getAngleBetween(const irr::core::vector3df& vec1, const irr::core::vector3df& vec2)
 {
-    f32 angle;
+    float angle;
 
-    angle = vec2.getHorizontalAngle().Y - vec1.getHorizontalAngle().Y;
+    float deltaX = vec2.X - vec1.X;
+    float deltaZ = vec2.Z - vec1.Z;
 
-    if(angle > 180)
-    {
-        angle += -360;        
-    }
+    angle = atan2(deltaZ, deltaX) * 180 / irr::core::PI;
 
     return angle;
 }
