@@ -107,37 +107,12 @@ void Player::Update()
     }
 
     float angle = getAngleToMouse();
-/*
-    if(angle > TurnBuffer)
-    {
-        angle = TurnBuffer;
-    }
-    else if (angle < -TurnBuffer)
-    {
-        angle = -TurnBuffer;
-    }
-*/
-    printf("Angle %f\n", angle);
 
     Rotation.Y += MaxTurnRate * (angle / TurnBuffer) * IRR.frameDeltaTime;
     if(Rotation.Y < -360)
         Rotation.Y += 360;
     if(Rotation.Y > 360)
         Rotation.Y -= 360;
-/*
-    if(angle > 0)
-    {
-        Rotation.Y += MaxTurnRate * (angle / TurnBuffer) * IRR.frameDeltaTime;
-        if(Rotation.Y < -360)
-            Rotation.Y += 360;
-    }
-    else if(angle < 0)
-    {
-        Rotation.Y += MaxTurnRate * (angle / TurnBuffer) * IRR.frameDeltaTime;
-        if(Rotation.Y > 360)
-            Rotation.Y -= 360;
-    }
-*/
 
 	if(IRR.receiver.KeyDown(irr::KEY_KEY_W))
 	{
