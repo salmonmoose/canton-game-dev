@@ -87,13 +87,36 @@ void IrrlichtEngineManager::DrawAxis(const irr::core::vector3df & Position, cons
 
 void IrrlichtEngineManager::DrawAxis(const irr::core::vector3df & Position, const irr::core::vector3df & Value, const irr::core::vector3df & Rotation)
 {
-        driver->draw3DLine(Position, Position + getRotatedVector(irr::core::vector3df(Value.X,0,0), Rotation), SColor(255,255,0,0));
-        driver->draw3DLine(Position, Position + getRotatedVector(irr::core::vector3df(0,Value.Y,0), Rotation), SColor(255,0,255,0));
-        driver->draw3DLine(Position, Position + getRotatedVector(irr::core::vector3df(0,0,Value.Z), Rotation), SColor(255,0,0,255));
+    driver->draw3DLine(Position, Position + getRotatedVector(irr::core::vector3df(Value.X,0,0), Rotation), SColor(255,255,0,0));
+    driver->draw3DLine(Position, Position + getRotatedVector(irr::core::vector3df(0,Value.Y,0), Rotation), SColor(255,0,255,0));
+    driver->draw3DLine(Position, Position + getRotatedVector(irr::core::vector3df(0,0,Value.Z), Rotation), SColor(255,0,0,255));
 }
 
 void IrrlichtEngineManager::DrawAABBox(const irr::core::aabbox3df & BoundingBox) {
+    irr::core::vector3df points[8];
+    points[0] = irr::core::vector3df(BoundingBox.MinEdge.X, BoundingBox.MinEdge.Y, BoundingBox.MinEdge.Z);
+    points[1] = irr::core::vector3df(BoundingBox.MaxEdge.X, BoundingBox.MinEdge.Y, BoundingBox.MinEdge.Z);
+    points[2] = irr::core::vector3df(BoundingBox.MinEdge.X, BoundingBox.MaxEdge.Y, BoundingBox.MinEdge.Z);
+    points[3] = irr::core::vector3df(BoundingBox.MaxEdge.X, BoundingBox.MaxEdge.Y, BoundingBox.MinEdge.Z);
+    points[4] = irr::core::vector3df(BoundingBox.MinEdge.X, BoundingBox.MinEdge.Y, BoundingBox.MaxEdge.Z);
+    points[5] = irr::core::vector3df(BoundingBox.MaxEdge.X, BoundingBox.MinEdge.Y, BoundingBox.MaxEdge.Z);
+    points[6] = irr::core::vector3df(BoundingBox.MinEdge.X, BoundingBox.MaxEdge.Y, BoundingBox.MaxEdge.Z);
+    points[7] = irr::core::vector3df(BoundingBox.MaxEdge.X, BoundingBox.MaxEdge.Y, BoundingBox.MaxEdge.Z);
 
+    driver->draw3DLine(points[0], points[1], SColor(255,255,255,0));
+    driver->draw3DLine(points[0], points[2], SColor(255,255,255,0));
+    driver->draw3DLine(points[3], points[1], SColor(255,255,255,0));
+    driver->draw3DLine(points[3], points[2], SColor(255,255,255,0));
+
+    driver->draw3DLine(points[4], points[5], SColor(255,255,255,0));
+    driver->draw3DLine(points[4], points[6], SColor(255,255,255,0));
+    driver->draw3DLine(points[7], points[5], SColor(255,255,255,0));
+    driver->draw3DLine(points[7], points[6], SColor(255,255,255,0));
+
+    driver->draw3DLine(points[0], points[4], SColor(255,255,255,0));
+    driver->draw3DLine(points[1], points[5], SColor(255,255,255,0));
+    driver->draw3DLine(points[2], points[6], SColor(255,255,255,0));
+    driver->draw3DLine(points[3], points[7], SColor(255,255,255,0));
 }
 
 //irr::s32 getMaterialID(const std::string name)

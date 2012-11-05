@@ -133,5 +133,14 @@ void Player::Update()
         IRR.mobL.push_back(std::move(missile));
     }
 
+    if(IRR.receiver.KeyDown(irr::KEY_SPACE))
+    {
+        std::unique_ptr<Mob> enemy = std::unique_ptr<Mob>(new Enemy(Position, Rotation));
+
+        enemy->Init();
+
+        IRR.mobL.push_back(std::move(enemy));
+    }
+
     Mob::Update();
 }

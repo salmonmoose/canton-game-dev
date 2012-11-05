@@ -9,6 +9,7 @@
 #include <irrlicht.h>
 #include "marchingcubes.h"
 #include "boost/multi_array.hpp"
+#include "brush.h"
 
 
 typedef boost::multi_array<double, 3> ValueArray;
