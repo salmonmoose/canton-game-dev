@@ -54,14 +54,14 @@ ScalarTerrain::ScalarTerrain()
     if(IRR.gpu)
     {
         printf("Making a shader\n");
-        ShaderCallBack * shaderCallBack = new ShaderCallBack();
+        ShaderCallback * shaderCallback = new ShaderCallback();
 
         terrainMaterial = IRR.gpu->addHighLevelShaderMaterialFromFiles(
             vsFileName, "vertexMain", video::EVST_VS_1_1,
             psFileName, "pixelMain", video::EPST_PS_1_1,
-            shaderCallBack, video::EMT_SOLID);
+            shaderCallback, video::EMT_SOLID);
 
-        shaderCallBack->drop();
+        shaderCallback->drop();
     }
 
     Material.setFlag(irr::video::EMF_BACK_FACE_CULLING, true);

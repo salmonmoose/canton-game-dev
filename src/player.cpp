@@ -11,20 +11,22 @@ Player::Player()
 
     //TODO: this AABBox should come from engine meshes.
     playerEngineEmitter1 = playerEngine1->createBoxEmitter(
-                core::aabbox3d<f32>(-0.5,-0.25,-1,-0.25,0,-1),
-                core::vector3df(0.0f,0.0f,-0.0f),
-                50,60, 
-                video::SColor(0,255,255,255),
-                video::SColor(0,255,255,255), 
-                100,200);
+        core::aabbox3d<f32>(-0.5,-0.25,-1,-0.25,0,-1),
+        core::vector3df(0.0f,0.0f,-0.0f),
+        50,60, 
+        video::SColor(0,255,255,255),
+        video::SColor(0,255,255,255), 
+        100,200
+    );
     
     playerEngineEmitter2 = playerEngine2->createBoxEmitter(
-                core::aabbox3d<f32>(0.5,-0.25,-1,0.25,0,-1),
-                core::vector3df(0.0f,0.0f,-0.0f),
-                50,60,
-                video::SColor(0,255,255,255),
-                video::SColor(0,255,255,255),
-                100,200);
+        core::aabbox3d<f32>(0.5,-0.25,-1,0.25,0,-1),
+        core::vector3df(0.0f,0.0f,-0.0f),
+        50,60,
+        video::SColor(0,255,255,255),
+        video::SColor(0,255,255,255),
+        100,200
+    );
 
     playerEngineEmitter1->setMinStartSize(core::dimension2d<f32>(0.5f, 0.5f));
     playerEngineEmitter1->setMaxStartSize(core::dimension2d<f32>(0.5f, 0.5f));
@@ -55,6 +57,7 @@ Player::Player()
     MaxStrafe = 32.f;
     MaxTurnRate = 90.f;
     Drag = 0.5f;
+    TurnBuffer = 1;
 
 }
 
@@ -63,38 +66,65 @@ Player::~Player()
 
 }
 
+float Player::getAngleToMouse()
+{
+    irr::core::vector3df ship_dir = IRR.getRotatedVector(core::vector3df(0,0,1), Rotation); //Fix me: this works but is WRONG.
+    irr::core::vector3df mouse_dir = mouse.Position - Position;
+
+    ship_dir.normalize();
+    mouse_dir.normalize();
+
+    float dot_product = ship_dir.dotProduct(mouse_dir);
+
+    float angle = acos(dot_product);
+
+    irr::core::vector3df mouse_normal (-mouse_dir.Z, 1, mouse_dir.X);
+
+    dot_product = ship_dir.dotProduct(mouse_normal);
+
+    if(dot_product > 0)
+    {
+        return angle;
+    }
+    else
+    {
+        return -angle;
+    }
+}
+
 void Player::Update()
 {
-    if(IRR.receiver.IsKeyDown(irr::KEY_KEY_A))
+    mouse.Update();
+
+    if(IRR.receiver.KeyDown(irr::KEY_KEY_A))
     {
         Velocity += IRR.getRotatedVector(core::vector3df(-1,0,0), Rotation) * MaxStrafe * IRR.frameDeltaTime;
     }
     
-    if(IRR.receiver.IsKeyDown(irr::KEY_KEY_D))
+    if(IRR.receiver.KeyDown(irr::KEY_KEY_D))
     {
         Velocity += IRR.getRotatedVector(core::vector3df(1,0,0), Rotation) * MaxStrafe * IRR.frameDeltaTime;
     }
 
-    if(IRR.receiver.IsKeyDown(irr::KEY_COMMA))
-    {
-        Rotation.Y -= MaxTurnRate * IRR.frameDeltaTime;
-    }
-    if(IRR.receiver.IsKeyDown(irr::KEY_PERIOD))
-    {
-        Rotation.Y += MaxTurnRate * IRR.frameDeltaTime;
-    }
+    float angle = getAngleToMouse();
 
-	if(IRR.receiver.IsKeyDown(irr::KEY_KEY_W))
+    Rotation.Y += MaxTurnRate * (angle / TurnBuffer) * IRR.frameDeltaTime;
+    if(Rotation.Y < -360)
+        Rotation.Y += 360;
+    if(Rotation.Y > 360)
+        Rotation.Y -= 360;
+
+	if(IRR.receiver.KeyDown(irr::KEY_KEY_W))
 	{
         Velocity += IRR.getRotatedVector(core::vector3df(0,0,1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
 	}
 	
-    if(IRR.receiver.IsKeyDown(irr::KEY_KEY_S))
+    if(IRR.receiver.KeyDown(irr::KEY_KEY_S))
 	{
 		Velocity += IRR.getRotatedVector(core::vector3df(0,0,-1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
 	}
 
-    if(IRR.receiver.IsKeyDown(irr::KEY_SPACE))
+    if(IRR.receiver.ButtonPressed(EventReceiver::MOUSE_BUTTON_LEFT))
     {
         std::unique_ptr<Mob> missile = std::unique_ptr<Mob>(new PewPew(Position, Rotation, Velocity));
 

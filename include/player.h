@@ -5,6 +5,7 @@
 #include "engine.h"
 #include "mob.h"
 #include "pewpew.h"
+#include "mouse.h"
 
 class Player : public Mob
 {
@@ -15,9 +16,15 @@ public:
     
     irr::scene::IParticleEmitter * playerEngineEmitter1;
     irr::scene::IParticleEmitter * playerEngineEmitter2;
+
+    Mouse mouse;
+
+    float TurnBuffer;
+
     Player();
     ~Player();
     void Update();
+    float getAngleToMouse();
 
 protected:
 };

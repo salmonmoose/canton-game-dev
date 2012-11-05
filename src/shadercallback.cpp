@@ -1,6 +1,6 @@
 #include "shadercallback.h"
 
-void ShaderCallBack::OnSetConstants(irr::video::IMaterialRendererServices * services, irr::s32 userData)
+void ShaderCallback::OnSetConstants(irr::video::IMaterialRendererServices * services, irr::s32 userData)
 {
 	irr::core::matrix4 invWorld = IRR.driver->getTransform(video::ETS_WORLD);
 	invWorld.makeInverse();
@@ -23,8 +23,6 @@ void ShaderCallBack::OnSetConstants(irr::video::IMaterialRendererServices * serv
     services->setPixelShaderConstant("sideTex2",  &index[5], 1);
     services->setPixelShaderConstant("topTex3",  &index[6], 1);
     services->setPixelShaderConstant("sideTex3",  &index[7], 1);
-
-
 
 	services->setVertexShaderConstant("mWorldViewProj", worldViewProj.pointer(), 16);
 
