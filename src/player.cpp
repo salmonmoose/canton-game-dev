@@ -57,6 +57,7 @@ Player::Player()
     MaxStrafe = 32.f;
     MaxTurnRate = 90.f;
     Drag = 0.5f;
+    TurnBuffer = 1;
 
 }
 
@@ -67,7 +68,7 @@ Player::~Player()
 
 float Player::getAngleToMouse()
 {
-    irr::core::vector3df ship_dir = IRR.getRotatedVector(core::vector3df(0,0,-1), Rotation);
+    irr::core::vector3df ship_dir = IRR.getRotatedVector(core::vector3df(0,0,1), Rotation); //Fix me: this works but is WRONG.
     irr::core::vector3df mouse_dir = mouse.Position - Position;
 
     ship_dir.normalize();
@@ -106,25 +107,37 @@ void Player::Update()
     }
 
     float angle = getAngleToMouse();
+/*
+    if(angle > TurnBuffer)
+    {
+        angle = TurnBuffer;
+    }
+    else if (angle < -TurnBuffer)
+    {
+        angle = -TurnBuffer;
+    }
+*/
+    printf("Angle %f\n", angle);
 
-    printf("Mouse angle %f\n", angle);
-
-
-
-    //printf("Angle to mouse %f\n", angle);
-
+    Rotation.Y += MaxTurnRate * (angle / TurnBuffer) * IRR.frameDeltaTime;
+    if(Rotation.Y < -360)
+        Rotation.Y += 360;
+    if(Rotation.Y > 360)
+        Rotation.Y -= 360;
+/*
     if(angle > 0)
     {
-        Rotation.Y -= MaxTurnRate * IRR.frameDeltaTime;
+        Rotation.Y += MaxTurnRate * (angle / TurnBuffer) * IRR.frameDeltaTime;
         if(Rotation.Y < -360)
             Rotation.Y += 360;
     }
     else if(angle < 0)
     {
-        Rotation.Y += MaxTurnRate * IRR.frameDeltaTime;
+        Rotation.Y += MaxTurnRate * (angle / TurnBuffer) * IRR.frameDeltaTime;
         if(Rotation.Y > 360)
             Rotation.Y -= 360;
     }
+*/
 
 	if(IRR.receiver.KeyDown(irr::KEY_KEY_W))
 	{

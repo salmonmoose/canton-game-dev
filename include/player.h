@@ -19,6 +19,8 @@ public:
 
     Mouse mouse;
 
+    float TurnBuffer;
+
     Player();
     ~Player();
     void Update();
