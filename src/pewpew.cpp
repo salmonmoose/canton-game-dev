@@ -34,14 +34,14 @@ PewPew::PewPew(irr::core::vector3df pos, irr::core::vector3df rot, irr::core::ve
 
     if(IRR.gpu)
     {
-        ShaderCallBack * shaderCallBack = new ShaderCallBack();
+        ShaderCallback * shaderCallback = new ShaderCallback();
 
         MatID = IRR.gpu->addHighLevelShaderMaterialFromFiles(
             vsFileName, "vertexMain", video::EVST_VS_1_1,
             psFileName, "pixelMain", video::EPST_PS_1_1,
-            shaderCallBack, video::EMT_TRANSPARENT_ALPHA_CHANNEL);
+            shaderCallback, video::EMT_TRANSPARENT_ALPHA_CHANNEL);
 
-        shaderCallBack->drop();
+        shaderCallback->drop();
     }
 
     particles->setMaterialType((irr::video::E_MATERIAL_TYPE) MatID);

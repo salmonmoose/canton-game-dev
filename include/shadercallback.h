@@ -1,8 +1,13 @@
+#ifndef SHADERCALLBACK_H
+#define SHADERCALLBACK_H
+
 #include <irrlicht.h>
 #include "engine.h"
 
-class ShaderCallBack : public irr::video::IShaderConstantSetCallBack
+class ShaderCallback : public irr::video::IShaderConstantSetCallBack
 {
 public:
 	virtual void OnSetConstants(irr::video::IMaterialRendererServices * services, irr::s32 userData);
 };
+
+#endif

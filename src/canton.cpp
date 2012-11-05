@@ -5,8 +5,7 @@
 #include <engine.h>
 #include <terrain.h>
 #include <player.h>
-//#include "marchingcubes.cpp"
-//#include "terrain.cpp"
+#include <mouse.h>
 
 #ifdef linux
 
@@ -65,34 +64,30 @@ int main(int argc, char* argv[])
 
 	core::vector3df offset = core::vector3df(24.f,16.f,0.f);
 
-	scene::ICameraSceneNode *camera = IRR.smgr->addCameraSceneNode(0, player.getPosition()+offset, player.getPosition());
+	IRR.camera->setTarget(player.getPosition());
+	IRR.camera->setPosition(player.getPosition() + offset);
 
     core::matrix4 mat;
     mat.buildProjectionMatrixOrthoLH(60, 45, 0, 256);
-    camera->setProjectionMatrix(mat, true);
-
-	//camera->setFarValue(160.f);
-	//camera->setNearValue(8.f);
+    IRR.camera->setProjectionMatrix(mat, true);
 
 	while(IRR.device->run())
 	{
+		IRR.receiver.endEventProcess();
+
 		player.Update();
         IRR.Update();
 
-		camera->setTarget(player.getPosition());
+		IRR.camera->setTarget(player.getPosition());
         node->setPosition(player.getPosition());
-		camera->setPosition(player.getPosition() + offset);
+		IRR.camera->setPosition(player.getPosition() + offset);
 
-        terrain.generateMesh(camera->getViewFrustum()); //FIXME: Perhaps this should depend on an active window.
-
-
+        terrain.generateMesh(IRR.camera->getViewFrustum()); //FIXME: Perhaps this should depend on an active window.
 
 		if(IRR.device->isWindowActive())
 		{
 
 			IRR.driver->beginScene(true, true, video::SColor(0,0,0,255));
-			
-
 
 			//HACK: Something doesn't work in scenemanager, this is a workaround
             //NB: should be moved into a scenenode
@@ -125,6 +120,8 @@ int main(int argc, char* argv[])
 			IRR.device->setWindowCaption(str.c_str());
 
 		}
+
+		IRR.receiver.startEventProcess();
 	}
 
 	IRR.device->drop();
