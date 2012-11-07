@@ -1,43 +1,58 @@
-# Makefile for Irrlicht Examples
-# It's usually sufficient to change just the target name and source file list
-# and be sure that CXX is set to a valid compiler
-Target = Canton 
-Sources = ../libs/tinyxml2/tinyxml2.cpp ../libs/pugixml-1.2/src/*.cpp ../libs/accidentalnoise/src/*.cpp ./src/*.cpp
+CC = gcc
+CXX = g++
+RM = rm -f
+CPPFLAGS = \
+	-g $(shell) \
+	-std=c++0x \
+	-I../libs/boost_1_50_0 \
+	-I../libs/threadpool \
+	-I../libs/pugixml/src \
+	-I../libs/tinyxml2 \
+	-I../libs/accidentalnoise/include \
+	-I../libs/irrlicht-1.8.0/include \
+	-I./include -I/usr/X11R6/include
 
-# general compiler settings
-CPPFLAGS += -I../libs/boost_1_50_0 -I../libs/threadpool -I../libs/pugixml/src -I../libs/tinyxml2 -I../libs/accidentalnoise/include -I../libs/irrlicht-1.8.0/include -I./include -I/usr/X11R6/include
-CXXFLAGS += -O3 -ffast-math -std=c++0x -g
-#CXXFLAGS = -g -Wall
+LDLIBS = \
+	-L/usr/X11R6/lib$(LIBSELECT) \
+	-L../libs/irrlicht-1.8.0/lib/Linux \
+	-L../libs/accidentalnoise \
+	-lIrrlicht \
+	-lGL -lXxf86vm -lXext -lX11 \
+	-lAccidentalNoise
 
-#default target is Linux
-ifeq ($(OS), Windows_NT)
-all: all_win32
-	else
-all: all_linux
-endif
+LDFLAGS = $(shell)
 
+SRCS = \
+	./src/canton.cpp \
+	./src/enemy.cpp \
+	./src/engine.cpp \
+	./src/glslmaterial.cpp \
+	./src/marchingcubes.cpp \
+	./src/mob.cpp \
+	./src/mouse.cpp \
+	./src/pewpew.cpp \
+	./src/player.cpp \
+	./src/shadercallback.cpp \
+	./src/terrain.cpp \
+	./src/trailscenenode.cpp
 
-ifeq ($(HOSTTYPE), x86_64)
-LIBSELECT=64
-endif
+OBJS = $(subst .cpp,.o,$(SRCS))
 
-# target specific settings
-all_linux: LDFLAGS = -L/usr/X11R6/lib$(LIBSELECT) -L../libs/irrlicht-1.8.0/lib/Linux -lIrrlicht -lGL -lXxf86vm -lXext -lX11
-all_linux clean_linux: SYSTEM=Linux
-all_win32: LDFLAGS = -L../libs/irrlicht-1.8.0/lib/Win32-gcc -lIrrlicht -lopengl32 -lm
-all_win32 clean_win32: SYSTEM=Win32-gcc
-#all_win32 clean_win32: SUF=.exe
-# name of the binary - only valid for targets which set SYSTEM
-DESTPATH = ./bin/$(SYSTEM)/$(Target)$(SUF)
+all: canton
 
-all_linux all_win32:
-	$(warning Building...)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(Sources) -o $(DESTPATH) $(LDFLAGS)
+canton: $(OBJS)
+	g++ $(LDFLAGS) -o ./bin/Linux/Canton $(OBJS) $(LDLIBS)
 
-clean: clean_linux clean_win32
-	$(warning Cleaning...)
+depend: .depend
 
-clean_linux clean_win32:
-	@$(RM) $(DESTPATH)
+.depend: $(SRCS)
+	rm -f ./.depend
+	$(CXX) $(CPPFLAGS) -MM $^>>./.depend;
 
-.PHONY: all all_win32 clean clean_linux clean_win32
+clean:
+	$(RM) $(OBJS)
+
+dist-clean: clean
+	$(RM) *~ .dependcanton
+
+include .depend

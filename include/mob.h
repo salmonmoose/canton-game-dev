@@ -2,20 +2,25 @@
 #define MOB_H
 
 #include "irrlicht.h"
+#include "state.h"
 #include <memory>
 
 class Mob
 {
+	State * mState;
+
 public:
 	Mob()
 	{
 		//mainMesh = IRR.smgr->addCubeSceneNode();
 	}
 
-
 	virtual ~Mob(){};
     virtual void Init();
 	virtual void Update();
+
+	void SetState(State * newState);
+	void OnMessage(std::string * message);
 
 	const irr::core::vector3df & getPosition(){ return Position; }
 	const irr::core::vector3df & getRotation(){ return Rotation; }

@@ -39,7 +39,7 @@ PewPew::PewPew(irr::core::vector3df pos, irr::core::vector3df rot, irr::core::ve
         MatID = IRR.gpu->addHighLevelShaderMaterialFromFiles(
             vsFileName, "vertexMain", video::EVST_VS_1_1,
             psFileName, "pixelMain", video::EPST_PS_1_1,
-            shaderCallback, video::EMT_TRANSPARENT_ALPHA_CHANNEL);
+            shaderCallback, video::EMT_TRANSPARENT_ADD_COLOR);
 
         shaderCallback->drop();
     }

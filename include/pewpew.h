@@ -5,6 +5,7 @@
 #include "engine.h"
 #include "mob.h"
 #include "shadercallback.h"
+#include "state.h"
 
 class PewPew : public Mob
 {
@@ -22,5 +23,27 @@ public:
 	double life;
 };
 
+class ShipPatrolState : public State
+{
+	void OnUpdate()
+	{
+
+	}
+
+	void OnEnter()
+	{
+
+	}
+
+	void OnLeave()
+	{
+
+	}
+
+	void OnMessage()
+	{
+		
+	}
+};
 
 #endif

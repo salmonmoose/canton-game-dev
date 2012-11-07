@@ -5,6 +5,7 @@
 #include <irrlicht.h>
 #include "eventhandler.h"
 #include "mob.h"
+#include "player.h"
 #include <vector>
 #include <map>
 #include <string>

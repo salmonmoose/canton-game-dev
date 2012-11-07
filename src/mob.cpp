@@ -2,6 +2,7 @@
 
 void Mob::Update()
 {
+	mState->OnUpdate(); //AI Hook
     Velocity -= Velocity * Drag * IRR.frameDeltaTime;
 
     if(Velocity.getLength() > MaxSpeed) Velocity.setLength(MaxSpeed);
@@ -15,4 +16,19 @@ void Mob::Update()
 void Mob::Init()
 {
 
+}
+
+void Mob::SetState(State * newState)
+{
+	mState->OnLeave();
+	delete mState;
+
+	mState = newState;
+
+	mState->OnEnter();
+}
+
+void Mob::OnMessage(std::string * message)
+{
+	mState->OnMessage(message);
 }

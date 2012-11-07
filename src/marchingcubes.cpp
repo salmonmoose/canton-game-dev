@@ -32,6 +32,34 @@ void generateIsoSurface(
 
     core::vector3df tmpVec3D;
 
+    /*
+    TODO: There's a better way of doing this;
+
+    http://http.developer.nvidia.com/GPUGems3/gpugems3_ch01.html
+
+    We can get normal data from the noise.
+
+        float d = 1.0/(float)voxels_per_block;  
+        float3 grad;  
+        grad.x = density_vol.Sample(TrilinearClamp, uvw + float3( d, 0, 0)) -  
+                 density_vol.Sample(TrilinearClamp, uvw + float3(-d, 0, 0));  
+        grad.y = density_vol.Sample(TrilinearClamp, uvw + float3( 0, d, 0)) -  
+                 density_vol.Sample(TrilinearClamp, uvw + float3( 0,-d, 0));  
+        grad.z = density_vol.Sample(TrilinearClamp, uvw + float3( 0, 0, d)) -  
+                 density_vol.Sample(TrilinearClamp, uvw + float3( 0, 0,-d));  
+        output.wsNormal = -normalize(grad);
+
+    We can build our mesh faster:
+
+    list_nonempty_cells - Each voxel is either above or below a threashold, list only voxels that contain enough data.
+
+    list_verts_to_generate - March nonempty_cells, and look only at minor edges (those starting at (0,0,0)) (edges 0,3,8)
+
+    these points can be cached into a multi-array, no need to lookup existing points, as we know they'll exist.
+
+    MAJOR REWRITE.
+    */
+
     std::vector<int> generatedPoints(indexSize, -1);
 
     for (z = 0; z < zDim -1; z++) {
