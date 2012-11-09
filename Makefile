@@ -3,7 +3,10 @@ CXX = g++
 RM = rm -f
 CPPFLAGS = \
 	-g $(shell) \
+	-Wall \
 	-std=c++0x \
+	-O3 \
+	-ffast-math \
 	-I../libs/boost_1_50_0 \
 	-I../libs/threadpool \
 	-I../libs/pugixml/src \
@@ -15,7 +18,7 @@ CPPFLAGS = \
 LDLIBS = \
 	-L/usr/X11R6/lib$(LIBSELECT) \
 	-L../libs/irrlicht-1.8.0/lib/Linux \
-	-L../libs/accidentalnoise \
+	-L../libs/accidentalnoise/lib/Linux \
 	-lIrrlicht \
 	-lGL -lXxf86vm -lXext -lX11 \
 	-lAccidentalNoise
@@ -29,9 +32,9 @@ SRCS = \
 	./src/glslmaterial.cpp \
 	./src/marchingcubes.cpp \
 	./src/mob.cpp \
+	./src/player.cpp \
 	./src/mouse.cpp \
 	./src/pewpew.cpp \
-	./src/player.cpp \
 	./src/shadercallback.cpp \
 	./src/terrain.cpp \
 	./src/trailscenenode.cpp

@@ -58,7 +58,7 @@ Player::Player()
     MaxTurnRate = 90.f;
     Drag = 0.5f;
     TurnBuffer = 1;
-
+    mouse = new Mouse();
 }
 
 Player::~Player()
@@ -69,7 +69,7 @@ Player::~Player()
 float Player::getAngleToMouse()
 {
     irr::core::vector3df ship_dir = IRR.getRotatedVector(core::vector3df(0,0,1), Rotation); //Fix me: this works but is WRONG.
-    irr::core::vector3df mouse_dir = mouse->Position - Position;
+    irr::core::vector3df mouse_dir = mouse->getPosition() - Position;
 
     ship_dir.normalize();
     mouse_dir.normalize();
@@ -135,15 +135,12 @@ void Player::Update()
 
     if(IRR.receiver.ButtonPressed(EventReceiver::MOUSE_BUTTON_RIGHT))
     {
-        std::unique_ptr<Mob> enemy = std::unique_ptr<Mob>(new Enemy(mouse->Position, Rotation));
+        std::unique_ptr<Mob> enemy = std::unique_ptr<Mob>(new Enemy(mouse->getPosition(), Rotation));
 
         enemy->Init();
 
         IRR.mobL.push_back(std::move(enemy));
     }
-
-
-
 
     Mob::Update();
 }

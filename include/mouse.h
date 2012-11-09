@@ -11,11 +11,13 @@ public:
 	~Mouse(){};
 
 	irr::scene::IAnimatedMeshSceneNode * mainMesh;
-	irr::core::vector3df Position;
 
 	void Update();
-	irr::core::vector3d<irr::f32> IntersectPlane(irr::core::line3d<irr::f32> myLine, float Plane);
-    irr::core::line3d<irr::f32> getRay();
+	irr::core::vector3df IntersectPlane(irr::core::line3df myLine, float Plane);
+    irr::core::vector3df getPosition();
+    irr::core::line3df getRay();
+protected:
+    irr::core::vector3df Position;
 };
 
 #endif

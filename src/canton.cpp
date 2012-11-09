@@ -5,7 +5,6 @@
 #include <engine.h>
 #include <terrain.h>
 #include <player.h>
-#include <mouse.h>
 
 #ifdef linux
 
@@ -74,9 +73,10 @@ int main(int argc, char* argv[])
 	while(IRR.device->run())
 	{
 		IRR.receiver.endEventProcess();
-
-		player.Update();
+		
         IRR.Update();
+
+        player.Update();
 
 		IRR.camera->setTarget(player.getPosition());
         node->setPosition(player.getPosition());

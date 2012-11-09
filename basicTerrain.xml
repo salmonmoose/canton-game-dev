@@ -8,18 +8,18 @@
             <CenterY Type="Double">0.5</CenterY>
             <CenterZ Type="Double">0.5</CenterZ>
         </Module>
-        <Module Type="Gradient" Name="Ground_Gradient">
-            <X1 Type="Double">0</X1>
-            <X2 Type="Double">0</X2>
-            <Y1 Type="Double">0.75</Y1>
-            <Y2 Type="Double">0.25</Y2>
-        </Module>
         <Module Type="Fractal" Name="Ground_Shape_Fractal">
             <Fractal Type="Enum">FBM</Fractal>
             <Basis Type="Enum">GRADIENT</Basis>
             <Interpolation Type="Enum">QUINTIC</Interpolation>
             <Octaves Type="Int">4</Octaves>
             <Frequency Type="Double">0.4</Frequency>
+        </Module>
+        <Module Type="Gradient" Name="Ground_Gradient">
+            <X1 Type="Double">0</X1>
+            <X2 Type="Double">0</X2>
+            <Y1 Type="Double">0.75</Y1>
+            <Y2 Type="Double">0.25</Y2>
         </Module>
         <Module Type="ScaleOffset" Name="Ground_Scale">
             <Scale Type="Double">0.5</Scale>

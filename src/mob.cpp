@@ -2,7 +2,7 @@
 
 void Mob::Update()
 {
-	mState->OnUpdate(); //AI Hook
+	//mState->OnUpdate(); //AI Hook
     Velocity -= Velocity * Drag * IRR.frameDeltaTime;
 
     if(Velocity.getLength() > MaxSpeed) Velocity.setLength(MaxSpeed);
