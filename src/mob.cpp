@@ -1,16 +1,13 @@
 #include "mob.h"
 
+Mob::Mob()
+{
+    mState = new NullState();
+}
+
 void Mob::Update()
 {
-	//mState->OnUpdate(); //AI Hook
-    Velocity -= Velocity * Drag * IRR.frameDeltaTime;
-
-    if(Velocity.getLength() > MaxSpeed) Velocity.setLength(MaxSpeed);
-
-    Position += IRR.frameDeltaTime * Velocity;
-
-    mainMesh->setPosition(Position);
-    mainMesh->setRotation(Rotation);
+	mState->OnUpdate(); //AI Hook
 }
 
 void Mob::Init()
@@ -20,9 +17,11 @@ void Mob::Init()
 
 void Mob::SetState(State * newState)
 {
-	mState->OnLeave();
-	delete mState;
-
+	if(mState) 
+    {
+        mState->OnLeave();
+        delete mState;
+    }
 	mState = newState;
 
 	mState->OnEnter();
@@ -31,4 +30,16 @@ void Mob::SetState(State * newState)
 void Mob::OnMessage(std::string * message)
 {
 	mState->OnMessage(message);
+}
+
+void Mob::ApplyVectors()
+{
+    Velocity -= Velocity * Drag * IRR.frameDeltaTime;
+
+    if(Velocity.getLength() > MaxSpeed) Velocity.setLength(MaxSpeed);
+
+    Position += IRR.frameDeltaTime * Velocity;
+
+    mainMesh->setPosition(Position);
+    mainMesh->setRotation(Rotation);
 }

@@ -1,4 +1,38 @@
 #include "player.h"
+#include "state.h"
+
+class PlayerControledState : public State
+{
+    Player * mPlayer;
+public:
+    PlayerControledState(Player * player)
+    {
+        mPlayer = player;
+    };
+    ~PlayerControledState(){};
+
+    virtual void OnUpdate()
+    {
+        mPlayer->AcceptInput();
+        mPlayer->ApplyVectors();
+    }
+
+    virtual void OnEnter()
+    {
+
+    }
+
+    virtual void OnLeave()
+    {
+
+    }
+
+    virtual void OnMessage(std::string * message)
+    {
+
+    }
+};
+
 
 Player::Player()
 {
@@ -59,6 +93,8 @@ Player::Player()
     Drag = 0.5f;
     TurnBuffer = 1;
     mouse = new Mouse();
+
+    SetState(new PlayerControledState(this));
 }
 
 Player::~Player()
@@ -94,6 +130,11 @@ float Player::getAngleToMouse()
 
 void Player::Update()
 {
+    Mob::Update();
+}
+
+void Player::AcceptInput()
+{
     mouse->Update();
 
     if(IRR.receiver.KeyDown(irr::KEY_KEY_A))
@@ -114,15 +155,15 @@ void Player::Update()
     if(Rotation.Y > 360)
         Rotation.Y -= 360;
 
-	if(IRR.receiver.KeyDown(irr::KEY_KEY_W))
-	{
+    if(IRR.receiver.KeyDown(irr::KEY_KEY_W))
+    {
         Velocity += IRR.getRotatedVector(core::vector3df(0,0,1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
-	}
-	
+    }
+    
     if(IRR.receiver.KeyDown(irr::KEY_KEY_S))
-	{
-		Velocity += IRR.getRotatedVector(core::vector3df(0,0,-1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
-	}
+    {
+        Velocity += IRR.getRotatedVector(core::vector3df(0,0,-1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
+    }
 
     if(IRR.receiver.ButtonPressed(EventReceiver::MOUSE_BUTTON_LEFT))
     {
@@ -141,6 +182,4 @@ void Player::Update()
 
         IRR.mobL.push_back(std::move(enemy));
     }
-
-    Mob::Update();
 }

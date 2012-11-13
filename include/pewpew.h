@@ -20,30 +20,7 @@ public:
 	~PewPew(){};
 	void Update();
     void Init();
+    void Accelerate();
 	double life;
 };
-
-class ShipPatrolState : public State
-{
-	void OnUpdate()
-	{
-
-	}
-
-	void OnEnter()
-	{
-
-	}
-
-	void OnLeave()
-	{
-
-	}
-
-	void OnMessage()
-	{
-		
-	}
-};
-
 #endif

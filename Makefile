@@ -37,7 +37,8 @@ SRCS = \
 	./src/pewpew.cpp \
 	./src/shadercallback.cpp \
 	./src/terrain.cpp \
-	./src/trailscenenode.cpp
+	./src/trailscenenode.cpp \
+	./src/nullstate.cpp
 
 OBJS = $(subst .cpp,.o,$(SRCS))
 

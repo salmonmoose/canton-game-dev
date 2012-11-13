@@ -3,17 +3,17 @@
 
 #include "irrlicht.h"
 #include "state.h"
+#include "nullstate.h"
 #include <memory>
+
+class State;
 
 class Mob
 {
 	State * mState;
 
 public:
-	Mob()
-	{
-		//mainMesh = IRR.smgr->addCubeSceneNode();
-	}
+	Mob();
 
 	virtual ~Mob(){};
     virtual void Init();
@@ -21,6 +21,7 @@ public:
 
 	void SetState(State * newState);
 	void OnMessage(std::string * message);
+	void ApplyVectors();
 
 	const irr::core::vector3df & getPosition(){ return Position; }
 	const irr::core::vector3df & getRotation(){ return Rotation; }

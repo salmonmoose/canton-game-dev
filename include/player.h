@@ -27,6 +27,7 @@ public:
     Player();
     ~Player();
     void Update();
+    void AcceptInput();
     float getAngleToMouse();
 
 protected:
