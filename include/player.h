@@ -2,10 +2,7 @@
 #define PLAYER_H
 
 #include "irrlicht.h"
-#include "engine.h"
 #include "mob.h"
-#include "pewpew.h"
-#include "enemy.h"
 #include "mouse.h"
 
 class Mouse;
@@ -26,6 +23,7 @@ public:
 
     Player();
     ~Player();
+    void Init();
     void Update();
     void AcceptInput();
     float getAngleToMouse();

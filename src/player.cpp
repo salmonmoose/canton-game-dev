@@ -1,5 +1,8 @@
 #include "player.h"
 #include "state.h"
+#include "engine.h"
+#include "pewpew.h"
+#include "enemy.h"
 
 class PlayerControledState : public State
 {
@@ -36,7 +39,20 @@ public:
 
 Player::Player()
 {
-	mainMesh = IRR.smgr->addAnimatedMeshSceneNode(IRR.smgr->getMesh("./resources/indevship.obj"));
+
+}
+
+Player::~Player()
+{
+
+}
+
+void Player::Init()
+{
+    printf("Player Init()\n");
+    mainMesh = IRR.smgr->addAnimatedMeshSceneNode(IRR.smgr->getMesh("./resources/indevship.obj"));
+
+    printf("Setting up particles\n");
     playerEngine1 = IRR.smgr->addParticleSystemSceneNode(false);
     playerEngine2 = IRR.smgr->addParticleSystemSceneNode(false);
 
@@ -84,9 +100,11 @@ Player::Player()
     //playerEngine1->setMaterialType(video::EMT_TRANSPARENT_VERTEX_ALPHA);
     //playerEngine2->setMaterialType(video::EMT_TRANSPARENT_VERTEX_ALPHA);
 
-	//playerMesh->setMaterialFlag(EMF_GOURAUD_SHADING,false);
+    //playerMesh->setMaterialFlag(EMF_GOURAUD_SHADING,false);
 
-	Position.Y = 32.f;
+    printf("Setting up default values\n");
+
+    Position.Y = 32.f;
     MaxSpeed = 64.f;
     MaxStrafe = 32.f;
     MaxTurnRate = 90.f;
@@ -94,12 +112,9 @@ Player::Player()
     TurnBuffer = 1;
     mouse = new Mouse();
 
+    printf("setting new state\n");
+
     SetState(new PlayerControledState(this));
-}
-
-Player::~Player()
-{
-
 }
 
 float Player::getAngleToMouse()

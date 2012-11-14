@@ -125,6 +125,7 @@ public:
 
 	~ScalarTerrain(){};
 
+    void Init();
 	void setupAccidentalNoise();
 	void generateChunk(int, int, int);
 	void bresenham(irr::core::vector3df, irr::core::vector3df);
@@ -133,6 +134,8 @@ public:
     void generateMesh(const irr::scene::SViewFrustum * Frustum);
     void FillBackground(TerrainLocation tl);
     void MeshBackground(TerrainLocation tl);
+
+    bool BlockFilled(irr::core::vector3df);
 };
 
 #endif

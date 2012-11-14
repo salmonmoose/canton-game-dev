@@ -2,10 +2,7 @@
 #define PEWPEW_H
 
 #include "irrlicht.h"
-#include "engine.h"
 #include "mob.h"
-#include "shadercallback.h"
-#include "state.h"
 
 class PewPew : public Mob
 {

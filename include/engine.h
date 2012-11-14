@@ -10,6 +10,7 @@
 #include <map>
 #include <string>
 #include "glslmaterial.h"
+#include "terrain.h"
 
 #define IRR IrrlichtEngineManager::Instance()
 
@@ -23,19 +24,29 @@ using namespace gui;
 
 class GLSLMaterial; //Forward declaration
 
+class Mob;
+
+class Player;
+
 class IrrlichtEngineManager
 {
 public:
 	~IrrlichtEngineManager();
 
-	static IrrlichtEngineManager& Instance()
+	static IrrlichtEngineManager & Instance()
 	{
 		static IrrlichtEngineManager instance;
 		return instance;
 	}
 
 	void Startup();
-	
+
+	void SetupDevice();
+
+	void SetupScene();
+
+	void SetupGUI();
+
 	void Shutdown();
 
 	void StartRenderLoop();
@@ -43,6 +54,8 @@ public:
 	void EndRenderLoop();
 
 	void Update();
+
+	void Draw();
 
 	void DrawAxis(const irr::core::vector3df & Position, const irr::core::vector3df & Value = irr::core::vector3df(10,10,10));
 
@@ -83,6 +96,14 @@ public:
 	irr::gui::IGUIStaticText * boxBuffers;
 	irr::gui::IGUIStaticText * frustumBuffers;
 	irr::gui::IGUIStaticText * actualBuffers;
+
+	irr::core::vector3df cameraOffset;
+
+	irr::scene::IMeshSceneNode * terrainMesh;
+
+	ScalarTerrain * mScalarTerrain;
+
+	Player * mPlayer;
 
 protected:
 	IrrlichtEngineManager();

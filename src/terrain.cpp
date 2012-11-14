@@ -42,6 +42,10 @@ bool AABBoxInFrustum(const irr::scene::SViewFrustum * Frustum, const irr::core::
 ScalarTerrain::ScalarTerrain()
 {
 
+}
+
+void ScalarTerrain::Init()
+{
     printf("Loading Terrain Document\n");
 
     noiseTree.loadFile("basicTerrain.xml");
@@ -76,7 +80,7 @@ ScalarTerrain::ScalarTerrain()
     Material.setTexture(4, IRR.driver->getTexture("./resources/sand.jpg"));
     Material.setTexture(5, IRR.driver->getTexture("./resources/void.jpg"));
 
-    Material.MaterialType = (video::E_MATERIAL_TYPE) terrainMaterial;
+    Material.MaterialType = (video::E_MATERIAL_TYPE) terrainMaterial;  
 }
 
 void ScalarTerrain::FillBackground(TerrainLocation tl) 
@@ -92,6 +96,15 @@ void ScalarTerrain::MeshBackground(TerrainLocation tl) {
     threads--;
     meshThreads--;
     worldMap[tl].status = CLEAN;
+}
+
+bool ScalarTerrain::BlockFilled(irr::core::vector3df pos)
+{
+    int x_pos = (int)pos.X;
+    int y_pos = (int)pos.Y;
+    int z_pos = (int)pos.Z;
+
+    
 }
 
 void TerrainChunk::MeshChunk()

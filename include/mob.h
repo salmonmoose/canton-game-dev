@@ -3,7 +3,6 @@
 
 #include "irrlicht.h"
 #include "state.h"
-#include "nullstate.h"
 #include <memory>
 
 class State;
@@ -40,7 +39,5 @@ protected:
 	double MaxTurnRate;
 	double Drag;
 };
-
-#include "engine.h"
 
 #endif

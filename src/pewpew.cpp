@@ -1,5 +1,6 @@
 #include "pewpew.h"
 #include "state.h"
+#include "engine.h"
 
 class PewPewFiredState : public State
 {

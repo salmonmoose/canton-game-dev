@@ -1,4 +1,6 @@
 #include "mob.h"
+#include "nullstate.h"
+#include "engine.h"
 
 Mob::Mob()
 {
