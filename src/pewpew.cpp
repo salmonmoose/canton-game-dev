@@ -35,7 +35,7 @@ public:
 };
 
 
-PewPew::PewPew(irr::core::vector3df pos, irr::core::vector3df rot, irr::core::vector3df vel)
+PewPew::PewPew(irr::core::vector3df pos, irr::core::vector3df rot, irr::core::vector3df vel) : Mob(true, true, true)
 {
     Position = pos;
     Rotation = rot;

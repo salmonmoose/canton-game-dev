@@ -2,7 +2,7 @@ CC = gcc
 CXX = g++
 RM = rm -f
 CPPFLAGS = \
-	-g $(shell) \
+	$(shell) \
 	-Wall \
 	-std=c++0x \
 	-O3 \
@@ -37,7 +37,6 @@ SRCS = \
 	./src/pewpew.cpp \
 	./src/shadercallback.cpp \
 	./src/terrain.cpp \
-	./src/trailscenenode.cpp \
 	./src/nullstate.cpp
 
 OBJS = $(subst .cpp,.o,$(SRCS))

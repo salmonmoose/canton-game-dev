@@ -5,8 +5,8 @@ using namespace irr;
 
 void generateIsoSurface(
         scene::SMeshBuffer& buf, 
-        ValueArray& values, 
-        MaterialArray& materials,
+        Double3Array & values, 
+        Unsigned3Array & materials,
         int x_offset, int y_offset, int z_offset
     )
 {
@@ -17,10 +17,10 @@ void generateIsoSurface(
     const int yDim = values.shape()[1];
     const int zDim = values.shape()[2];
 
-    int x,y,z,i,cubeIndex,cacheIndex,ntriang;
+    int x,y,z,cubeIndex,cacheIndex,ntriang;
     float pointVals[8];
     int colorVals[8];
-    int vertList[12];
+    irr::core::vector3d<unsigned> vertList[12];
     video::S3DVertex tmpS3DVertex;
     int vertIndexList[12];
 
@@ -60,7 +60,12 @@ void generateIsoSurface(
     MAJOR REWRITE.
     */
 
-    std::vector<int> generatedPoints(indexSize, -1);
+    Unsigned3Array * generatedPoints;
+
+    generatedPoints = new Unsigned3Array();
+    generatedPoints->resize(boost::extents[xDim][yDim][zDim]);
+
+    //std::vector<int> generatedPoints(indexSize, -1);
 
     for (z = 0; z < zDim -1; z++) {
         for (y = 0; y < yDim -1; y++) {
@@ -68,22 +73,27 @@ void generateIsoSurface(
                 
                 //Grab density and color data
                 cubeIndex = 0;
-                for (i = 0; i < 8; i++) {
-                    pointVals[i] = values[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
-                    colorVals[i] = materials[x + (int)points[i].X][y + (int)points[i].Y][z + (int)points[i].Z];
+                for (int i = 0; i < 8; i++) {
+                    pointVals[i] = values[x + points[i].X][y + points[i].Y][z + points[i].Z];
+                    colorVals[i] = materials[x + points[i].X][y + points[i].Y][z + points[i].Z];
                     if(pointVals[i] > isolevel) cubeIndex |= (1 << i);
                 }
 
                 //Generate verts needed by this voxel.
-                for (i = 0; i < 12; i++) {
+                for (int i = 0; i < 12; i++) {
 
-                    index = (((int)points[edges[i][0]].X + x)) +
-                            (((int)points[edges[i][0]].Y + y) * xDim) +
-                            (((int)points[edges[i][0]].Z + z) * xDim * yDim);
+                    index = ((points[edges[i][0]].X + x)) +
+                            ((points[edges[i][0]].Y + y) * xDim) +
+                            ((points[edges[i][0]].Z + z) * xDim * yDim);
                     
+                    int _x = points[edges[i][0]].X + x;
+                    int _y = points[edges[i][0]].Y + y;
+                    int _z = points[edges[i][0]].Z + z;
+
+
                     if(edgeTable[cubeIndex] & (1 << i)) 
                     {
-                        if (generatedPoints[index] == -1)
+                        if ((*generatedPoints)[_x][_y][_z] == NULL)
                         {
                             mu = (isolevel - pointVals[edges[i][0]]) / (pointVals[edges[i][1]] - pointVals[edges[i][0]]);
                             
@@ -104,26 +114,33 @@ void generateIsoSurface(
 
                             tmpS3DVertex.Normal.set(0.0,0.0,0.0);
 
-                            //generatedPoints[index] = buf.Vertices.size(); //cached;
-                            index = buf.Vertices.size(); //uncached;
+                            //We don't need to re-generate this point
+                            (*generatedPoints)[_x][_y][_z] = buf.Vertices.size();
                             
                             buf.Vertices.push_back(tmpS3DVertex); //FIXME this should just build the vertex here and now.
-                        } else {
+                        }
+                        else
+                        {
+
                         }
                         
-                        vertList[i] = index;
+                        vertList[i] = irr::core::vector3d<unsigned>(_x,_y,_z);
                     }
                 }
 
-                for (i=0; triTable[cubeIndex][i] != -1; i++) {
-                    //buf.Indices.push_back(generatedPoints[vertList[triTable[cubeIndex][i]]]); //cached;
-                    buf.Indices.push_back(vertList[triTable[cubeIndex][i]]); //uncached;
+                for (int i=0; triTable[cubeIndex][i] != -1; i++) {
+                    int _x = vertList[triTable[cubeIndex][i]].X;
+                    int _y = vertList[triTable[cubeIndex][i]].Y;
+                    int _z = vertList[triTable[cubeIndex][i]].Z;
+
+                    buf.Indices.push_back((*generatedPoints)[_x][_y][_z]);
                 }
+
             }
         }
     }
 
-    for (i = 0; i < buf.Indices.size(); i += 3) {
+    for (unsigned i = 0; i < buf.Indices.size(); i += 3) {
         tmpVec3D = (
             buf.Vertices[buf.Indices[i+1]].Pos - buf.Vertices[buf.Indices[i]].Pos
         ).crossProduct(
@@ -135,7 +152,7 @@ void generateIsoSurface(
         buf.Vertices[buf.Indices[i+2]].Normal = buf.Vertices[buf.Indices[i+2]].Normal + tmpVec3D;
     }
 
-    for (i = 0; i < buf.Vertices.size(); i++)
+    for (unsigned i = 0; i < buf.Vertices.size(); i++)
     {
         buf.Vertices[i].Normal.normalize();
     }

@@ -2,14 +2,33 @@
 #include "nullstate.h"
 #include "engine.h"
 
-Mob::Mob()
+Mob::Mob(bool Visible, bool Solid, bool Mobile) : _Visible(Visible), _Solid(Solid), _Mobile(Mobile)
 {
     mState = new NullState();
 }
 
 void Mob::Update()
 {
-	mState->OnUpdate(); //AI Hook
+    if(_Mobile)
+    {
+	   mState->OnUpdate(); //AI Hook
+    }
+}
+
+void Mob::Draw()
+{
+    if(_Visible)
+    {
+        ///????
+    }
+}
+
+void Mob::Collide(Mob mobs[])
+{
+    if(_Solid)
+    {
+        ///????
+    }
 }
 
 void Mob::Init()

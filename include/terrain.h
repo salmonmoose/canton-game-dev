@@ -13,7 +13,7 @@
 
 
 typedef boost::multi_array<double, 3> ValueArray;
-typedef boost::multi_array<int, 3> MaterialArray;
+typedef boost::multi_array<unsigned, 3> MaterialArray;
 
 enum EChunkStatus {
     EMPTY,      //This node has not yet been assigned data

@@ -10,18 +10,18 @@
 #include "canton.h"
 #include "terrain.h"
 
-typedef boost::multi_array<double, 3> ValueArray;
-typedef boost::multi_array<int, 3> MaterialArray;
+typedef boost::multi_array<double, 3> Double3Array;
+typedef boost::multi_array<unsigned, 3> Unsigned3Array;
 
-static irr::core::vector3df points[8] = {
-    irr::core::vector3df(0.0, 0.0, 0.0), //0
-    irr::core::vector3df(1.0, 0.0, 0.0), //1
-    irr::core::vector3df(1.0, 0.0, 1.0), //2
-    irr::core::vector3df(0.0, 0.0, 1.0), //3
-    irr::core::vector3df(0.0, 1.0, 0.0), //4
-    irr::core::vector3df(1.0, 1.0, 0.0), //5
-    irr::core::vector3df(1.0, 1.0, 1.0), //6
-    irr::core::vector3df(0.0, 1.0, 1.0), //7
+static irr::core::vector3d<int> points[8] = {
+    irr::core::vector3d<int>(0, 0, 0), //0
+    irr::core::vector3d<int>(1, 0, 0), //1
+    irr::core::vector3d<int>(1, 0, 1), //2
+    irr::core::vector3d<int>(0, 0, 1), //3
+    irr::core::vector3d<int>(0, 1, 0), //4
+    irr::core::vector3d<int>(1, 1, 0), //5
+    irr::core::vector3d<int>(1, 1, 1), //6
+    irr::core::vector3d<int>(0, 1, 1), //7
 };
 
 static int edges[12][2] = {
@@ -342,8 +342,8 @@ static int triTable[256][16] = {
 
 void generateIsoSurface(
     irr::scene::SMeshBuffer & Mesh, 
-    ValueArray & values, 
-    MaterialArray & materials,
+    Double3Array & values, 
+    Unsigned3Array & materials,
     int x_offset, int y_offset, int z_offset
     );
 

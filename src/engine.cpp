@@ -32,7 +32,7 @@ void IrrlichtEngineManager::SetupDevice()
     irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_OPENGL;
     //irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_BURNINGSVIDEO;
 
-    device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
+    device = createDevice(driverType, dimension2d<u32>(1024, 768), 16, false, false, false, &receiver);
 
     if (!device)
         printf("Device failed to manifest\n");
@@ -40,13 +40,15 @@ void IrrlichtEngineManager::SetupDevice()
     driver = device->getVideoDriver();
     smgr = device->getSceneManager();
     env = device->getGUIEnvironment();
-
+    random = device->createDefaultRandomizer();
     gpu = driver->getGPUProgrammingServices();
 }
 
 void IrrlichtEngineManager::SetupScene()
 {   
     smgr->setAmbientLight(video::SColorf(0.5f,0.5f,0.5f,0.5f));
+
+    vMob = new std::vector<std::unique_ptr<Mob>>();
 
     mScalarTerrain = new ScalarTerrain();
     mScalarTerrain->Init();
@@ -75,7 +77,7 @@ void IrrlichtEngineManager::SetupScene()
 void IrrlichtEngineManager::SetupGUI()
 {
     gui::IGUISkin* skin = env->getSkin();
-    gui::IGUIFont* font = env->getFont("../../media/fonthaettenschweiler.bmp");
+    gui::IGUIFont* font = env->getFont("./resources/fonthaettenschweiler.bmp");
     if (font)
         skin->setFont(font);
 
@@ -111,9 +113,9 @@ void IrrlichtEngineManager::Update()
     camera->setTarget(mPlayer->getPosition());
     camera->setPosition(mPlayer->getPosition() + cameraOffset);
 
-    for(mobL_iterator = mobL.begin(); mobL_iterator != mobL.end(); ++mobL_iterator)
+    for(vMobIterator = vMob->begin(); vMobIterator != vMob->end(); ++vMobIterator)
     {
-        (*mobL_iterator)->Update();
+        (*vMobIterator)->Update();
     }
 
     mScalarTerrain->generateMesh(camera->getViewFrustum()); //FIXME: Perhaps this should depend on an active window.
@@ -154,6 +156,11 @@ void IrrlichtEngineManager::Shutdown()
 	device->drop();
 
 	InitialiseVariables();
+}
+
+void IrrlichtEngineManager::EndRenderLoop()
+{
+    device->closeDevice();
 }
 
 void IrrlichtEngineManager::DrawAxis(const irr::core::vector3df & Position, const irr::core::vector3df & Value)
@@ -208,20 +215,25 @@ irr::core::vector3df IrrlichtEngineManager::getRotatedVector(const irr::core::ve
     return dir;
 }
 
-void IrrlichtEngineManager::StartRenderLoop()
-
+irr::core::vector2df IrrlichtEngineManager::getRandomInRadius(float radius)
 {
-	while(device->run())
-	{
-		driver->beginScene(true, true, SColor(127,127,127,255));
+    float t = 2 * irr::core::PI * IRR.random->frand();
+    float u = IRR.random->frand() + IRR.random->frand();
+    float r;
 
-		smgr->drawAll();
+    if(u > 1)
+    {
+        r = 2 - u;
+    }
+    else
+    {
+        r = u;
+    }
 
-		driver->endScene();
-	}
+    return irr::core::vector2df(r * cos(t), r * sin(t));
 }
 
-f32 IrrlichtEngineManager::getAngleBetween(const irr::core::vector3df& vec1, const irr::core::vector3df& vec2)
+irr::f32 IrrlichtEngineManager::getAngleBetween(const irr::core::vector3df& vec1, const irr::core::vector3df& vec2)
 {
     float angle;
 
@@ -231,9 +243,4 @@ f32 IrrlichtEngineManager::getAngleBetween(const irr::core::vector3df& vec1, con
     angle = atan2(deltaZ, deltaX) * 180 / irr::core::PI;
 
     return angle;
-}
-
-void IrrlichtEngineManager::EndRenderLoop()
-{
-	device->closeDevice();
 }

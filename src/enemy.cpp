@@ -1,7 +1,7 @@
 #include "enemy.h"
 #include "engine.h"
 
-Enemy::Enemy(irr::core::vector3df pos, irr::core::vector3df rot)
+Enemy::Enemy(irr::core::vector3df pos, irr::core::vector3df rot) : Mob(true,true,true)
 {
 	Position = pos;
 	Rotation = rot;

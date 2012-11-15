@@ -66,8 +66,8 @@ public:
     irr::s32 getMaterialID(const std::string name);
 
     irr::core::vector3df getRotatedVector(const irr::core::vector3df & Direction, const irr::core::vector3df & Rotation);
-
-    f32 getAngleBetween(const irr::core::vector3df& Vector1, const irr::core::vector3df& Vector2);
+    irr::core::vector2df getRandomInRadius(float radius);
+    irr::f32 getAngleBetween(const irr::core::vector3df& vec1, const irr::core::vector3df& vec2);
 
 	IrrlichtDevice * device;
 
@@ -77,6 +77,8 @@ public:
 
 	ISceneManager * smgr;
 
+    IRandomizer * random;
+
 	irr::video::ITexture * renderTarget;
 
 	irr::scene::ICameraSceneNode * camera;
@@ -85,8 +87,8 @@ public:
 
 	video::IGPUProgrammingServices * gpu;
 
-    std::vector<std::unique_ptr<Mob>> mobL;
-    std::vector<std::unique_ptr<Mob>>::iterator mobL_iterator;
+    std::vector<std::unique_ptr<Mob>> * vMob;
+    std::vector<std::unique_ptr<Mob>>::iterator vMobIterator;
 
     std::map<std::string, GLSLMaterial> shaderMap;
 
@@ -112,4 +114,5 @@ protected:
 
 	irr::u32 then;
 };
+
 #endif
