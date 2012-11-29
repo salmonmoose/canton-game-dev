@@ -45,6 +45,9 @@ protected:
 	double MaxStrafe;
 	double MaxTurnRate;
 	double Drag;
+
+	double Lift;
+	double Gravity;
 };
 
 #endif

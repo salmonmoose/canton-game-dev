@@ -20,6 +20,8 @@ public:
     Mouse * mouse;
 
     float TurnBuffer;
+    double Lift;
+    double Gravity;
 
     Player();
     ~Player();

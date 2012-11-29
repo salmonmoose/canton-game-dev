@@ -5,15 +5,8 @@
 #include <boost/array.hpp>
 #include "anl.h"
 
-#include <canton.h>
 #include <terrain.h>
 #include <shadercallback.h>
-
-static int x_chunk = 16;
-static int y_chunk = 16;
-static int z_chunk = 16;
-
-using namespace irr;
 
 bool pointInFrustum(const irr::scene::SViewFrustum * Frustum, const irr::core::vector3df & Point)
 {
@@ -41,7 +34,6 @@ bool AABBoxInFrustum(const irr::scene::SViewFrustum * Frustum, const irr::core::
 
 ScalarTerrain::ScalarTerrain()
 {
-
 }
 
 void ScalarTerrain::Init()
@@ -83,7 +75,7 @@ void ScalarTerrain::Init()
     Material.MaterialType = (video::E_MATERIAL_TYPE) terrainMaterial;  
 }
 
-void ScalarTerrain::FillBackground(TerrainLocation tl) 
+void ScalarTerrain::FillBackground(irr::core::vector3d<int> tl) 
 {
     worldMap[tl].FillChunk(noiseTree);
     threads--;
@@ -91,53 +83,123 @@ void ScalarTerrain::FillBackground(TerrainLocation tl)
     worldMap[tl].status = DIRTY;
 }
 
-void ScalarTerrain::MeshBackground(TerrainLocation tl) {
+void ScalarTerrain::MeshBackground(irr::core::vector3d<int> tl) {
     worldMap[tl].MeshChunk();
     threads--;
     meshThreads--;
     worldMap[tl].status = CLEAN;
 }
 
-bool ScalarTerrain::BlockFilled(irr::core::vector3df pos)
+int ScalarTerrain::GetAltitude(const irr::core::vector3df & Position)
 {
-    int x_pos = (int)pos.X;
-    int y_pos = (int)pos.Y;
-    int z_pos = (int)pos.Z;
+    return GetAltitude(irr::core::vector3d<int>(
+        (int) Position.X,
+        (int) Position.Y,
+        (int) Position.Z
+    ));
+}
 
-    
+int TerrainChunk::GetHeight(unsigned x, unsigned z)
+{
+    if(status != EMPTY && status != FILLING)
+    {
+        if(!(*heights)[x][z])
+        {
+            return -1;
+        }
+        else
+        {
+            return (*heights)[x][z];
+        }
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+int ScalarTerrain::GetAltitude(const irr::core::vector3d<int> & Position)
+{
+    unsigned y;
+
+    for(y = 0; y < 16; y++) {
+        VoxelReference vr(irr::core::vector3d<int>(Position.X, Position.Y - (y * dimensions.Y), Position.Z), dimensions);
+
+        worldMap_iterator = worldMap.find(vr.Chunk);
+
+        if(worldMap_iterator != worldMap.end())
+        {
+            if(worldMap_iterator->second.GetHeight(vr.Position.X, vr.Position.Z) >= 0)
+            {
+                return (vr.Chunk.Y * dimensions.Y) + worldMap_iterator->second.GetHeight(vr.Position.X, vr.Position.Z);
+            }
+        }
+    }
+
+    return Position.Y - (y * dimensions.Y);
+}
+
+void TerrainChunk::Initialize(irr::core::vector3d<int> dimensions, irr::core::vector3d<int> position)
+{
+    buf->setBoundingBox(irr::core::aabbox3df(
+        (dimensions.X * position.X), 
+        (dimensions.Y * position.Y), 
+        (dimensions.Z * position.Z),
+        (dimensions.X * position.X + dimensions.X), 
+        (dimensions.Y * position.Y + dimensions.Y), 
+        (dimensions.Z * position.Z + dimensions.Z)
+    ));
+    localPoint = new irr::core::vector3d<int>(position.X,position.Y,position.Z);
+
+
+
+}
+double TerrainChunk::GetValue(unsigned x, unsigned y, unsigned z)
+{
+    if(status != EMPTY && status != FILLING)
+    {
+        return (*values)[x][y][z];
+    }
+    else
+    {
+        return 0.f;
+    }
 }
 
 void TerrainChunk::MeshChunk()
 {
-    generateIsoSurface(* buf, * values, * materials, localPoint->X * x_chunk, localPoint->Y * y_chunk, localPoint->Z * z_chunk);
+    generateIsoSurface(* buf, * values, * materials, localPoint->X * dimensions.X, localPoint->Y * dimensions.Y, localPoint->Z * dimensions.Z);
 }
 
 void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum) 
 {
     irr::core::aabbox3df bounding = Frustum->getBoundingBox();
 
-    int x_start = (int)floor(bounding.MinEdge.X / x_chunk);
-    int y_start = (int)floor(bounding.MinEdge.Y / y_chunk);
-    int z_start = (int)floor(bounding.MinEdge.Z / z_chunk);
+    int x_start = (int)floor(bounding.MinEdge.X / dimensions.X);
+    int y_start = (int)floor(bounding.MinEdge.Y / dimensions.Y);
+    int z_start = (int)floor(bounding.MinEdge.Z / dimensions.Z);
 
-    int x_finish = (int)ceil(bounding.MaxEdge.X / x_chunk);
-    int y_finish = (int)ceil(bounding.MaxEdge.Y / y_chunk);
-    int z_finish = (int)ceil(bounding.MaxEdge.Z / z_chunk);
+    int x_finish = (int)ceil(bounding.MaxEdge.X / dimensions.X);
+    int y_finish = (int)ceil(bounding.MaxEdge.Y / dimensions.Y);
+    int z_finish = (int)ceil(bounding.MaxEdge.Z / dimensions.Z);
 
+    //HACK: This is a naive hack to prevent bottoming out the CPU, elegance required.
     if((x_finish - x_start) * (y_finish - y_start) * (z_finish - z_start) > 10000)
     {
-        printf("too many buffers");
+        printf("too many buffers\n");
         return;
     }           
 
-    for(int i = 0; i < Mesh.getMeshBufferCount(); i ++) {
+    for(unsigned i = 0; i < Mesh.getMeshBufferCount(); i ++) {
         Mesh.MeshBuffers.erase(i);
     }
 
     int boxCount = 0;
     int frustumCount = 0;
     int actualCount = 0;
-    TerrainLocation tl(0,0,0);
+    irr::core::vector3d<int> tl(0,0,0);
+
+    irr::core::aabbox3df aabbox;
 
     for(int y = y_finish; y >= y_start; y--) { //start picking from the top.
         for(int z = z_finish; z >= z_start; z--) { //todo should probably pick towards player first
@@ -148,13 +210,24 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
                 
                 if(worldMap.find(tl) == worldMap.end())
                 {
-                    worldMap[tl] = TerrainChunk(x_chunk, y_chunk, z_chunk, x, y, z);
+                    worldMap[tl] = TerrainChunk();
+                    worldMap[tl].Initialize(dimensions, irr::core::vector3d<int>(x,y,z));
                 }
-                if(AABBoxInFrustum(Frustum, worldMap[tl].buf->getBoundingBox()))
+
+                aabbox = irr::core::aabbox3df(
+                    (dimensions.X * x), 
+                    (dimensions.Y * y), 
+                    (dimensions.Z * z),
+                    (dimensions.X * x + dimensions.X), 
+                    (dimensions.Y * y + dimensions.Y), 
+                    (dimensions.Z * z + dimensions.Z)
+                );
+
+                if(AABBoxInFrustum(Frustum, aabbox))
                 {
                     frustumCount ++;
                     
-                    if(!worldMap[TerrainLocation(tl.X, tl.Y+1, tl.Z)].obstruct) 
+                    if(!worldMap[irr::core::vector3d<int>(tl.X, tl.Y+1, tl.Z)].obstruct) 
                     { //If the layer above me doesn't obsrtuct, render
                         
                         /**
@@ -184,7 +257,7 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
                         */
                         if(worldMap[tl].status == EMPTY && threads < MAXTHREADS)
                         {
-                            worldMap[tl].status == FILLING;
+                            worldMap[tl].status = FILLING;
                             threads++;
                             fillThreads++;
                             std::thread t1(&ScalarTerrain::FillBackground, this, tl);
@@ -201,6 +274,7 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
         }
     }
 
+    //FIXME: This should be a function of the engine, query the nodes externally you naughty boy.
     IRR.boxBuffers->setText(core::stringw(L"AABBox Buffers: ").append(core::stringw(boxCount)).c_str());
     IRR.frustumBuffers->setText(core::stringw(L"Frustum Buffers: ").append(core::stringw(frustumCount)).c_str());
     IRR.actualBuffers->setText(core::stringw(L"Actual Buffers: ").append(core::stringw(actualCount)).c_str());
@@ -215,17 +289,19 @@ Using noise tree, populates an array with values
 **/
 void TerrainChunk::FillChunk(anl::CImplicitXML & noiseTree) {
     double value;
-    double xPos = localPoint->X * x_chunk;
-    double yPos = localPoint->Y * y_chunk;
-    double zPos = localPoint->Z * z_chunk;
+    double xPos = localPoint->X * dimensions.X;
+    double yPos = localPoint->Y * dimensions.Y;
+    double zPos = localPoint->Z * dimensions.Z;
 
     bool solid;
 
+    //TODO: This method could essentially generate a list of meshable voxels (see improvements for marchingcubes.cpp)
+
     try {
-        for(int y = 0; y <= y_chunk; y++) {
+        for(int y = dimensions.Y; y >= 0; y--) { //Trace DOWN y axis, first blocks found will be highest.
             solid=true; //fresh layer, assume solid
-            for(int x = 0; x <= x_chunk; x++) {
-                for(int z = 0; z <= z_chunk; z++) {
+            for(int x = 0; x <= dimensions.X; x++) {
+                for(int z = 0; z <= dimensions.Z; z++) {
                     
                     value = noiseTree.get(
                         (double) (x + xPos) / 32.f, // (double) x_chunk, 
@@ -235,6 +311,13 @@ void TerrainChunk::FillChunk(anl::CImplicitXML & noiseTree) {
 
                     if(value > 0.5) {
                         empty = false; //a value has been found, block must be meshed
+
+                        //if there is no highest block in this column, set this column's highest value to y.
+                        //This effectively generates a height map, and vertical occlusion map for each chunk.
+                        if(!(*heights)[x][z])
+                        {
+                            (*heights)[x][z] = y; 
+                        }
                     } else {
                         solid = false; //a hole has been found, this layer is not solid
                     }

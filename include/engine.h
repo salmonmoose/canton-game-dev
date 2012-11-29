@@ -63,6 +63,8 @@ public:
 
     void DrawAABBox(const irr::core::aabbox3df & BoundingBox);
 
+    irr::f32 GetAltitude(const irr::core::vector3df & Position);
+
     irr::s32 getMaterialID(const std::string name);
 
     irr::core::vector3df getRotatedVector(const irr::core::vector3df & Direction, const irr::core::vector3df & Rotation);

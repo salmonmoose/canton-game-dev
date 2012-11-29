@@ -94,6 +94,8 @@ void Player::Init()
     MaxStrafe = 32.f;
     MaxTurnRate = 90.f;
     Drag = 0.5f;
+    Lift = 20.f;
+    Gravity = 9.8f;
     TurnBuffer = 1;
     mouse = new Mouse();
 
@@ -128,7 +130,18 @@ float Player::getAngleToMouse()
 
 void Player::AcceptInput()
 {
-    mouse->Update();
+    mouse->Update(Position.Y);
+
+    double ground_height = (double) IRR.mScalarTerrain->GetAltitude(Position);
+
+    if(ground_height + 32.f > Position.Y)
+    {
+        Velocity.Y += Lift * IRR.frameDeltaTime;        
+    }
+
+    //FIXME: this should be a property of all MOBs, Gravity should be per-level set.
+    Velocity.Y -= Gravity * IRR.frameDeltaTime;
+
 
     if(IRR.receiver.KeyDown(irr::KEY_KEY_A))
     {

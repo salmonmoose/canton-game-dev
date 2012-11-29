@@ -12,7 +12,9 @@ public:
 
 	irr::scene::IAnimatedMeshSceneNode * mainMesh;
 
-	void Update();
+    float PlayerHeight;
+
+	void Update(float height);
 	irr::core::vector3df IntersectPlane(irr::core::line3df myLine, float Plane);
     irr::core::vector3df getPosition();
     irr::core::line3df getRay();

@@ -2,10 +2,10 @@ CC = gcc
 CXX = g++
 RM = rm -f
 CPPFLAGS = \
+	-g \
 	$(shell) \
 	-Wall \
 	-std=c++0x \
-	-O3 \
 	-ffast-math \
 	-I../libs/boost_1_50_0 \
 	-I../libs/threadpool \
@@ -13,7 +13,8 @@ CPPFLAGS = \
 	-I../libs/tinyxml2 \
 	-I../libs/accidentalnoise/include \
 	-I../libs/irrlicht-1.8.0/include \
-	-I./include -I/usr/X11R6/include
+	-I./include -I/usr/X11R6/include \
+	#-O3 
 
 LDLIBS = \
 	-L/usr/X11R6/lib$(LIBSELECT) \

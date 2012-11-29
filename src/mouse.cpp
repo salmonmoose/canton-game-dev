@@ -6,11 +6,12 @@ Mouse::Mouse()
     Position = irr::core::vector3df(0.f,0.f,0.f);
 }
 
-void Mouse::Update()
+void Mouse::Update(float height)
 {
     irr::core::line3df mouseLine = getRay();
 
-    Position = IntersectPlane(mouseLine, 32.f);
+    Position = IntersectPlane(mouseLine, height);
+
 	//mainMesh->setPosition(Position); //should align with player height.
 }
 
