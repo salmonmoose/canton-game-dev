@@ -136,11 +136,11 @@ void Player::AcceptInput()
 
     if(ground_height + 32.f > Position.Y)
     {
-        Velocity.Y += Lift * IRR.frameDeltaTime;        
+        //Velocity.Y += Lift * IRR.frameDeltaTime;        
     }
 
     //FIXME: this should be a property of all MOBs, Gravity should be per-level set.
-    Velocity.Y -= Gravity * IRR.frameDeltaTime;
+    //Velocity.Y -= Gravity * IRR.frameDeltaTime;
 
 
     if(IRR.receiver.KeyDown(irr::KEY_KEY_A))

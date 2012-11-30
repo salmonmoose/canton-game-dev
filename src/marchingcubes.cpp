@@ -330,8 +330,8 @@ static int triTable[256][16] = {
 };
 
 void generateIsoSurface(
-        scene::SMeshBuffer& buf, 
-        Double3Array & values, 
+        irr::scene::SMeshBuffer& buf, 
+        Float3Array & values, 
         Unsigned3Array & materials,
         int x_offset, int y_offset, int z_offset
     )
@@ -347,12 +347,12 @@ void generateIsoSurface(
     float pointVals[8];
     int colorVals[8];
     irr::core::vector3d<unsigned> vertList[12];
-    video::S3DVertex tmpS3DVertex;
+    irr::video::S3DVertex tmpS3DVertex;
 
     float isolevel = 0.5;
     float mu;
 
-    core::vector3df tmpVec3D;
+    irr::core::vector3df tmpVec3D;
 
     /*
     TODO: There's a better way of doing this;
@@ -456,14 +456,14 @@ void generateIsoSurface(
 
     for (unsigned i = 0; i < buf.Indices.size(); i += 3) {
         tmpVec3D = (
-            buf.Vertices[buf.Indices[i+1]].Pos - buf.Vertices[buf.Indices[i]].Pos
+            buf.Vertices[buf.Indices[i + 1]].Pos - buf.Vertices[buf.Indices[i]].Pos
         ).crossProduct(
             buf.Vertices[buf.Indices[i]].Pos - buf.Vertices[buf.Indices[i + 2]].Pos
         );
 
         buf.Vertices[buf.Indices[i]].Normal   = buf.Vertices[buf.Indices[i]].Normal + tmpVec3D;
-        buf.Vertices[buf.Indices[i+1]].Normal = buf.Vertices[buf.Indices[i+1]].Normal + tmpVec3D;
-        buf.Vertices[buf.Indices[i+2]].Normal = buf.Vertices[buf.Indices[i+2]].Normal + tmpVec3D;
+        buf.Vertices[buf.Indices[i + 1]].Normal = buf.Vertices[buf.Indices[i + 1]].Normal + tmpVec3D;
+        buf.Vertices[buf.Indices[i + 2]].Normal = buf.Vertices[buf.Indices[i + 2]].Normal + tmpVec3D;
     }
 
     for (unsigned i = 0; i < buf.Vertices.size(); i++)

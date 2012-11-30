@@ -1,8 +1,7 @@
 #ifndef TERRAIN_H
 #define TERRAIN_H
 
-#include <thread>// Apparently not in windows
-//#include "boost/thread.hpp"
+#include <thread>
 #include "pugixml.hpp"
 
 #include "anl.h"
@@ -10,13 +9,15 @@
 #include <irrlicht.h>
 #include "marchingcubes.h"
 #include "boost/multi_array.hpp"
+#include "boost/array.hpp"
 #include "brush.h"
+#include "engine.h"
 
 static irr::core::vector3d<int> dimensions(16,16,16);
 
-typedef boost::multi_array<double, 3> ValueArray;
-typedef boost::multi_array<unsigned, 3> MaterialArray;
-typedef boost::multi_array<int, 2> HeightArray;
+typedef boost::multi_array<float, 3> Float3Array;
+typedef boost::multi_array<unsigned, 3> Unsigned3Array;
+typedef boost::multi_array<int, 2> Int2Array;
 
 enum EChunkStatus {
     EMPTY,      //This node has not yet been assigned data
@@ -27,11 +28,18 @@ enum EChunkStatus {
     CLEAN       //This node doesn't need
 };
 
+struct VoxelData
+{
+    irr::core::vector3d<int> Position;
+    float Value;
+    unsigned Material;
+};
+
 struct VoxelReference
 {
 public:
     irr::core::vector3d<int> Chunk;
-    irr::core::vector3d<int> Position;
+    irr::core::vector3d<unsigned> Position;
     irr::core::vector3d<int> Dimensions;
 
     VoxelReference(irr::core::vector3d<int> position, irr::core::vector3d<int> dimensions)
@@ -44,7 +52,7 @@ public:
 
         Chunk = irr::core::vector3d<int>(x_ref.quot, y_ref.quot, z_ref.quot);
 
-        Position = irr::core::vector3d<int>(
+        Position = irr::core::vector3d<unsigned>(
             (x_ref.rem > 0)? x_ref.rem : dimensions.X + x_ref.rem, 
             (y_ref.rem > 0)? y_ref.rem : dimensions.Y + y_ref.rem, 
             (z_ref.rem > 0)? z_ref.rem : dimensions.Z + z_ref.rem
@@ -57,7 +65,7 @@ public:
         Dimensions = dimensions;
     }
 
-    VoxelReference(irr::core::vector3d<int> chunk, irr::core::vector3d<int> position, irr::core::vector3d<int> dimensions)
+    VoxelReference(irr::core::vector3d<int> chunk, irr::core::vector3d<unsigned> position, irr::core::vector3d<int> dimensions)
     {
         Chunk = chunk;
         Position = position;
@@ -72,12 +80,18 @@ public:
     }
 };
 
+class VoxelBrush
+{
+public:
+    std::vector<VoxelBrush> * vVoxels;
+};
+
 class TerrainChunk
 {
 public:
-    ValueArray * values; //Provides contents for each cell
-    MaterialArray * materials; //Provites material for each cell
-    HeightArray * heights; //Provides highest point in X,Z plane, returns null for empty colmun.
+    Float3Array * values; //Provides contents for each cell
+    Unsigned3Array * materials; //Provites material for each cell
+    Int2Array * heights; //Provides highest point in X,Z plane, returns null for empty colmun.
 
     irr::core::vector3d<int> * localPoint;
     int status;
@@ -86,14 +100,15 @@ public:
     bool obstruct; //At least one horizontal plane is filled
 
     //irr::scene::SMesh * Mesh;
-    irr::scene::SMeshBuffer * buf;
+    irr::scene::SMeshBuffer * buffer;
+    irr::scene::SMeshBuffer * tempBuffer;
 
     TerrainChunk(){
-        values = new ValueArray(boost::extents[dimensions.X+1][dimensions.Y+1][dimensions.Z+1]);
-        materials = new MaterialArray(boost::extents[dimensions.X+1][dimensions.Y+1][dimensions.Z+1]);
-        heights = new HeightArray(boost::extents[dimensions.X+1][dimensions.Z+1]);
+        values = new Float3Array(boost::extents[dimensions.X+1][dimensions.Y+1][dimensions.Z+1]);
+        materials = new Unsigned3Array(boost::extents[dimensions.X+1][dimensions.Y+1][dimensions.Z+1]);
+        heights = new Int2Array(boost::extents[dimensions.X+1][dimensions.Z+1]);
         localPoint = new irr::core::vector3d<int>();
-        buf = new irr::scene::SMeshBuffer();
+        buffer = new irr::scene::SMeshBuffer();
 
         status = EMPTY;
 
@@ -102,8 +117,11 @@ public:
     };
     void Initialize(irr::core::vector3d<int> dimensions, irr::core::vector3d<int> position);
 
-    double GetValue(unsigned x, unsigned y, unsigned z);
-    int GetHeight(unsigned x, unsigned z);
+    double GetValue(irr::core::vector3d<unsigned> position);
+    bool GetFilled(irr::core::vector3d<unsigned> position);
+    int GetHeight(irr::core::vector2d<unsigned> position);
+
+    void UpdateVoxel(irr::core::vector3d<unsigned> position, float value, int material);
     void FillChunk(anl::CImplicitXML & noiseTree);
     void MeshChunk();
 };
@@ -113,6 +131,7 @@ class ScalarTerrain
 {
 private:
 	double value;
+
 
     static const int MAXTHREADS = 10;
 
@@ -144,8 +163,12 @@ public:
     void FillBackground(irr::core::vector3d<int> tl);
     void MeshBackground(irr::core::vector3d<int> tl);
 
+    void UpdateVoxel(VoxelData & vd);
+
     int GetAltitude(const irr::core::vector3d<int> & Position);
     int GetAltitude(const irr::core::vector3df & Position);
+    bool GetFilled(const irr::core::vector3d<int> & Position);
+    bool GetFilled(const irr::core::vector3df & Position);
 
     bool BlockFilled(irr::core::vector3df);
 };

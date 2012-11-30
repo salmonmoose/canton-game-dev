@@ -1,20 +1,7 @@
 CC = gcc
 CXX = g++
 RM = rm -f
-CPPFLAGS = \
-	-g \
-	$(shell) \
-	-Wall \
-	-std=c++0x \
-	-ffast-math \
-	-I../libs/boost_1_50_0 \
-	-I../libs/threadpool \
-	-I../libs/pugixml/src \
-	-I../libs/tinyxml2 \
-	-I../libs/accidentalnoise/include \
-	-I../libs/irrlicht-1.8.0/include \
-	-I./include -I/usr/X11R6/include \
-	#-O3 
+
 
 LDLIBS = \
 	-L/usr/X11R6/lib$(LIBSELECT) \
@@ -37,12 +24,32 @@ SRCS = \
 	./src/mouse.cpp \
 	./src/pewpew.cpp \
 	./src/shadercallback.cpp \
-	./src/terrain.cpp \
+	./src/terrainchunk.cpp \
+	./src/scalarterrain.cpp \
 	./src/nullstate.cpp
 
 OBJS = $(subst .cpp,.o,$(SRCS))
 
-all: canton
+.PHONY: default all release debug
+
+default all: debug
+
+release:	export EXTRA_CPPFLAGS := -O3
+debug:		export EXTRA_CPPFLAGS := -DDEBUG -g
+
+CPPFLAGS = \
+	$(shell) \
+	-Wall \
+	-std=c++0x \
+	-ffast-math \
+	-I../libs/boost_1_50_0 \
+	-I../libs/pugixml/src \
+	-I../libs/accidentalnoise/include \
+	-I../libs/irrlicht-1.8.0/include \
+	-I./include -I/usr/X11R6/include \
+	$(EXTRA_CPPFLAGS)
+
+release debug: canton
 
 canton: $(OBJS)
 	g++ $(LDFLAGS) -o ./bin/Linux/Canton $(OBJS) $(LDLIBS)

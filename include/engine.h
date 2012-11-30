@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <irrlicht.h>
+#include "functions.h"
 #include "eventhandler.h"
 #include "mob.h"
 #include "player.h"
@@ -27,6 +28,8 @@ class GLSLMaterial; //Forward declaration
 class Mob;
 
 class Player;
+
+class ScalarTerrain;
 
 class IrrlichtEngineManager
 {
