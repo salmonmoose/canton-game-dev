@@ -329,6 +329,11 @@ static int triTable[256][16] = {
         { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
 };
 
+void generateSurface()
+{
+
+}
+
 void generateIsoSurface(
         irr::scene::SMeshBuffer& buf, 
         Float3Array & values, 

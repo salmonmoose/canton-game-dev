@@ -1,5 +1,14 @@
 #include "terrain.h"
 
+static irr::core::vector3d<int> Previous[6] = {
+    irr::core::vector3d<int>(0,0,1),
+    irr::core::vector3d<int>(0,1,0),
+    irr::core::vector3d<int>(0,1,1),
+    irr::core::vector3d<int>(1,0,0),
+    irr::core::vector3d<int>(1,0,1),
+    irr::core::vector3d<int>(1,1,1)
+};
+
 
 ScalarTerrain::ScalarTerrain()
 {
@@ -73,14 +82,25 @@ void ScalarTerrain::FillBackground(irr::core::vector3d<int> tl)
     worldMap[tl].FillChunk(noiseTree);
     threads--;
     fillThreads--;
-    worldMap[tl].status = DIRTY;
+    worldMap[tl].status = FILLED;
+
+    for(int i = 0; i < 6; i++)
+    {
+        if(worldMap[tl - Previous[i]].status == CLEAN)
+        {
+            worldMap[tl - Previous[i]].status = DIRTY;
+        }
+    }
 }
 
-void ScalarTerrain::MeshBackground(irr::core::vector3d<int> tl) {
-    worldMap[tl].MeshChunk();
+void ScalarTerrain::MeshBackground(irr::core::vector3d<int> tl) 
+{
+    worldMesh[tl].Initialize(this, tl);
+    printf("GenerateMesh(%i,%i,%i)\n", tl.X, tl.Y, tl.Z);
+    worldMesh[tl].GenerateMesh();
+    worldMap[tl].status = CLEAN;
     threads--;
     meshThreads--;
-    worldMap[tl].status = CLEAN;
 }
 
 int ScalarTerrain::GetAltitude(const irr::core::vector3df & Position)
@@ -99,7 +119,7 @@ int ScalarTerrain::GetAltitude(const irr::core::vector3d<int> & Position)
     int height;
 
     for(y = 0; y < 16; y++) {
-        VoxelReference vr(irr::core::vector3d<int>(Position.X, Position.Y - (y * dimensions.Y), Position.Z), dimensions);
+        VoxelReference vr(irr::core::vector3d<int>(Position.X, Position.Y - (y * dimensions.Y), Position.Z));
 
         worldMap_iterator = worldMap.find(vr.Chunk);
 
@@ -128,7 +148,7 @@ bool ScalarTerrain::GetFilled(const irr::core::vector3df & Position)
 
 bool ScalarTerrain::GetFilled(const irr::core::vector3d<int> & Position)
 {
-    VoxelReference vr(Position, dimensions);
+    VoxelReference vr(Position);
 
     worldMap_iterator = worldMap.find(vr.Chunk);
 
@@ -142,16 +162,80 @@ bool ScalarTerrain::GetFilled(const irr::core::vector3d<int> & Position)
     }
 }
 
-
 void ScalarTerrain::UpdateVoxel(VoxelData & vd)
 {
-    VoxelReference vr(vd.Position, dimensions);
+    printf("Updating voxel at (%i,%i,%i)\n", vd.Position.X, vd.Position.Y, vd.Position.Z);
+    
+    VoxelReference vr(vd.Position);
 
     worldMap_iterator = worldMap.find(vr.Chunk);
 
     if(worldMap_iterator != worldMap.end())
     {
         worldMap_iterator->second.UpdateVoxel(vr.Position, vd.Value, vd.Material);
+    }
+}
+
+void ScalarTerrain::AddBrush(irr::core::vector3df Position)
+{
+    VoxelData vd(irr::core::vector3d<int>(
+            (int) Position.X,
+            (int) Position.Y,
+            (int) Position.Z
+        ),
+        1.f,
+        1
+    );
+
+    UpdateVoxel(vd);
+}
+
+void ScalarTerrain::RemoveBrush(irr::core::vector3df Position)
+{
+    VoxelData vd(irr::core::vector3d<int>(
+        (int) Position.X,
+        (int) Position.Y,
+        (int) Position.Z
+        ),
+        -1.f,
+        1
+    );
+
+    UpdateVoxel(vd);
+}
+
+float ScalarTerrain::GetValue(irr::core::vector3d<int> Position)
+{
+    VoxelReference vr(Position);
+
+    worldMap_iterator = worldMap.find(vr.Chunk);
+
+    //printf("(%i,%i,%i)+(%i,%i,%i)\n", vr.Position.X, vr.Position.Y, vr.Position.Z, vr.Chunk.X, vr.Chunk.Y, vr.Chunk.Z);
+
+    if(worldMap_iterator != worldMap.end())
+    {
+        //return 1.f;
+        return worldMap_iterator->second.GetValue(vr.Position);
+    }
+    else
+    {
+        return -10.f;
+    }
+}
+
+int ScalarTerrain::GetMaterial(irr::core::vector3d<int> Position)
+{
+    VoxelReference vr(Position);
+
+    worldMap_iterator = worldMap.find(vr.Chunk);
+
+    if(worldMap_iterator != worldMap.end())
+    {
+        return worldMap_iterator->second.GetMaterial(vr.Position);
+    }
+    else
+    {
+        return 0;
     }
 }
 
@@ -172,7 +256,7 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
     {
         printf("too many buffers\n");
         return;
-    }           
+    }          
 
     for(unsigned i = 0; i < Mesh.getMeshBufferCount(); i ++) {
         Mesh.MeshBuffers.erase(i);
@@ -185,26 +269,33 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
 
     irr::core::aabbox3df aabbox;
 
+    /*x_start = -2;
+    x_finish = 2;
+    y_start = 8;
+    y_finish = 8;
+    z_start = -2;
+    z_finish = 2;*/
+
     for(int y = y_finish; y >= y_start; y--) { //start picking from the top.
         for(int z = z_finish; z >= z_start; z--) { //todo should probably pick towards player first
             for(int x = x_start; x <= x_finish; x++) {
                 boxCount ++;
-
                 tl.set(x,y,z);
                 
                 if(worldMap.find(tl) == worldMap.end())
                 {
                     worldMap[tl] = TerrainChunk();
+                    //printf("Adding: (%i,%i,%i)\n",tl.X, tl.Y, tl.Z);
                     worldMap[tl].Initialize(dimensions, irr::core::vector3d<int>(x,y,z));
                 }
 
                 aabbox = irr::core::aabbox3df(
-                    (dimensions.X * x), 
-                    (dimensions.Y * y), 
-                    (dimensions.Z * z),
-                    (dimensions.X * x + dimensions.X), 
-                    (dimensions.Y * y + dimensions.Y), 
-                    (dimensions.Z * z + dimensions.Z)
+                    ((int)dimensions.X * x), 
+                    ((int)dimensions.Y * y), 
+                    ((int)dimensions.Z * z),
+                    ((int)dimensions.X * x + (int)dimensions.X), 
+                    ((int)dimensions.Y * y + (int)dimensions.Y), 
+                    ((int)dimensions.Z * z + (int)dimensions.Z)
                 );
 
                 if(AABBoxInFrustum(Frustum, aabbox))
@@ -220,7 +311,8 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
                         if(worldMap[tl].status == CLEAN)
                         {
                             actualCount++;
-                            Mesh.addMeshBuffer(worldMap[tl].buffer);
+                            Mesh.addMeshBuffer(worldMesh[tl].buffer);
+                            //Mesh.addMeshBuffer(worldMap[tl].buffer);
                         }
 
                         /**
@@ -228,6 +320,7 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
                         */
                         if((worldMap[tl].status == FILLED || worldMap[tl].status == DIRTY) && threads < MAXTHREADS && !worldMap[tl].empty)
                         {
+                            printf("Meshing: (%i,%i,%i)\n", tl.X, tl.Y, tl.Z);
                             worldMap[tl].status = MESHING;
                             threads++;
                             meshThreads++;
@@ -241,6 +334,7 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
                         */
                         if(worldMap[tl].status == EMPTY && threads < MAXTHREADS)
                         {
+                            printf("Filling: (%i,%i,%i)\n", tl.X, tl.Y, tl.Z);
                             worldMap[tl].status = FILLING;
                             threads++;
                             fillThreads++;
@@ -253,6 +347,10 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
                     {
                         worldMap[tl].obstruct = true;
                     }
+                }
+                else
+                {
+                    //printf("Not in Frustum(%i,%i,%i)\n", tl.X, tl.Y, tl.Z);
                 }
             }
         }

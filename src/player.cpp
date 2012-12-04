@@ -89,7 +89,7 @@ void Player::Init()
     playerEngine1->setMaterialTexture(0, IRR.driver->getTexture("./resources/fireball.bmp"));
     playerEngine2->setMaterialTexture(0, IRR.driver->getTexture("./resources/fireball.bmp"));
 
-    Position.Y = 32.f;
+    Position.Y = 40.f;
     MaxSpeed = 64.f;
     MaxStrafe = 32.f;
     MaxTurnRate = 90.f;
@@ -171,7 +171,7 @@ void Player::AcceptInput()
         Velocity += IRR.getRotatedVector(core::vector3df(0,0,-1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
     }
 
-    if(IRR.receiver.ButtonPressed(EventReceiver::MOUSE_BUTTON_LEFT))
+    if(IRR.receiver.KeyDown(irr::KEY_SPACE))
     {
         //FIXME: This should be abstracted to the engine;
         std::unique_ptr<Mob> missile = std::unique_ptr<Mob>(new PewPew(Position, Rotation, Velocity));
@@ -189,5 +189,10 @@ void Player::AcceptInput()
         enemy->Init();
 
         IRR.vMob->push_back(std::move(enemy));
+    }
+
+    if(IRR.receiver.ButtonPressed(EventReceiver::MOUSE_BUTTON_LEFT))
+    {
+        IRR.mScalarTerrain->AddBrush(mouse->getPosition());
     }
 }

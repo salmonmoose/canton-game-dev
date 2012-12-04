@@ -25,6 +25,7 @@ SRCS = \
 	./src/pewpew.cpp \
 	./src/shadercallback.cpp \
 	./src/terrainchunk.cpp \
+	./src/terrainmesh.cpp \
 	./src/scalarterrain.cpp \
 	./src/nullstate.cpp
 
@@ -32,9 +33,9 @@ OBJS = $(subst .cpp,.o,$(SRCS))
 
 .PHONY: default all release debug
 
-default all: debug
+default all: release
 
-release:	export EXTRA_CPPFLAGS := -O3
+release:	export EXTRA_CPPFLAGS := -O3 -fexpensive-optimizations
 debug:		export EXTRA_CPPFLAGS := -DDEBUG -g
 
 CPPFLAGS = \

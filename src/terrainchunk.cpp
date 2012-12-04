@@ -40,8 +40,9 @@ bool TerrainChunk::GetFilled(irr::core::vector3d<unsigned> Position)
     }
 }
 
-void TerrainChunk::Initialize(irr::core::vector3d<int> dimensions, irr::core::vector3d<int> position)
+void TerrainChunk::Initialize(irr::core::vector3d<unsigned> dimensions, irr::core::vector3d<int> position)
 {
+    
     buffer->setBoundingBox(irr::core::aabbox3df(
         (dimensions.X * position.X), 
         (dimensions.Y * position.Y), 
@@ -50,25 +51,37 @@ void TerrainChunk::Initialize(irr::core::vector3d<int> dimensions, irr::core::ve
         (dimensions.Y * position.Y + dimensions.Y), 
         (dimensions.Z * position.Z + dimensions.Z)
     ));
-    localPoint = new irr::core::vector3d<int>(position.X,position.Y,position.Z);
+    localPoint = irr::core::vector3d<int>(position.X,position.Y,position.Z);
 }
 
-double TerrainChunk::GetValue(irr::core::vector3d<unsigned> Position)
+float TerrainChunk::GetValue(irr::core::vector3d<unsigned> Position)
 {
     if(status != EMPTY && status != FILLING)
     {
-        return (*values)[Position.X][Position.X][Position.X];
+        return (*values)[Position.X][Position.Y][Position.Z];
     }
     else
     {
-        return 0.f;
+        return -15.f;
+    }
+}
+
+int TerrainChunk::GetMaterial(irr::core::vector3d<unsigned> Position)
+{
+    if(status != EMPTY && status != FILLING)
+    {
+        return (*values)[Position.X][Position.Y][Position.Z];
+    }
+    else
+    {
+        return 0;
     }
 }
 
 void TerrainChunk::MeshChunk()
 {
     tempBuffer = new irr::scene::SMeshBuffer();
-    generateIsoSurface(* tempBuffer, * values, * materials, localPoint->X * dimensions.X, localPoint->Y * dimensions.Y, localPoint->Z * dimensions.Z);
+    generateIsoSurface(* tempBuffer, * values, * materials, localPoint.X * dimensions.X, localPoint.Y * dimensions.Y, localPoint.Z * dimensions.Z);
     buffer = tempBuffer;
 }
 
@@ -85,25 +98,29 @@ Using noise tree, populates an array with values
 **/
 void TerrainChunk::FillChunk(anl::CImplicitXML & noiseTree) {
     double value;
-    double xPos = localPoint->X * dimensions.X;
-    double yPos = localPoint->Y * dimensions.Y;
-    double zPos = localPoint->Z * dimensions.Z;
+    int xPos = localPoint.X * (int)dimensions.X;
+    int yPos = localPoint.Y * (int)dimensions.Y;
+    int zPos = localPoint.Z * (int)dimensions.Z;
 
     bool solid;
 
     //TODO: This method could essentially generate a list of meshable voxels (see improvements for marchingcubes.cpp)
 
     try {
-        for(int y = dimensions.Y; y >= 0; y--) { //Trace DOWN y axis, first blocks found will be highest.
+        for(int y = dimensions.Y -1; y >= 0; y--) { //Trace DOWN y axis, first blocks found will be highest.
             solid=true; //fresh layer, assume solid
-            for(int x = 0; x <= dimensions.X; x++) {
-                for(int z = 0; z <= dimensions.Z; z++) {
+            for(unsigned x = 0; x < dimensions.X; x++) {
+                for(unsigned z = 0; z < dimensions.Z; z++) {
                     
                     value = noiseTree.get(
-                        (double) (x + xPos) / 32.f, // (double) x_chunk, 
+                        (double) ((int)x + xPos) / 32.f, // (double) x_chunk, 
                         (double) (y + yPos) / 32.f, // (double) y_chunk, 
-                        (double) (z + zPos) / 32.f // (double) z_chunk
+                        (double) ((int)z + zPos) / 32.f // (double) z_chunk
                     );
+
+                    //printf("(%i,%i,%i)+(%i,%i,%i)=",x,y,z,xPos,yPos,zPos);
+
+                    //printf("%f\n", value);
 
                     if(value > 0.5) {
                         empty = false; //a value has been found, block must be meshed
