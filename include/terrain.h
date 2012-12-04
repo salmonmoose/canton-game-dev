@@ -14,7 +14,6 @@
 #include "engine.h"
 
 static irr::core::vector3d<unsigned> dimensions(16,16,16);
-static float isolevel = 0.5f;
 
 typedef boost::multi_array<float, 3> Float3Array;
 typedef boost::multi_array<bool, 3> Bool3Array;
@@ -203,6 +202,8 @@ class TerrainMesh
 public:
     int status;
 
+    static const int isolevel = 0.5;
+
     irr::scene::SMeshBuffer * buffer;
     irr::scene::SMeshBuffer * tempBuffer;
     irr::core::vector3d<int> localPoint;
@@ -225,6 +226,7 @@ public:
     };
 
     void GenerateMesh();
+    void NaiveNormals();
     void GenerateSurface(irr::core::vector3d<unsigned> renderBlock, float Values[8], int Materials[8]);
 };
 

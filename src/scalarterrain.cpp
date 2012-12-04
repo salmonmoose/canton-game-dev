@@ -96,7 +96,6 @@ void ScalarTerrain::FillBackground(irr::core::vector3d<int> tl)
 void ScalarTerrain::MeshBackground(irr::core::vector3d<int> tl) 
 {
     worldMesh[tl].Initialize(this, tl);
-    printf("GenerateMesh(%i,%i,%i)\n", tl.X, tl.Y, tl.Z);
     worldMesh[tl].GenerateMesh();
     worldMap[tl].status = CLEAN;
     threads--;
@@ -320,7 +319,7 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
                         */
                         if((worldMap[tl].status == FILLED || worldMap[tl].status == DIRTY) && threads < MAXTHREADS && !worldMap[tl].empty)
                         {
-                            printf("Meshing: (%i,%i,%i)\n", tl.X, tl.Y, tl.Z);
+                            //printf("Meshing: (%i,%i,%i)\n", tl.X, tl.Y, tl.Z);
                             worldMap[tl].status = MESHING;
                             threads++;
                             meshThreads++;
@@ -334,7 +333,7 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
                         */
                         if(worldMap[tl].status == EMPTY && threads < MAXTHREADS)
                         {
-                            printf("Filling: (%i,%i,%i)\n", tl.X, tl.Y, tl.Z);
+                            //printf("Filling: (%i,%i,%i)\n", tl.X, tl.Y, tl.Z);
                             worldMap[tl].status = FILLING;
                             threads++;
                             fillThreads++;

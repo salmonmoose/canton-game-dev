@@ -29,8 +29,8 @@ void IrrlichtEngineManager::Startup()
 
 void IrrlichtEngineManager::SetupDevice()
 {
-    //irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_OPENGL;
-    irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_BURNINGSVIDEO;
+    irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_OPENGL;
+    //irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_BURNINGSVIDEO;
 
     //device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, false, false, &receiver);
     device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
