@@ -18,6 +18,16 @@ public:
     {
         mPlayer->AcceptInput();
         mPlayer->ApplyVectors();
+        IRR.shipPosition->setText(
+            (
+                core::stringw(L"Ship Position: (") +
+                core::stringw(mPlayer->getPosition().X) +
+                core::stringw(",") +
+                core::stringw(mPlayer->getPosition().Y) +
+                core::stringw(",") +
+                core::stringw(mPlayer->getPosition().Z) +
+                core::stringw(")")
+            ).c_str());
     }
 
     virtual void OnEnter()

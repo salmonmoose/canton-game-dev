@@ -56,7 +56,11 @@ public:
         std::div_t y_ref = std::div(position.Y, (int)dimensions.Y);
         std::div_t z_ref = std::div(position.Z, (int)dimensions.Z);
 
-        Chunk = irr::core::vector3d<int>(x_ref.quot, y_ref.quot, z_ref.quot);
+        Chunk = irr::core::vector3d<int>(
+            (position.X < 0)? x_ref.quot - 1 : x_ref.quot, 
+            (position.Y < 0)? y_ref.quot - 1 : y_ref.quot, 
+            (position.Z < 0)? z_ref.quot - 1 : z_ref.quot
+        );
 
         Position = irr::core::vector3d<unsigned>(
             (x_ref.rem < 0)? (int)dimensions.X + x_ref.rem -1 : x_ref.rem, 

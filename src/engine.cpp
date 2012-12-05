@@ -32,8 +32,8 @@ void IrrlichtEngineManager::SetupDevice()
     irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_OPENGL;
     //irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_BURNINGSVIDEO;
 
-    //device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, false, false, &receiver);
-    device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
+    device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, false, false, &receiver);
+    //device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
     
     if (!device)
         printf("Device failed to manifest\n");
@@ -84,20 +84,8 @@ void IrrlichtEngineManager::SetupGUI()
 
     skin->setFont(env->getBuiltInFont(), gui::EGDF_TOOLTIP);
 
-    fillThreads = env->addStaticText(L"fillThreads", core::rect<s32>(0,0,200,10), true);
-    fillThreads->setDrawBorder(false);
-
-    meshThreads = env->addStaticText(L"meshThreads", core::rect<s32>(0,10,200,20), true);
-    meshThreads->setDrawBorder(false);
-
-    boxBuffers = env->addStaticText(L"boxBuffers", core::rect<s32>(0,20,200,30), true);
-    boxBuffers->setDrawBorder(false);
-    
-    frustumBuffers = env->addStaticText(L"frustumBuffers", core::rect<s32>(0,30,200,40), true);
-    frustumBuffers->setDrawBorder(false);
-
-    actualBuffers = env->addStaticText(L"frustumBuffers", core::rect<s32>(0,40,200,50), true);
-    actualBuffers->setDrawBorder(false);
+    shipPosition = env->addStaticText(L"shipPosition", core::rect<s32>(0,0,200,16), true);
+    shipPosition->setDrawBorder(false);
     
     then = device->getTimer()->getTime();
 }

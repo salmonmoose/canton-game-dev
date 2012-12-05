@@ -83,14 +83,6 @@ void ScalarTerrain::FillBackground(irr::core::vector3d<int> tl)
     threads--;
     fillThreads--;
     worldMap[tl].status = FILLED;
-
-    for(int i = 0; i < 6; i++)
-    {
-        if(worldMap[tl - Previous[i]].status == CLEAN)
-        {
-            worldMap[tl - Previous[i]].status = DIRTY;
-        }
-    }
 }
 
 void ScalarTerrain::MeshBackground(irr::core::vector3d<int> tl) 
@@ -209,7 +201,7 @@ float ScalarTerrain::GetValue(irr::core::vector3d<int> Position)
 
     worldMap_iterator = worldMap.find(vr.Chunk);
 
-    //printf("(%i,%i,%i)+(%i,%i,%i)\n", vr.Position.X, vr.Position.Y, vr.Position.Z, vr.Chunk.X, vr.Chunk.Y, vr.Chunk.Z);
+    //printf("(%i,%i,%i)=(%i,%i,%i)+(%i,%i,%i)\n", Position.X, Position.Y, Position.Z, vr.Position.X, vr.Position.Y, vr.Position.Z, vr.Chunk.X, vr.Chunk.Y, vr.Chunk.Z);
 
     if(worldMap_iterator != worldMap.end())
     {
@@ -267,14 +259,14 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
     irr::core::vector3d<int> tl(0,0,0);
 
     irr::core::aabbox3df aabbox;
-
-    /*x_start = -2;
-    x_finish = 2;
-    y_start = 8;
-    y_finish = 8;
-    z_start = -2;
-    z_finish = 2;*/
-
+/*
+    x_start = 0;
+    x_finish = 0;
+    y_start = 2;
+    y_finish = 2;
+    z_start = 0;
+    z_finish = 0;
+*/
     for(int y = y_finish; y >= y_start; y--) { //start picking from the top.
         for(int z = z_finish; z >= z_start; z--) { //todo should probably pick towards player first
             for(int x = x_start; x <= x_finish; x++) {
@@ -355,12 +347,6 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
         }
     }
 
-    //FIXME: This should be a function of the engine, query the nodes externally you naughty boy.
-    IRR.boxBuffers->setText(core::stringw(L"AABBox Buffers: ").append(core::stringw(boxCount)).c_str());
-    IRR.frustumBuffers->setText(core::stringw(L"Frustum Buffers: ").append(core::stringw(frustumCount)).c_str());
-    IRR.actualBuffers->setText(core::stringw(L"Actual Buffers: ").append(core::stringw(actualCount)).c_str());
-    IRR.meshThreads->setText(core::stringw(L"Mesh Threads: ").append(core::stringw(meshThreads)).c_str());
-    IRR.fillThreads->setText(core::stringw(L"Fill Threads: ").append(core::stringw(fillThreads)).c_str());
     //Mesh.recalculateBoundingBox();
     //printf("Mesh has %i buffers\n", Mesh.getMeshBufferCount());
 }

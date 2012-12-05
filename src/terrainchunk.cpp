@@ -44,12 +44,12 @@ void TerrainChunk::Initialize(irr::core::vector3d<unsigned> dimensions, irr::cor
 {
     
     buffer->setBoundingBox(irr::core::aabbox3df(
-        (dimensions.X * position.X), 
-        (dimensions.Y * position.Y), 
-        (dimensions.Z * position.Z),
-        (dimensions.X * position.X + dimensions.X), 
-        (dimensions.Y * position.Y + dimensions.Y), 
-        (dimensions.Z * position.Z + dimensions.Z)
+        (double) ((int)dimensions.X * position.X), 
+        (double) ((int)dimensions.Y * position.Y), 
+        (double) ((int)dimensions.Z * position.Z),
+        (double) (((int)dimensions.X * position.X) + (int)dimensions.X), 
+        (double) (((int)dimensions.Y * position.Y) + (int)dimensions.Y), 
+        (double) (((int)dimensions.Z * position.Z) + (int)dimensions.Z)
     ));
     localPoint = irr::core::vector3d<int>(position.X,position.Y,position.Z);
 }

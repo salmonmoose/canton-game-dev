@@ -98,11 +98,7 @@ public:
     std::map<std::string, GLSLMaterial> shaderMap;
 
 	irr::f32 frameDeltaTime;
-	irr::gui::IGUIStaticText * fillThreads;
-	irr::gui::IGUIStaticText * meshThreads;
-	irr::gui::IGUIStaticText * boxBuffers;
-	irr::gui::IGUIStaticText * frustumBuffers;
-	irr::gui::IGUIStaticText * actualBuffers;
+	irr::gui::IGUIStaticText * shipPosition;
 
 	irr::core::vector3df cameraOffset;
 
