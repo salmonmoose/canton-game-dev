@@ -2,10 +2,10 @@
 #define PLAYER_H
 
 #include "irrlicht.h"
-#include "engine.h"
 #include "mob.h"
-#include "pewpew.h"
 #include "mouse.h"
+
+class Mouse;
 
 class Player : public Mob
 {
@@ -17,13 +17,16 @@ public:
     irr::scene::IParticleEmitter * playerEngineEmitter1;
     irr::scene::IParticleEmitter * playerEngineEmitter2;
 
-    Mouse mouse;
+    Mouse * mouse;
 
     float TurnBuffer;
+    double Lift;
+    double Gravity;
 
     Player();
     ~Player();
-    void Update();
+    void Init();
+    void AcceptInput();
     float getAngleToMouse();
 
 protected:

@@ -1,6 +1,41 @@
 #include "pewpew.h"
+#include "state.h"
+#include "engine.h"
 
-PewPew::PewPew(irr::core::vector3df pos, irr::core::vector3df rot, irr::core::vector3df vel)
+class PewPewFiredState : public State
+{
+    PewPew * mPewPew;
+public:
+    PewPewFiredState(PewPew * pewpew)
+    {
+        mPewPew = pewpew;
+    };
+    ~PewPewFiredState(){};
+
+    virtual void OnUpdate()
+    {
+        mPewPew->Accelerate();
+        mPewPew->ApplyVectors();
+    }
+
+    virtual void OnEnter()
+    {
+
+    }
+
+    virtual void OnLeave()
+    {
+
+    }
+
+    virtual void OnMessage(std::string * message)
+    {
+
+    }
+};
+
+
+PewPew::PewPew(irr::core::vector3df pos, irr::core::vector3df rot, irr::core::vector3df vel) : Mob(true, true, true)
 {
     Position = pos;
     Rotation = rot;
@@ -39,7 +74,7 @@ PewPew::PewPew(irr::core::vector3df pos, irr::core::vector3df rot, irr::core::ve
         MatID = IRR.gpu->addHighLevelShaderMaterialFromFiles(
             vsFileName, "vertexMain", video::EVST_VS_1_1,
             psFileName, "pixelMain", video::EPST_PS_1_1,
-            shaderCallback, video::EMT_TRANSPARENT_ALPHA_CHANNEL);
+            shaderCallback, video::EMT_TRANSPARENT_ADD_COLOR);
 
         shaderCallback->drop();
     }
@@ -60,11 +95,16 @@ void PewPew::Init()
     MaxStrafe = 0.f;
     MaxTurnRate = 45.f;
     Drag = 0.1f;
+
+    SetState(new PewPewFiredState(this));
 }
 
 void PewPew::Update()
 {
-    Velocity += IRR.getRotatedVector(core::vector3df(0,0,1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
-
     Mob::Update();
+}
+
+void PewPew::Accelerate()
+{
+    Velocity += IRR.getRotatedVector(core::vector3df(0,0,1), Rotation) * MaxSpeed * IRR.frameDeltaTime;   
 }
