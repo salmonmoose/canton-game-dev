@@ -80,6 +80,20 @@ void ScalarTerrain::Init()
 void ScalarTerrain::FillBackground(irr::core::vector3d<int> tl) 
 {
     worldMap[tl].FillChunk(noiseTree);
+
+    for(int i = 0; i < 6; i++)
+    {
+        irr::core::vector3d<int> clean(tl.X - Previous[i].X, tl.Y - Previous[i].Y, tl.Z - Previous[i].Z);
+        
+        if(worldMap[clean].status == CLEAN || worldMap[clean].status == MESHING)
+        {
+            worldMap[clean].status = DIRTY;
+        }
+
+        //FIXME: there is an edge case where this chunk may being rendered
+        //Perhaps after being meshed, chunks should only change to "CLEAN" if their status is "MESHING"
+    }
+
     threads--;
     fillThreads--;
     worldMap[tl].status = FILLED;
@@ -89,7 +103,10 @@ void ScalarTerrain::MeshBackground(irr::core::vector3d<int> tl)
 {
     worldMesh[tl].Initialize(this, tl);
     worldMesh[tl].GenerateMesh();
-    worldMap[tl].status = CLEAN;
+    
+    if(worldMap[tl].status == MESHING) 
+        worldMap[tl].status = CLEAN;
+
     threads--;
     meshThreads--;
 }
@@ -155,8 +172,6 @@ bool ScalarTerrain::GetFilled(const irr::core::vector3d<int> & Position)
 
 void ScalarTerrain::UpdateVoxel(VoxelData & vd)
 {
-    printf("Updating voxel at (%i,%i,%i)\n", vd.Position.X, vd.Position.Y, vd.Position.Z);
-    
     VoxelReference vr(vd.Position);
 
     worldMap_iterator = worldMap.find(vr.Chunk);
@@ -164,6 +179,7 @@ void ScalarTerrain::UpdateVoxel(VoxelData & vd)
     if(worldMap_iterator != worldMap.end())
     {
         worldMap_iterator->second.UpdateVoxel(vr.Position, vd.Value, vd.Material);
+        worldMap_iterator->second.status = DIRTY;
     }
 }
 
@@ -230,6 +246,18 @@ int ScalarTerrain::GetMaterial(irr::core::vector3d<int> Position)
     }
 }
 
+
+//                                         .o8                        oooo                                 
+//                                        "888                        `888                                 
+//    oooo d8b  .ooooo.  ooo. .oo.    .oooo888   .ooooo.  oooo d8b     888   .ooooo.   .ooooo.  oo.ooooo.  
+//    `888""8P d88' `88b `888P"Y88b  d88' `888  d88' `88b `888""8P     888  d88' `88b d88' `88b  888' `88b 
+//     888     888ooo888  888   888  888   888  888ooo888  888         888  888   888 888   888  888   888 
+//     888     888    .o  888   888  888   888  888    .o  888         888  888   888 888   888  888   888 
+//    d888b    `Y8bod8P' o888o o888o `Y8bod88P" `Y8bod8P' d888b       o888o `Y8bod8P' `Y8bod8P'  888bod8P' 
+//                                                                                               888       
+//                                                                                              o888o      
+                                                                                                         
+
 void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum) 
 {
     irr::core::aabbox3df bounding = Frustum->getBoundingBox();
@@ -260,13 +288,14 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
 
     irr::core::aabbox3df aabbox;
 /*
-    x_start = 0;
-    x_finish = 0;
-    y_start = 2;
-    y_finish = 2;
-    z_start = 0;
-    z_finish = 0;
+    x_start = -2;
+    x_finish = -2;
+    y_start = -2;
+    y_finish = -2;
+    z_start = -2;
+    z_finish = -2;
 */
+
     for(int y = y_finish; y >= y_start; y--) { //start picking from the top.
         for(int z = z_finish; z >= z_start; z--) { //todo should probably pick towards player first
             for(int x = x_start; x <= x_finish; x++) {
@@ -297,9 +326,9 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
                     { //If the layer above me doesn't obsrtuct, render
                         
                         /**
-                        * if the chunk is Clean, just pass the buffer empty chunk will never be made clean
+                        * if the chunk is Clean, or Dirty a mesh exists - dirty meshes are out of date but the best we have.
                         */
-                        if(worldMap[tl].status == CLEAN)
+                        if(worldMesh[tl].Meshed)
                         {
                             actualCount++;
                             Mesh.addMeshBuffer(worldMesh[tl].buffer);
@@ -309,6 +338,8 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
                         /**
                         * if the chunk is filled, unmeshed, there are threads free and there is data, render
                         */
+
+                        //FIXME - if this chunk is already meshing, and is dirty again, the process should be thrown out and restarted.
                         if((worldMap[tl].status == FILLED || worldMap[tl].status == DIRTY) && threads < MAXTHREADS && !worldMap[tl].empty)
                         {
                             //printf("Meshing: (%i,%i,%i)\n", tl.X, tl.Y, tl.Z);
@@ -334,14 +365,11 @@ void ScalarTerrain::generateMesh(const irr::scene::SViewFrustum * Frustum)
                             //t1.join(); //Foreground Operations
                         }
                     }
+                    
                     else
                     {
-                        worldMap[tl].obstruct = true;
+                        y = y_start; //We don't need to check anything else in this column.
                     }
-                }
-                else
-                {
-                    //printf("Not in Frustum(%i,%i,%i)\n", tl.X, tl.Y, tl.Z);
                 }
             }
         }

@@ -118,11 +118,11 @@ void TerrainChunk::FillChunk(anl::CImplicitXML & noiseTree) {
                         (double) ((int)z + zPos) / 32.f // (double) z_chunk
                     );
 
-                    //printf("(%i,%i,%i)+(%i,%i,%i)=",x,y,z,xPos,yPos,zPos);
+                    //printf("(%i,%i,%i)+(%i,%i,%i)=(%i,%i,%i)", x, y, z, xPos, yPos, zPos, x+xPos, y+yPos, z+zPos);
 
                     //printf("%f\n", value);
 
-                    if(value > 0.5) {
+                    if(value > isolevel) {
                         empty = false; //a value has been found, block must be meshed
 
                         //if there is no highest block in this column, set this column's highest value to y.

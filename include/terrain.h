@@ -57,15 +57,15 @@ public:
         std::div_t z_ref = std::div(position.Z, (int)dimensions.Z);
 
         Chunk = irr::core::vector3d<int>(
-            (position.X < 0)? x_ref.quot - 1 : x_ref.quot, 
-            (position.Y < 0)? y_ref.quot - 1 : y_ref.quot, 
-            (position.Z < 0)? z_ref.quot - 1 : z_ref.quot
+            (position.X < 0 && x_ref.rem != 0)? x_ref.quot - 1 : x_ref.quot, 
+            (position.Y < 0 && y_ref.rem != 0)? y_ref.quot - 1 : y_ref.quot, 
+            (position.Z < 0 && z_ref.rem != 0)? z_ref.quot - 1 : z_ref.quot
         );
 
         Position = irr::core::vector3d<unsigned>(
-            (x_ref.rem < 0)? (int)dimensions.X + x_ref.rem -1 : x_ref.rem, 
-            (y_ref.rem < 0)? (int)dimensions.Y + y_ref.rem -1 : y_ref.rem, 
-            (z_ref.rem < 0)? (int)dimensions.Z + z_ref.rem -1 : z_ref.rem
+            (position.X < 0 && x_ref.rem != 0)? (int)dimensions.X + x_ref.rem : x_ref.rem, 
+            (position.Y < 0 && y_ref.rem != 0)? (int)dimensions.Y + y_ref.rem : y_ref.rem, 
+            (position.Z < 0 && z_ref.rem != 0)? (int)dimensions.Z + z_ref.rem : z_ref.rem
         );
 
         Dimensions = dimensions;
@@ -110,6 +110,8 @@ public:
     Unsigned3Array * materials; //Provites material for each cell
     Int2Array * heights; //Provides highest point in X,Z plane, returns null for empty colmun.
     Bool3Array * filled;
+
+    static const int isolevel = 0.5;
 
     irr::core::vector3d<int> localPoint;
     int status;
@@ -208,6 +210,8 @@ public:
 
     static const int isolevel = 0.5;
 
+    bool Meshed;
+
     irr::scene::SMeshBuffer * buffer;
     irr::scene::SMeshBuffer * tempBuffer;
     irr::core::vector3d<int> localPoint;
@@ -227,11 +231,12 @@ public:
         );
         buffer = new irr::scene::SMeshBuffer();
         status = DIRTY;
+        Meshed = false;
     };
 
     void GenerateMesh();
     void NaiveNormals();
-    void GenerateSurface(irr::core::vector3d<unsigned> renderBlock, float Values[8], int Materials[8]);
+    void GenerateSurface(irr::core::vector3d<int> renderBlock, float Values[8], int Materials[8]);
 };
 
 

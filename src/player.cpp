@@ -201,7 +201,7 @@ void Player::AcceptInput()
         IRR.vMob->push_back(std::move(enemy));
     }
 
-    if(IRR.receiver.ButtonPressed(EventReceiver::MOUSE_BUTTON_LEFT))
+    if(IRR.receiver.ButtonDown(EventReceiver::MOUSE_BUTTON_LEFT))
     {
         IRR.mScalarTerrain->AddBrush(mouse->getPosition());
     }
