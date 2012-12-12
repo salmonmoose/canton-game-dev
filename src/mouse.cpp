@@ -3,15 +3,24 @@
 Mouse::Mouse()
 {
 	mainMesh = IRR.smgr->addAnimatedMeshSceneNode(IRR.smgr->getMesh("./resources/indevship.obj"));
+    Position = irr::core::vector3df(0.f,0.f,0.f);
 }
 
-void Mouse::Update()
+void Mouse::Update(float height)
 {
-    Position = IntersectPlane(getRay(), 32.f);
-	mainMesh->setPosition(Position); //should align with player height.
+    irr::core::line3df mouseLine = getRay();
+
+    Position = IntersectPlane(mouseLine, height);
+
+	//mainMesh->setPosition(Position); //should align with player height.
 }
 
-core::line3d<f32> Mouse::getRay()
+irr::core::vector3df Mouse::getPosition()
+{
+    return Position;
+}
+
+irr::core::line3df Mouse::getRay()
 {
     irr::core::line3d<f32> ln(0,0,0,0,0,0);
     const scene::SViewFrustum* f = IRR.camera->getViewFrustum();
@@ -32,13 +41,13 @@ core::line3d<f32> Mouse::getRay()
     return ln;
 }
 
-irr::core::vector3df Mouse::IntersectPlane(core::line3d<f32> myLine, float yCoord)
+irr::core::vector3df Mouse::IntersectPlane(core::line3df myLine, irr::f32 yCoord)
 {
-    float xSlope = (myLine.end.X - myLine.start.X) / (myLine.end.Y - myLine.start.Y);
-    float zSlope = (myLine.end.Z - myLine.start.Z) / (myLine.end.Y - myLine.start.Y);
+    irr::f32 xSlope = (myLine.end.X - myLine.start.X) / (myLine.end.Y - myLine.start.Y);
+    irr::f32 zSlope = (myLine.end.Z - myLine.start.Z) / (myLine.end.Y - myLine.start.Y);
 
-    float xCoord = myLine.start.X + (xSlope * (yCoord - myLine.start.Y));
-    float zCoord = myLine.start.Z + (zSlope * (yCoord - myLine.start.Y));
+    irr::f32 xCoord = myLine.start.X + (xSlope * (yCoord - myLine.start.Y));
+    irr::f32 zCoord = myLine.start.Z + (zSlope * (yCoord - myLine.start.Y));
 
     return irr::core::vector3df(xCoord, yCoord, zCoord);
 }

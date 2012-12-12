@@ -1,8 +1,65 @@
 #include "player.h"
+#include "state.h"
+#include "engine.h"
+#include "pewpew.h"
+#include "enemy.h"
 
-Player::Player()
+class PlayerControledState : public State
 {
-	mainMesh = IRR.smgr->addAnimatedMeshSceneNode(IRR.smgr->getMesh("./resources/indevship.obj"));
+    Player * mPlayer;
+public:
+    PlayerControledState(Player * player)
+    {
+        mPlayer = player;
+    };
+    ~PlayerControledState(){};
+
+    virtual void OnUpdate()
+    {
+        mPlayer->AcceptInput();
+        mPlayer->ApplyVectors();
+        IRR.shipPosition->setText(
+            (
+                core::stringw(L"Ship Position: (") +
+                core::stringw(mPlayer->getPosition().X) +
+                core::stringw(",") +
+                core::stringw(mPlayer->getPosition().Y) +
+                core::stringw(",") +
+                core::stringw(mPlayer->getPosition().Z) +
+                core::stringw(")")
+            ).c_str());
+    }
+
+    virtual void OnEnter()
+    {
+
+    }
+
+    virtual void OnLeave()
+    {
+
+    }
+
+    virtual void OnMessage(std::string * message)
+    {
+
+    }
+};
+
+Player::Player():Mob(true, true, true)
+{
+
+}
+
+Player::~Player()
+{
+
+}
+
+void Player::Init()
+{
+    mainMesh = IRR.smgr->addAnimatedMeshSceneNode(IRR.smgr->getMesh("./resources/indevship.obj"));
+
     playerEngine1 = IRR.smgr->addParticleSystemSceneNode(false);
     playerEngine2 = IRR.smgr->addParticleSystemSceneNode(false);
 
@@ -39,37 +96,26 @@ Player::Player()
     playerEngineEmitter1->drop();
     playerEngineEmitter2->drop();
 
-    //playerEngine1->setMaterialFlag(video::EMF_LIGHTING, false);
-    //playerEngine2->setMaterialFlag(video::EMF_LIGHTING, false);
-
-    //playerEngine1->setMaterialFlag(video::EMF_ZWRITE_ENABLE, false);
-    //playerEngine2->setMaterialFlag(video::EMF_ZWRITE_ENABLE, false);
-
     playerEngine1->setMaterialTexture(0, IRR.driver->getTexture("./resources/fireball.bmp"));
     playerEngine2->setMaterialTexture(0, IRR.driver->getTexture("./resources/fireball.bmp"));
-    //playerEngine1->setMaterialType(video::EMT_TRANSPARENT_VERTEX_ALPHA);
-    //playerEngine2->setMaterialType(video::EMT_TRANSPARENT_VERTEX_ALPHA);
 
-	//playerMesh->setMaterialFlag(EMF_GOURAUD_SHADING,false);
-
-	Position.Y = 32.f;
+    Position.Y = 40.f;
     MaxSpeed = 64.f;
     MaxStrafe = 32.f;
     MaxTurnRate = 90.f;
     Drag = 0.5f;
+    Lift = 20.f;
+    Gravity = 9.8f;
     TurnBuffer = 1;
+    mouse = new Mouse();
 
-}
-
-Player::~Player()
-{
-
+    SetState(new PlayerControledState(this));
 }
 
 float Player::getAngleToMouse()
 {
     irr::core::vector3df ship_dir = IRR.getRotatedVector(core::vector3df(0,0,1), Rotation); //Fix me: this works but is WRONG.
-    irr::core::vector3df mouse_dir = mouse.Position - Position;
+    irr::core::vector3df mouse_dir = mouse->getPosition() - Position;
 
     ship_dir.normalize();
     mouse_dir.normalize();
@@ -92,9 +138,20 @@ float Player::getAngleToMouse()
     }
 }
 
-void Player::Update()
+void Player::AcceptInput()
 {
-    mouse.Update();
+    mouse->Update(Position.Y);
+
+    double ground_height = (double) IRR.mScalarTerrain->GetAltitude(Position);
+
+    if(ground_height + 32.f > Position.Y)
+    {
+        //Velocity.Y += Lift * IRR.frameDeltaTime;        
+    }
+
+    //FIXME: this should be a property of all MOBs, Gravity should be per-level set.
+    //Velocity.Y -= Gravity * IRR.frameDeltaTime;
+
 
     if(IRR.receiver.KeyDown(irr::KEY_KEY_A))
     {
@@ -114,24 +171,38 @@ void Player::Update()
     if(Rotation.Y > 360)
         Rotation.Y -= 360;
 
-	if(IRR.receiver.KeyDown(irr::KEY_KEY_W))
-	{
-        Velocity += IRR.getRotatedVector(core::vector3df(0,0,1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
-	}
-	
-    if(IRR.receiver.KeyDown(irr::KEY_KEY_S))
-	{
-		Velocity += IRR.getRotatedVector(core::vector3df(0,0,-1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
-	}
-
-    if(IRR.receiver.ButtonPressed(EventReceiver::MOUSE_BUTTON_LEFT))
+    if(IRR.receiver.KeyDown(irr::KEY_KEY_W))
     {
+        Velocity += IRR.getRotatedVector(core::vector3df(0,0,1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
+    }
+    
+    if(IRR.receiver.KeyDown(irr::KEY_KEY_S))
+    {
+        Velocity += IRR.getRotatedVector(core::vector3df(0,0,-1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
+    }
+
+    if(IRR.receiver.KeyDown(irr::KEY_SPACE))
+    {
+        //FIXME: This should be abstracted to the engine;
         std::unique_ptr<Mob> missile = std::unique_ptr<Mob>(new PewPew(Position, Rotation, Velocity));
 
         missile->Init();
 
-        IRR.mobL.push_back(std::move(missile));
+        IRR.vMob->push_back(std::move(missile));
     }
 
-    Mob::Update();
+    if(IRR.receiver.ButtonPressed(EventReceiver::MOUSE_BUTTON_RIGHT))
+    {
+        //FIXME: This should be abstracted to the engine;
+        std::unique_ptr<Mob> enemy = std::unique_ptr<Mob>(new Enemy(mouse->getPosition(), Rotation));
+
+        enemy->Init();
+
+        IRR.vMob->push_back(std::move(enemy));
+    }
+
+    if(IRR.receiver.ButtonDown(EventReceiver::MOUSE_BUTTON_LEFT))
+    {
+        IRR.mScalarTerrain->AddBrush(mouse->getPosition());
+    }
 }

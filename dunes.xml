@@ -17,7 +17,7 @@
         <Module Type="Fractal" Name="Ground_Shape_Fractal">
             <Fractal Type="Enum">BILLOW</Fractal>
             <Basis Type="Enum">GRADIENT</Basis>
-            <Interpolation Type="Enum">LINEAR</Interpolation>
+            <Interpolation Type="Enum">QUINTIC</Interpolation>
             <Octaves Type="Int">4</Octaves>
             <Frequency Type="Double">0.2</Frequency>
         </Module>

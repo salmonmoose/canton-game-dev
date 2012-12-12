@@ -1,43 +1,70 @@
-# Makefile for Irrlicht Examples
-# It's usually sufficient to change just the target name and source file list
-# and be sure that CXX is set to a valid compiler
-Target = Canton 
-Sources = ../libs/tinyxml2/tinyxml2.cpp ../libs/pugixml-1.2/src/*.cpp ../libs/accidentalnoise/src/*.cpp ./src/*.cpp
-
-# general compiler settings
-CPPFLAGS += -I../libs/boost_1_50_0 -I../libs/threadpool -I../libs/pugixml/src -I../libs/tinyxml2 -I../libs/accidentalnoise/include -I../libs/irrlicht-1.8.0/include -I./include -I/usr/X11R6/include
-CXXFLAGS += -O3 -ffast-math -std=c++0x -g
-#CXXFLAGS = -g -Wall
-
-#default target is Linux
-ifeq ($(OS), Windows_NT)
-all: all_win32
-	else
-all: all_linux
-endif
+CC = gcc
+CXX = g++
+RM = rm -f
 
 
-ifeq ($(HOSTTYPE), x86_64)
-LIBSELECT=64
-endif
+LDLIBS = \
+	-L/usr/X11R6/lib$(LIBSELECT) \
+	-L../libs/irrlicht-1.8.0/lib/Linux \
+	-L../libs/accidentalnoise/lib/Linux \
+	-lIrrlicht \
+	-lGL -lXxf86vm -lXext -lX11 \
+	-lAccidentalNoise
 
-# target specific settings
-all_linux: LDFLAGS = -L/usr/X11R6/lib$(LIBSELECT) -L../libs/irrlicht-1.8.0/lib/Linux -lIrrlicht -lGL -lXxf86vm -lXext -lX11
-all_linux clean_linux: SYSTEM=Linux
-all_win32: LDFLAGS = -L../libs/irrlicht-1.8.0/lib/Win32-gcc -lIrrlicht -lopengl32 -lm
-all_win32 clean_win32: SYSTEM=Win32-gcc
-#all_win32 clean_win32: SUF=.exe
-# name of the binary - only valid for targets which set SYSTEM
-DESTPATH = ./bin/$(SYSTEM)/$(Target)$(SUF)
+LDFLAGS = $(shell)
 
-all_linux all_win32:
-	$(warning Building...)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(Sources) -o $(DESTPATH) $(LDFLAGS)
+SRCS = \
+	./src/canton.cpp \
+	./src/enemy.cpp \
+	./src/engine.cpp \
+	./src/glslmaterial.cpp \
+	./src/marchingcubes.cpp \
+	./src/mob.cpp \
+	./src/player.cpp \
+	./src/mouse.cpp \
+	./src/pewpew.cpp \
+	./src/shadercallback.cpp \
+	./src/terrainchunk.cpp \
+	./src/terrainmesh.cpp \
+	./src/scalarterrain.cpp \
+	./src/nullstate.cpp
 
-clean: clean_linux clean_win32
-	$(warning Cleaning...)
+OBJS = $(subst .cpp,.o,$(SRCS))
 
-clean_linux clean_win32:
-	@$(RM) $(DESTPATH)
+.PHONY: default all release debug
 
-.PHONY: all all_win32 clean clean_linux clean_win32
+default all: release
+
+release:	export EXTRA_CPPFLAGS := -O3 -fexpensive-optimizations
+debug:		export EXTRA_CPPFLAGS := -DDEBUG -g
+
+CPPFLAGS = \
+	$(shell) \
+	-Wall \
+	-std=c++0x \
+	-ffast-math \
+	-I../libs/boost_1_50_0 \
+	-I../libs/pugixml/src \
+	-I../libs/accidentalnoise/include \
+	-I../libs/irrlicht-1.8.0/include \
+	-I./include -I/usr/X11R6/include \
+	$(EXTRA_CPPFLAGS)
+
+release debug: canton
+
+canton: $(OBJS)
+	g++ $(LDFLAGS) -o ./bin/Linux/Canton $(OBJS) $(LDLIBS)
+
+depend: .depend
+
+.depend: $(SRCS)
+	rm -f ./.depend
+	$(CXX) $(CPPFLAGS) -MM $^>>./.depend;
+
+clean:
+	$(RM) $(OBJS)
+
+dist-clean: clean
+	$(RM) *~ .dependcanton
+
+include .depend

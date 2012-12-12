@@ -2,9 +2,7 @@
 #define ENEMY_H
 
 #include "irrlicht.h"
-#include "engine.h"
 #include "mob.h"
-#include "shadercallback.h"
 
 class Enemy : public Mob
 {

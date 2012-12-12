@@ -2,9 +2,7 @@
 #define PEWPEW_H
 
 #include "irrlicht.h"
-#include "engine.h"
 #include "mob.h"
-#include "shadercallback.h"
 
 class PewPew : public Mob
 {
@@ -19,8 +17,7 @@ public:
 	~PewPew(){};
 	void Update();
     void Init();
+    void Accelerate();
 	double life;
 };
-
-
 #endif
