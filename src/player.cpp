@@ -190,7 +190,7 @@ void Player::AcceptInput()
 
         IRR.vMob->push_back(std::move(missile));
     }
-
+/*
     if(IRR.receiver.ButtonPressed(EventReceiver::MOUSE_BUTTON_RIGHT))
     {
         //FIXME: This should be abstracted to the engine;
@@ -200,9 +200,14 @@ void Player::AcceptInput()
 
         IRR.vMob->push_back(std::move(enemy));
     }
-
+*/
     if(IRR.receiver.ButtonDown(EventReceiver::MOUSE_BUTTON_LEFT))
     {
         IRR.mScalarTerrain->AddBrush(mouse->getPosition());
+    }
+
+    if(IRR.receiver.ButtonDown(EventReceiver::MOUSE_BUTTON_RIGHT))
+    {
+        IRR.mScalarTerrain->RemoveBrush(mouse->getPosition());
     }
 }

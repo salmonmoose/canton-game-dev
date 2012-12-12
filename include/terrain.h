@@ -143,7 +143,7 @@ public:
     bool GetFilled(irr::core::vector3d<unsigned> position);
     int GetHeight(irr::core::vector2d<unsigned> position);
 
-    void UpdateVoxel(irr::core::vector3d<unsigned> position, float value, int material);
+    void UpdateVoxel(irr::core::vector3d<unsigned> position, float value, int material, bool subtract);
     void FillChunk(anl::CImplicitXML & noiseTree);
     void MeshChunk();
 };
@@ -190,7 +190,7 @@ public:
     void FillBackground(irr::core::vector3d<int> tl);
     void MeshBackground(irr::core::vector3d<int> tl);
 
-    void UpdateVoxel(VoxelData & vd);
+    void UpdateVoxel(VoxelData & vd, bool subtract);
 
     void AddBrush(irr::core::vector3df Position);
     void RemoveBrush(irr::core::vector3df Position);

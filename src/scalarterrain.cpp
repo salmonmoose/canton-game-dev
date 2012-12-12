@@ -170,7 +170,7 @@ bool ScalarTerrain::GetFilled(const irr::core::vector3d<int> & Position)
     }
 }
 
-void ScalarTerrain::UpdateVoxel(VoxelData & vd)
+void ScalarTerrain::UpdateVoxel(VoxelData & vd, bool subtract)
 {
     VoxelReference vr(vd.Position);
 
@@ -178,37 +178,96 @@ void ScalarTerrain::UpdateVoxel(VoxelData & vd)
 
     if(worldMap_iterator != worldMap.end())
     {
-        worldMap_iterator->second.UpdateVoxel(vr.Position, vd.Value, vd.Material);
+        worldMap_iterator->second.UpdateVoxel(vr.Position, vd.Value, vd.Material, subtract);
         worldMap_iterator->second.status = DIRTY;
+
+        if(vr.Position.X == 0)
+            worldMap[irr::core::vector3d<int>(vr.Chunk.X - 1, vr.Chunk.Y, vr.Chunk.Z)].status = DIRTY;
+        if(vr.Position.X == dimensions.X -1)
+            worldMap[irr::core::vector3d<int>(vr.Chunk.X + 1, vr.Chunk.Y, vr.Chunk.Z)].status = DIRTY;
+        if(vr.Position.Y == 0)
+            worldMap[irr::core::vector3d<int>(vr.Chunk.X, vr.Chunk.Y - 1, vr.Chunk.Z)].status = DIRTY;
+        if(vr.Position.Y == dimensions.Y -1)
+            worldMap[irr::core::vector3d<int>(vr.Chunk.X, vr.Chunk.Y + 1, vr.Chunk.Z)].status = DIRTY;
+        if(vr.Position.Z == 0)
+            worldMap[irr::core::vector3d<int>(vr.Chunk.X, vr.Chunk.Y, vr.Chunk.Z - 1)].status = DIRTY;
+        if(vr.Position.Z == dimensions.Z -1)
+            worldMap[irr::core::vector3d<int>(vr.Chunk.X, vr.Chunk.Y, vr.Chunk.Z + 1)].status = DIRTY;
     }
 }
 
 void ScalarTerrain::AddBrush(irr::core::vector3df Position)
 {
-    VoxelData vd(irr::core::vector3d<int>(
-            (int) Position.X,
-            (int) Position.Y,
-            (int) Position.Z
-        ),
-        1.f,
-        1
-    );
+    float radius = 4.f;
 
-    UpdateVoxel(vd);
+    double len;
+    double value;
+    double dx,dy,dz;
+
+
+    for(int x = (int)Position.X - (int) radius; x < (int)Position.X + (int)radius; x++)
+    {
+        for(int y = (int)Position.Y - (int) radius; y < (int)Position.Y + (int)radius; y++)
+        {
+            for(int z = (int)Position.Z - (int) radius; z < (int)Position.Z + (int)radius; z++)
+            {
+                dx = x - Position.X;
+                dy = y - Position.Y;
+                dz = z - Position.Z;
+
+                len = sqrt(
+                    (double) dx * (double) dx + 
+                    (double) dy * (double) dy + 
+                    (double) dz * (double) dz
+                    );
+                value = (radius - len)/radius;
+                if (value < 0) value = 0;
+                if (value > 1) value = 1;
+
+                VoxelData vd(irr::core::vector3d<int>(x,y,z), value, 1);
+
+                //printf("Changing point (%i,%i,%i), %f\n", x,y,z, value);
+                UpdateVoxel(vd, false);
+            }
+        }
+    }
 }
 
 void ScalarTerrain::RemoveBrush(irr::core::vector3df Position)
 {
-    VoxelData vd(irr::core::vector3d<int>(
-        (int) Position.X,
-        (int) Position.Y,
-        (int) Position.Z
-        ),
-        -1.f,
-        1
-    );
+   float radius = 4.f;
 
-    UpdateVoxel(vd);
+    double len;
+    double value;
+    double dx,dy,dz;
+
+
+    for(int x = (int)Position.X - (int) radius; x < (int)Position.X + (int)radius; x++)
+    {
+        for(int y = (int)Position.Y - (int) radius; y < (int)Position.Y + (int)radius; y++)
+        {
+            for(int z = (int)Position.Z - (int) radius; z < (int)Position.Z + (int)radius; z++)
+            {
+                dx = x - Position.X;
+                dy = y - Position.Y;
+                dz = z - Position.Z;
+
+                len = sqrt(
+                    (double) dx * (double) dx + 
+                    (double) dy * (double) dy + 
+                    (double) dz * (double) dz
+                    );
+                value = (radius - len)/radius;
+                if (value < 0) value = 0;
+                if (value > 1) value = 1;
+
+                VoxelData vd(irr::core::vector3d<int>(x,y,z), value, 1);
+
+                //printf("Changing point (%i,%i,%i), %f\n", x,y,z, value);
+                UpdateVoxel(vd, true);
+            }
+        }
+    }
 }
 
 float ScalarTerrain::GetValue(irr::core::vector3d<int> Position)

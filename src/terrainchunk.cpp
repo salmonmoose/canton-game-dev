@@ -85,12 +85,28 @@ void TerrainChunk::MeshChunk()
     buffer = tempBuffer;
 }
 
-void TerrainChunk::UpdateVoxel(irr::core::vector3d<unsigned> position, float value, int material)
+void TerrainChunk::UpdateVoxel(irr::core::vector3d<unsigned> position, float value, int material, bool subtract)
 {
-    (*values)[position.X][position.Y][position.Z] = value;
-    (*materials)[position.X][position.Y][position.Z] = material;
+    if(subtract)
+    {
+        if((*values)[position.X][position.Y][position.Z] > value)
+        {
+            (*values)[position.X][position.Y][position.Z] = value;
+            (*materials)[position.X][position.Y][position.Z] = material;
+            status = DIRTY;
+        }
+    }
+    else
+    {
+        if((*values)[position.X][position.Y][position.Z] < value)
+        {
+            (*values)[position.X][position.Y][position.Z] = value;
+            (*materials)[position.X][position.Y][position.Z] = material;
+            status = DIRTY;
+        }
+    }
 
-    status = DIRTY;
+    
 }
 
 /**
