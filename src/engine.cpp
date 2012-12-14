@@ -32,8 +32,8 @@ void IrrlichtEngineManager::SetupDevice()
     irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_OPENGL;
     //irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_BURNINGSVIDEO;
 
-    device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, true, false, &receiver);
-    //device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
+    //device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, true, false, &receiver);
+    device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
     
     if (!device)
         printf("Device failed to manifest\n");
@@ -73,6 +73,19 @@ void IrrlichtEngineManager::SetupScene()
     mat.buildProjectionMatrixOrthoLH(60, 45, 0, 256);
 
     camera->setProjectionMatrix(mat, true);
+
+    lightCamera = smgr->addCameraSceneNode();
+
+    lightCameraOffset = irr::core::vector3df(0.f,32.f,0.f);
+
+    lightCamera->setTarget(mPlayer->getPosition());
+    lightCamera->setPosition(mPlayer->getPosition() + cameraOffset);
+
+    mat.buildProjectionMatrixOrthoLH(45, 45, 45, 45);
+
+    lightCamera->setProjectionMatrix(mat, true);
+
+    lightCamera = smgr->addCameraSceneNode();
 }
 
 void IrrlichtEngineManager::SetupGUI()
@@ -83,6 +96,8 @@ void IrrlichtEngineManager::SetupGUI()
         skin->setFont(font);
 
     skin->setFont(env->getBuiltInFont(), gui::EGDF_TOOLTIP);
+
+    renderTargetDisplay = env->addImage(renderTarget, irr::core::position2d<s32>(0,0), false);
 
     shipPosition = env->addStaticText(L"shipPosition", core::rect<s32>(0,0,200,16), true);
     shipPosition->setDrawBorder(false);
@@ -101,6 +116,8 @@ void IrrlichtEngineManager::Update()
 
     camera->setTarget(mPlayer->getPosition());
     camera->setPosition(mPlayer->getPosition() + cameraOffset);
+    lightCamera->setTarget(mPlayer->getPosition());
+    lightCamera->setPosition(mPlayer->getPosition() + lightCameraOffset);
 
     for(vMobIterator = vMob->begin(); vMobIterator != vMob->end(); ++vMobIterator)
     {
@@ -113,6 +130,23 @@ void IrrlichtEngineManager::Update()
 void IrrlichtEngineManager::Draw()
 {
     driver->beginScene(true, true, irr::video::SColor(255,100,101,140));
+
+    driver->setRenderTarget(renderTarget, true, true, irr::video::SColor(0,0,0,255));
+
+    //smgr->setActiveCamera(lightCamera);
+/*
+    driver->setMaterial(mScalarTerrain->Material);
+    driver->setTransform(irr::video::ETS_WORLD, terrainMesh->getAbsoluteTransformation());
+    for(unsigned i = 0; i < terrainMesh->getMesh()->getMeshBufferCount(); i++)
+    {
+        driver->drawMeshBuffer(terrainMesh->getMesh()->getMeshBuffer(i));
+    }
+*/
+    smgr->drawAll();
+
+    driver->setRenderTarget(0,true,true,0);
+
+    smgr->setActiveCamera(camera);
 
     driver->setMaterial(mScalarTerrain->Material);
     driver->setTransform(irr::video::ETS_WORLD, terrainMesh->getAbsoluteTransformation());

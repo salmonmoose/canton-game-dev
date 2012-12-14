@@ -85,8 +85,10 @@ public:
     IRandomizer * random;
 
 	irr::video::ITexture * renderTarget;
+	irr::gui::IGUIImage * renderTargetDisplay;
 
 	irr::scene::ICameraSceneNode * camera;
+	irr::scene::ICameraSceneNode * lightCamera;
 
 	gui::IGUIEnvironment * env;
 
@@ -101,6 +103,7 @@ public:
 	irr::gui::IGUIStaticText * shipPosition;
 
 	irr::core::vector3df cameraOffset;
+	irr::core::vector3df lightCameraOffset;
 
 	irr::scene::IMeshSceneNode * terrainMesh;
 
