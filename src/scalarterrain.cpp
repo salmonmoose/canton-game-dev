@@ -198,18 +198,18 @@ void ScalarTerrain::UpdateVoxel(VoxelData & vd, bool subtract)
 
 void ScalarTerrain::AddBrush(irr::core::vector3df Position)
 {
-    float radius = 4.f;
+    float radius = 6.f;
 
     double len;
     double value;
     double dx,dy,dz;
 
 
-    for(int x = (int)Position.X - (int) radius; x < (int)Position.X + (int)radius; x++)
+    for(int x = (int)Position.X - (int) radius; x <= (int)Position.X + (int)radius; x++)
     {
-        for(int y = (int)Position.Y - (int) radius; y < (int)Position.Y + (int)radius; y++)
+        for(int y = (int)Position.Y - (int) radius; y <= (int)Position.Y + (int)radius; y++)
         {
-            for(int z = (int)Position.Z - (int) radius; z < (int)Position.Z + (int)radius; z++)
+            for(int z = (int)Position.Z - (int) radius; z <= (int)Position.Z + (int)radius; z++)
             {
                 dx = x - Position.X;
                 dy = y - Position.Y;
@@ -235,18 +235,18 @@ void ScalarTerrain::AddBrush(irr::core::vector3df Position)
 
 void ScalarTerrain::RemoveBrush(irr::core::vector3df Position)
 {
-   float radius = 4.f;
+   float radius = 6.f;
 
     double len;
     double value;
     double dx,dy,dz;
 
 
-    for(int x = (int)Position.X - (int) radius; x < (int)Position.X + (int)radius; x++)
+    for(int x = (int)Position.X - (int) radius; x <= (int)Position.X + (int)radius; x++)
     {
-        for(int y = (int)Position.Y - (int) radius; y < (int)Position.Y + (int)radius; y++)
+        for(int y = (int)Position.Y - (int) radius; y <= (int)Position.Y + (int)radius; y++)
         {
-            for(int z = (int)Position.Z - (int) radius; z < (int)Position.Z + (int)radius; z++)
+            for(int z = (int)Position.Z - (int) radius; z <= (int)Position.Z + (int)radius; z++)
             {
                 dx = x - Position.X;
                 dy = y - Position.Y;

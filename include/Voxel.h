@@ -103,7 +103,7 @@ public:
     std::vector<VoxelBrush> * vVoxels;
 };
 
-class TerrainChunk
+class VoxelChunk
 {
 public:
     Float3Array * values; //Provides contents for each cell
@@ -119,11 +119,7 @@ public:
     bool empty; //No visible cubes;
     bool obstruct; //At least one horizontal plane is filled
 
-    //irr::scene::SMesh * Mesh;
-    irr::scene::SMeshBuffer * buffer;
-    irr::scene::SMeshBuffer * tempBuffer;
-
-    TerrainChunk()
+    VoxelChunk()
     {
         values = new Float3Array(boost::extents[dimensions.X][dimensions.Y][dimensions.Z]);
         materials = new Unsigned3Array(boost::extents[dimensions.X][dimensions.Y][dimensions.Z]);
@@ -203,7 +199,10 @@ public:
     bool BlockFilled(irr::core::vector3df);
 };
 
-class TerrainMesh
+/*
+* This should be extended to implement various voxel rendering techniques.
+*/
+class ChunkMesh
 {
 public:
     int status;

@@ -20,6 +20,17 @@ void IrrlichtEngineManager::InitialiseVariables()
 	env = NULL;
 }
 
+//     .oooooo..o               .                          
+//    d8P'    `Y8             .o8                          
+//    Y88bo.       .ooooo.  .o888oo oooo  oooo  oo.ooooo.  
+//     `"Y8888o.  d88' `88b   888   `888  `888   888' `88b 
+//         `"Y88b 888ooo888   888    888   888   888   888 
+//    oo     .d8P 888    .o   888 .  888   888   888   888 
+//    8""88888P'  `Y8bod8P'   "888"  `V88V"V8P'  888bod8P' 
+//                                               888       
+//                                              o888o      
+                                                         
+
 void IrrlichtEngineManager::Startup()
 {
     SetupDevice();
@@ -62,6 +73,8 @@ void IrrlichtEngineManager::SetupScene()
 
     mPlayer->mainMesh->setParent(terrainMesh);
 
+    renderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(80,60), "rtt1");
+
     camera = smgr->addCameraSceneNode();
 
     cameraOffset = irr::core::vector3df(24.f, 16.f, 0.f);
@@ -79,7 +92,7 @@ void IrrlichtEngineManager::SetupScene()
     lightCameraOffset = irr::core::vector3df(0.f,32.f,0.f);
 
     lightCamera->setTarget(mPlayer->getPosition());
-    lightCamera->setPosition(mPlayer->getPosition() + cameraOffset);
+    lightCamera->setPosition(mPlayer->getPosition() + lightCameraOffset);
 
     mat.buildProjectionMatrixOrthoLH(45, 45, 45, 45);
 
@@ -105,6 +118,17 @@ void IrrlichtEngineManager::SetupGUI()
     then = device->getTimer()->getTime();
 }
 
+//    ooooo     ooo                  .o8                .             
+//    `888'     `8'                 "888              .o8             
+//     888       8  oo.ooooo.   .oooo888   .oooo.   .o888oo  .ooooo.  
+//     888       8   888' `88b d88' `888  `P  )88b    888   d88' `88b 
+//     888       8   888   888 888   888   .oP"888    888   888ooo888 
+//     `88.    .8'   888   888 888   888  d8(  888    888 . 888    .o 
+//       `YbodP'     888bod8P' `Y8bod88P" `Y888""8o   "888" `Y8bod8P' 
+//                   888                                              
+//                  o888o                                             
+                                                                    
+
 void IrrlichtEngineManager::Update()
 {
 	const u32 now = device->getTimer()->getTime();
@@ -127,28 +151,44 @@ void IrrlichtEngineManager::Update()
     mScalarTerrain->generateMesh(camera->getViewFrustum()); //FIXME: Perhaps this should depend on an active window.
 } 
 
+//    oooooooooo.                                       
+//    `888'   `Y8b                                      
+//     888      888 oooo d8b  .oooo.   oooo oooo    ooo 
+//     888      888 `888""8P `P  )88b   `88. `88.  .8'  
+//     888      888  888      .oP"888    `88..]88..8'   
+//     888     d88'  888     d8(  888     `888'`888'    
+//    o888bood8P'   d888b    `Y888""8o     `8'  `8'     
+                                                      
+                                                      
+                                                      
+
 void IrrlichtEngineManager::Draw()
 {
-    driver->beginScene(true, true, irr::video::SColor(255,100,101,140));
+    driver->beginScene(true, true, irr::video::SColor(255,100,100,140));
 
-    driver->setRenderTarget(renderTarget, true, true, irr::video::SColor(0,0,0,255));
+    smgr->setActiveCamera(lightCamera);
 
-    //smgr->setActiveCamera(lightCamera);
-/*
+    driver->setRenderTarget(renderTarget, true, true, irr::video::SColor(255,192,128,128));
+
     driver->setMaterial(mScalarTerrain->Material);
+
+    terrainMesh->updateAbsolutePosition();
     driver->setTransform(irr::video::ETS_WORLD, terrainMesh->getAbsoluteTransformation());
+
     for(unsigned i = 0; i < terrainMesh->getMesh()->getMeshBufferCount(); i++)
     {
         driver->drawMeshBuffer(terrainMesh->getMesh()->getMeshBuffer(i));
     }
-*/
-    smgr->drawAll();
 
-    driver->setRenderTarget(0,true,true,0);
+    smgr->drawAll();
 
     smgr->setActiveCamera(camera);
 
+    driver->setRenderTarget(0, true, true, irr::video::SColor(255,128,192,128));
+
     driver->setMaterial(mScalarTerrain->Material);
+
+    terrainMesh->updateAbsolutePosition();
     driver->setTransform(irr::video::ETS_WORLD, terrainMesh->getAbsoluteTransformation());
     for(unsigned i = 0; i < terrainMesh->getMesh()->getMeshBufferCount(); i++)
     {
