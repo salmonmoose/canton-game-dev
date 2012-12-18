@@ -62,16 +62,12 @@ void IrrlichtEngineManager::SetupScene()
 
     vMob = new std::vector<std::unique_ptr<Mob>>();
 
-    mScalarTerrain = new ScalarTerrain();
-    mScalarTerrain->Init();
-
-    terrainMesh = smgr->addMeshSceneNode(&mScalarTerrain->Mesh);
+    mVoxelSceneNode = new VoxelSceneNode(smgr->getRootSceneNode(), smgr, 666);
+    mVoxelSceneNode->Initialize();
 
     mPlayer = new Player();
 
     mPlayer->Init();
-
-    mPlayer->mainMesh->setParent(terrainMesh);
 
     renderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(80,60), "rtt1");
 
@@ -147,8 +143,6 @@ void IrrlichtEngineManager::Update()
     {
         (*vMobIterator)->Update();
     }
-
-    mScalarTerrain->generateMesh(camera->getViewFrustum()); //FIXME: Perhaps this should depend on an active window.
 } 
 
 //    oooooooooo.                                       
@@ -158,9 +152,6 @@ void IrrlichtEngineManager::Update()
 //     888      888  888      .oP"888    `88..]88..8'   
 //     888     d88'  888     d8(  888     `888'`888'    
 //    o888bood8P'   d888b    `Y888""8o     `8'  `8'     
-                                                      
-                                                      
-                                                      
 
 void IrrlichtEngineManager::Draw()
 {
@@ -170,30 +161,12 @@ void IrrlichtEngineManager::Draw()
 
     driver->setRenderTarget(renderTarget, true, true, irr::video::SColor(255,192,128,128));
 
-    driver->setMaterial(mScalarTerrain->Material);
-
-    terrainMesh->updateAbsolutePosition();
-    driver->setTransform(irr::video::ETS_WORLD, terrainMesh->getAbsoluteTransformation());
-
-    for(unsigned i = 0; i < terrainMesh->getMesh()->getMeshBufferCount(); i++)
-    {
-        driver->drawMeshBuffer(terrainMesh->getMesh()->getMeshBuffer(i));
-    }
-
     smgr->drawAll();
 
     smgr->setActiveCamera(camera);
 
     driver->setRenderTarget(0, true, true, irr::video::SColor(255,128,192,128));
 
-    driver->setMaterial(mScalarTerrain->Material);
-
-    terrainMesh->updateAbsolutePosition();
-    driver->setTransform(irr::video::ETS_WORLD, terrainMesh->getAbsoluteTransformation());
-    for(unsigned i = 0; i < terrainMesh->getMesh()->getMeshBufferCount(); i++)
-    {
-        driver->drawMeshBuffer(terrainMesh->getMesh()->getMeshBuffer(i));
-    }
     smgr->drawAll();
 
     env->drawAll();

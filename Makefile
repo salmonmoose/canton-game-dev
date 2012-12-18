@@ -18,15 +18,14 @@ SRCS = \
 	./src/enemy.cpp \
 	./src/engine.cpp \
 	./src/glslmaterial.cpp \
-	./src/marchingcubes.cpp \
 	./src/mob.cpp \
 	./src/player.cpp \
 	./src/mouse.cpp \
 	./src/pewpew.cpp \
 	./src/shadercallback.cpp \
-	./src/terrainchunk.cpp \
-	./src/terrainmesh.cpp \
-	./src/scalarterrain.cpp \
+	./src/VoxelChunk.cpp \
+	./src/ChunkMesh.cpp \
+	./src/VoxelSceneNode.cpp \
 	./src/nullstate.cpp
 
 OBJS = $(subst .cpp,.o,$(SRCS))

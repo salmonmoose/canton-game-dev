@@ -1,5 +1,4 @@
-
-#include "terrain.h"
+#include "Voxel.h"
 #include "anl.h"
 
 int VoxelChunk::GetHeight(irr::core::vector2d<unsigned> Position)
@@ -67,13 +66,6 @@ int VoxelChunk::GetMaterial(irr::core::vector3d<unsigned> Position)
     {
         return 0;
     }
-}
-
-void VoxelChunk::MeshChunk()
-{
-    tempBuffer = new irr::scene::SMeshBuffer();
-    generateIsoSurface(* tempBuffer, * values, * materials, localPoint.X * dimensions.X, localPoint.Y * dimensions.Y, localPoint.Z * dimensions.Z);
-    buffer = tempBuffer;
 }
 
 void VoxelChunk::UpdateVoxel(irr::core::vector3d<unsigned> position, float value, int material, bool subtract)

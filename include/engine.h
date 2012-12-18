@@ -11,7 +11,7 @@
 #include <map>
 #include <string>
 #include "glslmaterial.h"
-#include "terrain.h"
+#include "VoxelSceneNode.h"
 
 #define IRR IrrlichtEngineManager::Instance()
 
@@ -29,7 +29,7 @@ class Mob;
 
 class Player;
 
-class ScalarTerrain;
+class VoxelSceneNode;
 
 class IrrlichtEngineManager
 {
@@ -107,7 +107,7 @@ public:
 
 	irr::scene::IMeshSceneNode * terrainMesh;
 
-	ScalarTerrain * mScalarTerrain;
+	VoxelSceneNode * mVoxelSceneNode;
 
 	Player * mPlayer;
 

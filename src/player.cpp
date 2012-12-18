@@ -142,7 +142,7 @@ void Player::AcceptInput()
 {
     mouse->Update(Position.Y);
 
-    double ground_height = (double) IRR.mScalarTerrain->GetAltitude(Position);
+    double ground_height = (double) IRR.mVoxelSceneNode->GetAltitude(Position);
 
     if(ground_height + 32.f > Position.Y)
     {
@@ -203,11 +203,11 @@ void Player::AcceptInput()
 */
     if(IRR.receiver.ButtonDown(EventReceiver::MOUSE_BUTTON_LEFT))
     {
-        IRR.mScalarTerrain->AddBrush(mouse->getPosition());
+        IRR.mVoxelSceneNode->AddBrush(mouse->getPosition());
     }
 
     if(IRR.receiver.ButtonDown(EventReceiver::MOUSE_BUTTON_RIGHT))
     {
-        IRR.mScalarTerrain->RemoveBrush(mouse->getPosition());
+        IRR.mVoxelSceneNode->RemoveBrush(mouse->getPosition());
     }
 }

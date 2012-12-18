@@ -1,4 +1,4 @@
-#include "terrain.h"
+#include "Voxel.h"
 
 static irr::core::vector3d<int> points[8] = {
 	irr::core::vector3d<int>(0,0,0), //0
