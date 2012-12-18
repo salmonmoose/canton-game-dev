@@ -30,6 +30,9 @@ public:
     std::map<irr::core::vector3d<int>, ChunkMesh> meshMap;
     std::map<irr::core::vector3d<int>, ChunkMesh>::iterator meshMapIterator;
 
+    irr::core::vector3d<int> aabboxStart;
+    irr::core::vector3d<int> aabboxEnd;
+
     anl::CImplicitXML noiseTree;
 
     irr::io::path vsFileName;
@@ -62,7 +65,7 @@ public:
 
     void preRenderCalculationsIfNeeded();
 
-    irr::scene::IShadowVolumeSceneNode * addShadowVolumeSceneNode(const irr::scene::IMesh *, irr::s32, bool, irr::f32){};
+    irr::scene::IShadowVolumeSceneNode * addShadowVolumeSceneNode(const irr::scene::IMesh *, irr::s32, bool, irr::f32){ return 0; };
 
     void OnRegisterSceneNode();
     void AddBrush(irr::core::vector3df);

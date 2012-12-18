@@ -88,21 +88,36 @@ void VoxelSceneNode::OnRegisterSceneNode()
 
 void VoxelSceneNode::preRenderCalculationsIfNeeded()
 {
-	irr::scene::ICameraSceneNode * camera = SceneManager->getActiveCamera();
+	irr::scene::ICameraSceneNode * camera = (irr::scene::ICameraSceneNode *)SceneManager->getSceneNodeFromName("playercam");
 	if (!camera)
 		return;
 
 	irr::core::aabbox3df bounding = camera->getViewFrustum()->getBoundingBox();
 
-	int x_start = (int)floor(bounding.MinEdge.X / dimensions.X);
-	int y_start = (int)floor(bounding.MinEdge.Y / dimensions.Y);
-	int z_start = (int)floor(bounding.MinEdge.Z / dimensions.Z);
+	irr::core::vector3d<int> newAabboxStart(
+		(int)floor(bounding.MinEdge.X / dimensions.X),
+		(int)floor(bounding.MinEdge.Y / dimensions.Y),
+		(int)floor(bounding.MinEdge.Z / dimensions.Z)
+	);
 
-	int x_finish = (int)ceil(bounding.MaxEdge.X / dimensions.X);
-	int y_finish = (int)ceil(bounding.MaxEdge.Y / dimensions.Y);
-	int z_finish = (int)ceil(bounding.MaxEdge.Z / dimensions.Z);
+	irr::core::vector3d<int> newAabboxEnd(
+		(int)ceil(bounding.MaxEdge.X / dimensions.X),
+		(int)ceil(bounding.MaxEdge.Y / dimensions.Y),
+		(int)ceil(bounding.MaxEdge.Z / dimensions.Z)
+	);
 
-	if((x_finish - x_start) * (y_finish - y_start) * (z_finish - z_start) > 10000)
+	if(newAabboxStart == aabboxStart && newAabboxEnd == aabboxEnd)
+	{
+		//printf("aldready generated, why bother?\n");
+		return;
+	}
+
+	aabboxStart = newAabboxStart;
+	aabboxEnd = newAabboxEnd;
+
+	printf("(%i,%i,%i)-(%i,%i,%i)\n", aabboxStart.X,aabboxStart.Y,aabboxStart.Z,aabboxEnd.X,aabboxEnd.Y,aabboxEnd.Z);
+
+	if((aabboxEnd.X - aabboxStart.X) * (aabboxEnd.Y - aabboxStart.Y) * (aabboxEnd.Z - aabboxStart.Z) > 10000)
 	{
 	    printf("too many buffers\n");
 	    return;
@@ -110,16 +125,15 @@ void VoxelSceneNode::preRenderCalculationsIfNeeded()
 
 	Mesh.MeshBuffers.clear();
 
-	irr::core::vector3d<int> chunkPos(0,0,0);
-
 	irr::core::aabbox3df aabbox;
 
-	for(int y = y_finish; y >= y_start; y--)
+	for(int y = aabboxEnd.Y; y >= aabboxStart.Y; y--)
 	{
-		for(int z = z_finish; z >= z_start; z--)
+		for(int z = aabboxEnd.Z; z >= aabboxStart.Z; z--)
 		{
-			for(int x = x_start; x <= x_finish; x++)
+			for(int x = aabboxStart.X; x <= aabboxEnd.X; x++)
 			{
+				irr::core::vector3d<int> chunkPos(x,y,z);
 	            aabbox = irr::core::aabbox3df(((int)dimensions.X * x), ((int)dimensions.Y * y), ((int)dimensions.Z * z),((int)dimensions.X * x + (int)dimensions.X), ((int)dimensions.Y * y + (int)dimensions.Y), ((int)dimensions.Z * z + (int)dimensions.Z));
 
 	        	if(AABBoxInFrustum(camera->getViewFrustum(), aabbox))
@@ -361,6 +375,8 @@ void VoxelSceneNode::render()
 	Box = Mesh.getBoundingBox();
 
 	irr::video::SMaterial material;
+
+	//printf("Rendering %i buffers\n", Mesh.getMeshBufferCount());
 
 	for (u32 i = 0; i < Mesh.getMeshBufferCount(); ++i)
 	{

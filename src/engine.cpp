@@ -72,6 +72,7 @@ void IrrlichtEngineManager::SetupScene()
     renderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(80,60), "rtt1");
 
     camera = smgr->addCameraSceneNode();
+    camera->setName("playercam");
 
     cameraOffset = irr::core::vector3df(24.f, 16.f, 0.f);
 
