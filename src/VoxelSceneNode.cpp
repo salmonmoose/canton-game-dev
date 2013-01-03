@@ -31,6 +31,10 @@ VoxelSceneNode::VoxelSceneNode(irr::scene::ISceneNode * parent, irr::scene::ISce
 	Material.Wireframe = false;
 	Material.Lighting = false;
 	threads = 0;
+
+	Mesh = new irr::scene::SMesh();
+
+	setAutomaticCulling(scene::EAC_OFF);
 }
 
 bool VoxelSceneNode::Initialize()
@@ -41,8 +45,8 @@ bool VoxelSceneNode::Initialize()
 
 	printf("Terrain Loaded\n");
 
-	vsFileName = "./shaders/terrain.vert";
-	psFileName = "./shaders/terrain.frag";
+	vsFileName = "./shaders/terrain.vert.glsl";
+	psFileName = "./shaders/terrain.frag.glsl";
 
 	if(IRR.gpu)
 	{
@@ -62,14 +66,17 @@ bool VoxelSceneNode::Initialize()
 	Material.setFlag(irr::video::EMF_LIGHTING, true);
 
 	//Material.diffuseColor(irr::video::SColor(255,255,196,255));
-	Material.setTexture(0, IRR.driver->getTexture("./resources/grass.jpg"));
+    Material.setTexture(0, IRR.driver->getTexture("./resources/grass.jpg"));
 	Material.setTexture(1, IRR.driver->getTexture("./resources/dirt.jpg"));
 	Material.setTexture(2, IRR.driver->getTexture("./resources/dirt.jpg"));
 	Material.setTexture(3, IRR.driver->getTexture("./resources/clay.jpg"));
 	Material.setTexture(4, IRR.driver->getTexture("./resources/sand.jpg"));
 	Material.setTexture(5, IRR.driver->getTexture("./resources/void.jpg"));
+    Material.setTexture(8, IRR.lightRenderTarget);
 
 	Material.MaterialType = (video::E_MATERIAL_TYPE) terrainMaterial;  
+
+	dirty = true;
 
 	return true;
 }
@@ -106,16 +113,29 @@ void VoxelSceneNode::preRenderCalculationsIfNeeded()
 		(int)ceil(bounding.MaxEdge.Z / dimensions.Z)
 	);
 
-	if(newAabboxStart == aabboxStart && newAabboxEnd == aabboxEnd)
+	//printf("(%i,%i,%i)", newAabboxStart.X,newAabboxStart.Y,newAabboxStart.Z);
+	//printf("(%i,%i,%i)", newAabboxEnd.X,newAabboxEnd.Y,newAabboxEnd.Z);
+
+	//dirty = true;
+
+	if((newAabboxStart == aabboxStart && newAabboxEnd == aabboxEnd) && !dirty)
 	{
+		if(!dirty) 
+		{
+			//printf("clean\n");
+		} else {
+			//printf("box matches\n");
+		}
+
 		//printf("aldready generated, why bother?\n");
+        //FIXME: this doesn't work the world may change, without the the viewport changing
 		return;
 	}
 
 	aabboxStart = newAabboxStart;
 	aabboxEnd = newAabboxEnd;
 
-	printf("(%i,%i,%i)-(%i,%i,%i)\n", aabboxStart.X,aabboxStart.Y,aabboxStart.Z,aabboxEnd.X,aabboxEnd.Y,aabboxEnd.Z);
+	//printf("(%i,%i,%i)-(%i,%i,%i)\n", aabboxStart.X,aabboxStart.Y,aabboxStart.Z,aabboxEnd.X,aabboxEnd.Y,aabboxEnd.Z);
 
 	if((aabboxEnd.X - aabboxStart.X) * (aabboxEnd.Y - aabboxStart.Y) * (aabboxEnd.Z - aabboxStart.Z) > 10000)
 	{
@@ -123,28 +143,52 @@ void VoxelSceneNode::preRenderCalculationsIfNeeded()
 	    return;
 	}
 
-	Mesh.MeshBuffers.clear();
+	Mesh->MeshBuffers.clear();
 
 	irr::core::aabbox3df aabbox;
+/*
+    aabboxStart.X = 0;
+    aabboxEnd.X = 0;
+    aabboxStart.Y = 2;
+    aabboxEnd.Y = 2;
+    aabboxStart.Z = 0;
+    aabboxEnd.Z = 0;
+*/
+    irr::core::vector3d<int> chunkPos;
 
-	for(int y = aabboxEnd.Y; y >= aabboxStart.Y; y--)
+    dirty = false;
+
+	for(int z = aabboxStart.Z; z <= aabboxEnd.Z; z++)
 	{
-		for(int z = aabboxEnd.Z; z >= aabboxStart.Z; z--)
+		for(int x = aabboxStart.X; x <= aabboxEnd.X; x++)
 		{
-			for(int x = aabboxStart.X; x <= aabboxEnd.X; x++)
+			for(int y = aabboxEnd.Y; y >= aabboxStart.Y; y--)
 			{
-				irr::core::vector3d<int> chunkPos(x,y,z);
+				chunkPos.set(x,y,z);
+
+                if(chunkMap.find(chunkPos) == chunkMap.end())
+                {
+                    chunkMap[chunkPos] = VoxelChunk();
+                    chunkMap[chunkPos].Initialize(dimensions, chunkPos);
+                    
+                    meshMap[chunkPos] = ChunkMesh();
+                    meshMap[chunkPos].Initialize(this, chunkPos);
+                    
+                }
+
 	            aabbox = irr::core::aabbox3df(((int)dimensions.X * x), ((int)dimensions.Y * y), ((int)dimensions.Z * z),((int)dimensions.X * x + (int)dimensions.X), ((int)dimensions.Y * y + (int)dimensions.Y), ((int)dimensions.Z * z + (int)dimensions.Z));
 
 	        	if(AABBoxInFrustum(camera->getViewFrustum(), aabbox))
 	        	{
 	        		if(meshMap[chunkPos].Meshed)
 	        		{
-	        			Mesh.addMeshBuffer(meshMap[chunkPos].buffer);
+	        			//printf("Adding Mesh buffer (%i,%i,%i)\n", chunkPos.X, chunkPos.Y, chunkPos.Z);
+	        			Mesh->addMeshBuffer(meshMap[chunkPos].buffer);
 	        		}
 
 	        		if((chunkMap[chunkPos].status == FILLED || chunkMap[chunkPos].status == DIRTY) && threads < MAXTHREADS && !chunkMap[chunkPos].empty)
 	        		{
+                        //printf("Meshing (%i,%i,%i)\n", chunkPos.X, chunkPos.Y, chunkPos.Z);
 	        			chunkMap[chunkPos].status = MESHING;
 	        			threads++;
 	        			std::thread meshThread(&VoxelSceneNode::MeshBackground, this, chunkPos);
@@ -152,46 +196,61 @@ void VoxelSceneNode::preRenderCalculationsIfNeeded()
 	        			meshThread.join();
 	        		}
 
+	        		//if(chunkMap[chunkPos].empty) { printf("empty\n"); }
+
 	        		if(chunkMap[chunkPos].status == EMPTY && threads < MAXTHREADS)
 	        		{
-	        			chunkMap[chunkPos].status = FILLING;
+	        			//printf("Filling (%i,%i,%i)\n", chunkPos.X, chunkPos.Y, chunkPos.Z);
+                        chunkMap[chunkPos].status = FILLING;
 	        			threads++;
 	        			std::thread fillThread(&VoxelSceneNode::FillBackground, this, chunkPos);
 	        			fillThread.detach();
 	        			//fillThread.join();
 	        		}
+
+	        		if(chunkMap[chunkPos].obstruct)
+	        		{
+	        			//printf("Obstructing Chunk, ending Y loop\n");
+	        			y = aabboxStart.Y;
+	        		}
 	        	}
 			}
 		}
 	}
+
+    Mesh->recalculateBoundingBox();
+    Mesh->setDirty();
 }
 
 void VoxelSceneNode::FillBackground(irr::core::vector3d<int> chunkPos)
 {
 	chunkMap[chunkPos].FillChunk(noiseTree);
-
+/*
 	for(int i = 0; i < 6; i++)
 	{
 		irr::core::vector3d<int> clean(chunkPos.X - Previous[i].X, chunkPos.Y - Previous[i].Y, chunkPos.Z - Previous[i].Z);
 
-    if(chunkMap[clean].status == CLEAN || chunkMap[clean].status == MESHING)
-    {
-        chunkMap[clean].status = DIRTY;
-    }
+        if(chunkMap[clean].status == CLEAN || chunkMap[clean].status == MESHING)
+        {
+            chunkMap[clean].status = DIRTY;
+        }
 	}
+*/
 
+	dirty = true;
 	threads--;
 	chunkMap[chunkPos].status = FILLED;
 }
 
 void VoxelSceneNode::MeshBackground(irr::core::vector3d<int> chunkPos)
 {
-	meshMap[chunkPos].Initialize(this, chunkPos);
+    meshMap[chunkPos].Initialize(this, chunkPos);
 	meshMap[chunkPos].GenerateMesh();
 
 	if(chunkMap[chunkPos].status == MESHING)
 		chunkMap[chunkPos].status = CLEAN;
 
+	dirty = true;
 	threads--;
 }
 
@@ -226,6 +285,8 @@ int VoxelSceneNode::GetAltitude(const irr::core::vector3d<int> & Position)
 	        }
 	    }
 	}
+
+	return -1;
 }
 
 float VoxelSceneNode::GetValue(irr::core::vector3d<int> Position)
@@ -324,6 +385,8 @@ void VoxelSceneNode::AddBrush(irr::core::vector3df Position)
             }
         }
     }
+
+    dirty = true;
 }
 
 void VoxelSceneNode::RemoveBrush(irr::core::vector3df Position)
@@ -361,6 +424,8 @@ void VoxelSceneNode::RemoveBrush(irr::core::vector3df Position)
             }
         }
     }
+
+    dirty = true;
 }
 
 void VoxelSceneNode::render()
@@ -372,15 +437,15 @@ void VoxelSceneNode::render()
 */
 	driver->setTransform(irr::video::ETS_WORLD, AbsoluteTransformation);
 	
-	Box = Mesh.getBoundingBox();
+	Box = Mesh->getBoundingBox();
 
 	irr::video::SMaterial material;
 
-	//printf("Rendering %i buffers\n", Mesh.getMeshBufferCount());
+	//printf("Rendering %i buffers\n", Mesh->getMeshBufferCount());
 
-	for (u32 i = 0; i < Mesh.getMeshBufferCount(); ++i)
+	for (u32 i = 0; i < Mesh->getMeshBufferCount(); ++i)
 	{
-		irr::scene::IMeshBuffer * mb = Mesh.getMeshBuffer(i);
+		irr::scene::IMeshBuffer * mb = Mesh->getMeshBuffer(i);
 		if(mb)
 		{
 			driver->setMaterial(Material);
@@ -393,7 +458,7 @@ void VoxelSceneNode::render()
 
 const irr::core::aabbox3df & VoxelSceneNode::getBoundingBox() const
 {
-	return Mesh.getBoundingBox();
+	return Mesh->getBoundingBox();
 }
 
 const irr::video::SMaterial & VoxelSceneNode::getMaterial(u32 i) const

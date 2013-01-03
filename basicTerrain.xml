@@ -11,8 +11,8 @@
         <Module Type="Gradient" Name="Ground_Gradient">
             <X1 Type="Double">0</X1>
             <X2 Type="Double">0</X2>
-            <Y1 Type="Double">0.75</Y1>
-            <Y2 Type="Double">0.25</Y2>
+            <Y1 Type="Double">2</Y1>
+            <Y2 Type="Double">-2.0</Y2>
         </Module>
         <Module Type="Fractal" Name="Ground_Shape_Fractal">
             <Fractal Type="Enum">BILLOW</Fractal>

@@ -331,35 +331,19 @@ void ChunkMesh::GenerateMesh()
 	float Values[8];
 	int Materials[8];
 
-	for(int x = 0; x < dimensions.X; x++)
+	for(int x = 0; x < (int)dimensions.X; x++)
 	{
-		for(int y = 0; y < dimensions.Y; y++)
+		for(int y = 0; y < (int)dimensions.Y; y++)
 		{
-			for(int z = 0; z < dimensions.Z; z++)
+			for(int z = 0; z < (int)dimensions.Z; z++)
 			{
-
-
-                //printf("(%i,%i,%i)+(%i,%i,%i)=",x,y,z, localPoint.X, localPoint.Y, localPoint.Z);
-
 				for(unsigned i = 0; i < 8; i++)
 				{
-                    /*
-                    if(x == 0 && y == 0 && z == 0)
-                    {
-                        printf("firstoffset(%i,%i,%i)\n", 
-                            x + localPoint.X + (int)points[i].X,
-                            y + localPoint.Y + (int)points[i].Y,
-                            z + localPoint.Z + (int)points[i].Z
-                            );
-                    }
-                    */
                     Values[i] = parent->GetValue(irr::core::vector3d<int>(
                         x + localPoint.X + points[i].X, 
                         y + localPoint.Y + points[i].Y, 
                         z + localPoint.Z + points[i].Z
                     ));
-
-                    //printf("%i%i%i%f ", (int)points[i].X, (int)points[i].Y, (int)points[i].Z, Values[i]);
 
 					Materials[i] = parent->GetMaterial(irr::core::vector3d<int>(
                         x + localPoint.X + points[i].X, 
@@ -368,8 +352,6 @@ void ChunkMesh::GenerateMesh()
                     ));
 				}
                 
-                //printf("\n");
-				
                 GenerateSurface(irr::core::vector3d<int>(x,y,z), Values, Materials);
 			}
 		}
@@ -385,7 +367,7 @@ void ChunkMesh::NaiveNormals()
 {
     irr::core::vector3df tmpVec3D;
 
-    for (int i = 0; i < tempBuffer->Indices.size(); i += 3) {
+    for (int i = 0; i < (int)tempBuffer->Indices.size(); i += 3) {
         tmpVec3D = (
             tempBuffer->Vertices[tempBuffer->Indices[i + 1]].Pos - tempBuffer->Vertices[tempBuffer->Indices[i]].Pos
         ).crossProduct(
@@ -397,7 +379,7 @@ void ChunkMesh::NaiveNormals()
         tempBuffer->Vertices[tempBuffer->Indices[i + 2]].Normal = tempBuffer->Vertices[tempBuffer->Indices[i + 2]].Normal + tmpVec3D;
     }
 
-    for (int i = 0; i < tempBuffer->Vertices.size(); i++)
+    for (int i = 0; i < (int)tempBuffer->Vertices.size(); i++)
     {
         tempBuffer->Vertices[i].Normal.normalize();
     }

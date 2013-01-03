@@ -173,7 +173,13 @@ public:
             tl.Y * dimensions.Y,
             tl.Z * dimensions.Z
         );
+
         buffer = new irr::scene::SMeshBuffer();
+
+        buffer->setBoundingBox(irr::core::aabbox3df(
+            localPoint.X, localPoint.Y, localPoint.Z, localPoint.X + dimensions.X, localPoint.Y + dimensions.Y, localPoint.Z + dimensions.Z
+        ));
+
         status = DIRTY;
         Meshed = false;
     };

@@ -22,7 +22,7 @@ class VoxelSceneNode : public irr::scene::IMeshSceneNode
 public:
     irr::core::aabbox3df Box;
     irr::video::SMaterial Material;
-    irr::scene::SMesh Mesh;
+    irr::scene::SMesh * Mesh;
 
     std::map<irr::core::vector3d<int>, VoxelChunk> chunkMap;
     std::map<irr::core::vector3d<int>, VoxelChunk>::iterator chunkMapIterator;
@@ -42,6 +42,8 @@ public:
 
     static const int MAXTHREADS = 10;
 
+    bool dirty;
+
     int threads;
 
     VoxelSceneNode(irr::scene::ISceneNode * parent, irr::scene::ISceneManager * manager, irr::s32 id);
@@ -55,13 +57,13 @@ public:
 
     const irr::core::aabbox3df & getBoundingBox() const;
 
-    void setMesh(irr::scene::IMesh *){};
+    void setMesh(irr::scene::IMesh * mesh){};
 
-    irr::scene::IMesh * getMesh(){};
+    irr::scene::IMesh * getMesh(){ return Mesh; };
 
     void setReadOnlyMaterials(bool){};
 
-    bool isReadOnlyMaterials() const {};
+    bool isReadOnlyMaterials() const { return true; };
 
     void preRenderCalculationsIfNeeded();
 

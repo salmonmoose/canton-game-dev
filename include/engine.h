@@ -84,7 +84,7 @@ public:
 
     IRandomizer * random;
 
-	irr::video::ITexture * renderTarget;
+	irr::video::ITexture * lightRenderTarget;
 	irr::gui::IGUIImage * renderTargetDisplay;
 
 	irr::scene::ICameraSceneNode * camera;

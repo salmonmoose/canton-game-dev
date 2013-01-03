@@ -12,7 +12,16 @@ void ShaderCallback::OnSetConstants(irr::video::IMaterialRendererServices * serv
 	worldViewProj*= IRR.driver->getTransform(video::ETS_VIEW);
 	worldViewProj*= IRR.driver->getTransform(video::ETS_WORLD);
 
-    int index[8] = { 0, 1, 2, 3, 4, 5, 6, 7 }; 
+	services->setVertexShaderConstant("mWorldViewProj", worldViewProj.pointer(), 16);
+
+	irr::core::matrix4 lightViewProj;
+	lightViewProj = IRR.lightCamera->getProjectionMatrix();
+	lightViewProj*= IRR.lightCamera->getViewMatrix();
+	lightViewProj*= IRR.driver->getTransform(irr::video::ETS_WORLD);
+
+	services->setVertexShaderConstant("mLightViewProj", lightViewProj.pointer(), 16);
+
+    int index[9] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 }; 
 
     //fixme: this should be pushed to terrain.cpp
     services->setPixelShaderConstant("topTex0",  &index[0], 1);
@@ -23,8 +32,7 @@ void ShaderCallback::OnSetConstants(irr::video::IMaterialRendererServices * serv
     services->setPixelShaderConstant("sideTex2",  &index[5], 1);
     services->setPixelShaderConstant("topTex3",  &index[6], 1);
     services->setPixelShaderConstant("sideTex3",  &index[7], 1);
-
-	services->setVertexShaderConstant("mWorldViewProj", worldViewProj.pointer(), 16);
+    services->setPixelShaderConstant("ShadowMap", &index[8], 1);
 
 	irr::core::vector3df pos = IRR.device->getSceneManager()->getActiveCamera()->getAbsolutePosition();
 

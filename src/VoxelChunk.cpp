@@ -86,6 +86,7 @@ void VoxelChunk::UpdateVoxel(irr::core::vector3d<unsigned> position, float value
             (*values)[position.X][position.Y][position.Z] = value;
             (*materials)[position.X][position.Y][position.Z] = material;
             status = DIRTY;
+            empty = false;
         }
     }
 
@@ -121,8 +122,11 @@ void VoxelChunk::FillChunk(anl::CImplicitXML & noiseTree) {
 
                     //printf("%f\n", value);
 
+                    //printf("%f\n", value);
+
                     if(value > isolevel) {
                         empty = false; //a value has been found, block must be meshed
+                        //printf("this chunk isn't empty\n");
 
                         //if there is no highest block in this column, set this column's highest value to y.
                         //This effectively generates a height map, and vertical occlusion map for each chunk.
@@ -138,7 +142,7 @@ void VoxelChunk::FillChunk(anl::CImplicitXML & noiseTree) {
                     (*materials)[x][y][z] = 0;
                 }
             }
-            if(solid) obstruct=true; //if an entire layer is solid, chunk obstructs vertically
+            if(solid) obstruct = true; //if an entire layer is solid, chunk obstructs vertically
         }
         //Chunk is clean, allow rendering.
     } catch (char * exception) {
