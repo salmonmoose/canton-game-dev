@@ -23,7 +23,8 @@ using namespace video;
 using namespace io;
 using namespace gui;
 
-class GLSLMaterial; //Forward declaration
+//Forward declaration
+class GLSLMaterial; 
 
 class Mob;
 
@@ -60,11 +61,15 @@ public:
 
 	void Draw();
 
+	void DrawZDepth(irr::scene::ISceneNode * node);
+
 	void DrawAxis(const irr::core::vector3df & Position, const irr::core::vector3df & Value = irr::core::vector3df(10,10,10));
 
     void DrawAxis(const irr::core::vector3df & Position, const irr::core::vector3df & Value, const irr::core::vector3df & Rotation);
 
     void DrawAABBox(const irr::core::aabbox3df & BoundingBox);
+
+
 
     irr::f32 GetAltitude(const irr::core::vector3df & Position);
 
@@ -98,6 +103,11 @@ public:
     std::vector<std::unique_ptr<Mob>>::iterator vMobIterator;
 
     std::map<std::string, GLSLMaterial> shaderMap;
+
+    irr::io::path vsFileName;
+    irr::io::path psFileName;
+	irr::s32 ZDepthMaterialID;
+    irr::video::SMaterial ZDepthMaterial;
 
 	irr::f32 frameDeltaTime;
 	irr::gui::IGUIStaticText * shipPosition;

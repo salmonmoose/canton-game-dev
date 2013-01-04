@@ -45,12 +45,11 @@ bool VoxelSceneNode::Initialize()
 
 	printf("Terrain Loaded\n");
 
-	vsFileName = "./shaders/terrain.vert.glsl";
-	psFileName = "./shaders/terrain.frag.glsl";
-
 	if(IRR.gpu)
 	{
-	    printf("Making a shader\n");
+		vsFileName = "./shaders/terrain.vert.glsl";
+		psFileName = "./shaders/terrain.frag.glsl";
+		
 	    ShaderCallback * shaderCallback = new ShaderCallback();
 
 	    terrainMaterial = IRR.gpu->addHighLevelShaderMaterialFromFiles(
@@ -65,16 +64,15 @@ bool VoxelSceneNode::Initialize()
 	Material.setFlag(irr::video::EMF_WIREFRAME, false);
 	Material.setFlag(irr::video::EMF_LIGHTING, true);
 
-	//Material.diffuseColor(irr::video::SColor(255,255,196,255));
-    Material.setTexture(0, IRR.driver->getTexture("./resources/grass.jpg"));
-	Material.setTexture(1, IRR.driver->getTexture("./resources/dirt.jpg"));
-	Material.setTexture(2, IRR.driver->getTexture("./resources/dirt.jpg"));
-	Material.setTexture(3, IRR.driver->getTexture("./resources/clay.jpg"));
-	Material.setTexture(4, IRR.driver->getTexture("./resources/sand.jpg"));
-	Material.setTexture(5, IRR.driver->getTexture("./resources/void.jpg"));
-    Material.setTexture(8, IRR.lightRenderTarget);
-
 	Material.MaterialType = (video::E_MATERIAL_TYPE) terrainMaterial;  
+
+    setMaterialTexture(1, IRR.driver->getTexture("./resources/UV_mapper.jpg"));
+    setMaterialTexture(2, IRR.driver->getTexture("./resources/dirt.jpg"));
+    setMaterialTexture(3, IRR.driver->getTexture("./resources/dirt.jpg"));
+    setMaterialTexture(4, IRR.driver->getTexture("./resources/clay.jpg"));
+    setMaterialTexture(5, IRR.driver->getTexture("./resources/sand.jpg"));
+    setMaterialTexture(6, IRR.driver->getTexture("./resources/void.jpg"));
+    setMaterialTexture(0, IRR.lightRenderTarget);
 
 	dirty = true;
 
@@ -439,8 +437,6 @@ void VoxelSceneNode::render()
 	
 	Box = Mesh->getBoundingBox();
 
-	irr::video::SMaterial material;
-
 	//printf("Rendering %i buffers\n", Mesh->getMeshBufferCount());
 
 	for (u32 i = 0; i < Mesh->getMeshBufferCount(); ++i)
@@ -459,6 +455,11 @@ void VoxelSceneNode::render()
 const irr::core::aabbox3df & VoxelSceneNode::getBoundingBox() const
 {
 	return Mesh->getBoundingBox();
+}
+
+irr::video::SMaterial& VoxelSceneNode::getMaterial(u32 i)
+{
+    return Material;
 }
 
 const irr::video::SMaterial & VoxelSceneNode::getMaterial(u32 i) const

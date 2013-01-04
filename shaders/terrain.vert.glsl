@@ -7,9 +7,10 @@ uniform mat4 mLightViewProj;
 
 varying vec4 diffuse,ambient;
 varying vec3 normal,lightDir,halfVector;
+
 void main() {
 
-	ShadowCoord = mLightViewProj[3] * gl_Vertex;
+	ShadowCoord = mLightViewProj * gl_Vertex;
 
     normal = normalize(gl_NormalMatrix * gl_Normal);
     lightDir = normalize(vec3(gl_LightSource[0].position));

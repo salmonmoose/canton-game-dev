@@ -13,20 +13,7 @@ LDLIBS = \
 
 LDFLAGS = $(shell)
 
-SRCS = \
-	./src/canton.cpp \
-	./src/enemy.cpp \
-	./src/engine.cpp \
-	./src/glslmaterial.cpp \
-	./src/mob.cpp \
-	./src/player.cpp \
-	./src/mouse.cpp \
-	./src/pewpew.cpp \
-	./src/shadercallback.cpp \
-	./src/VoxelChunk.cpp \
-	./src/ChunkMesh.cpp \
-	./src/VoxelSceneNode.cpp \
-	./src/nullstate.cpp
+SRCS = $(wildcard src/*.cpp)
 
 OBJS = $(subst .cpp,.o,$(SRCS))
 

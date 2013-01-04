@@ -54,6 +54,28 @@ void IrrlichtEngineManager::SetupDevice()
     env = device->getGUIEnvironment();
     random = device->createDefaultRandomizer();
     gpu = driver->getGPUProgrammingServices();
+
+    //FIXME: this should generate ALL materials, and probably drop them in an enum;
+    if(IRR.gpu)
+    {
+        vsFileName = "./shaders/zdepth.vert.glsl";
+        psFileName = "./shaders/zdepth.frag.glsl";
+        
+        ShaderCallback * shaderCallback = new ShaderCallback();
+
+        ZDepthMaterialID = IRR.gpu->addHighLevelShaderMaterialFromFiles(
+            vsFileName, "vertexMain", video::EVST_VS_1_1,
+            psFileName, "pixelMain", video::EPST_PS_1_1,
+            shaderCallback, video::EMT_SOLID);
+
+        shaderCallback->drop();
+    }
+
+    ZDepthMaterial.setFlag(irr::video::EMF_BACK_FACE_CULLING, true);
+    ZDepthMaterial.setFlag(irr::video::EMF_WIREFRAME, false);
+    ZDepthMaterial.setFlag(irr::video::EMF_LIGHTING, true);
+
+    ZDepthMaterial.MaterialType = (video::E_MATERIAL_TYPE) ZDepthMaterialID;  
 }
 
 void IrrlichtEngineManager::SetupScene()
@@ -69,6 +91,7 @@ void IrrlichtEngineManager::SetupScene()
 
     mPlayer->Init();
 
+    //lightRenderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(256,256), "rtt1");
     lightRenderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(64,64), "rtt1");
 
     camera = smgr->addCameraSceneNode();
@@ -91,7 +114,7 @@ void IrrlichtEngineManager::SetupScene()
     lightCamera->setTarget(mPlayer->getPosition());
     lightCamera->setPosition(mPlayer->getPosition() + lightCameraOffset);
 
-    mat.buildProjectionMatrixOrthoLH(80, 45, -128, 256);
+    mat.buildProjectionMatrixOrthoLH(45, 45, -128, 256);
 
     lightCamera->setProjectionMatrix(mat, true);
 
@@ -158,15 +181,17 @@ void IrrlichtEngineManager::Draw()
 {
     driver->beginScene(true, true, irr::video::SColor(255,100,100,140));
 
-    smgr->setActiveCamera(lightCamera);
+    //Shadow Pass
+    driver->setRenderTarget(lightRenderTarget, true, true, irr::video::SColor(255,127,127,127));
 
-    driver->setRenderTarget(lightRenderTarget, true, true, irr::video::SColor(255,192,128,128));
+    DrawZDepth(smgr->getRootSceneNode());
 
-    smgr->drawAll();
-
+    //Render Pass
     smgr->setActiveCamera(camera);
 
-    driver->setRenderTarget(0, true, true, irr::video::SColor(255,128,192,128));
+    driver->setRenderTarget(0, true, true, 0);
+
+    mVoxelSceneNode->setMaterialTexture(0, IRR.lightRenderTarget);
 
     smgr->drawAll();
 
@@ -184,6 +209,28 @@ void IrrlichtEngineManager::Draw()
     device->setWindowCaption(str.c_str());
 
     driver->endScene();
+}
+
+void IrrlichtEngineManager::DrawZDepth(irr::scene::ISceneNode * node)
+{
+    smgr->setActiveCamera(lightCamera);
+
+    irr::core::list<irr::scene::ISceneNode*> nodeList = node->getChildren();
+    irr::core::list<irr::scene::ISceneNode*>::Iterator nodeList_iterator;
+
+    SMaterial & mat = node->getMaterial(0);
+    SMaterial tmp = mat;
+
+    mat = ZDepthMaterial;
+
+    node->render();
+
+    mat = tmp;
+
+    for(nodeList_iterator = nodeList.begin(); nodeList_iterator != nodeList.end(); nodeList_iterator++)
+    {
+        DrawZDepth(*nodeList_iterator);
+    }
 }
 
 void IrrlichtEngineManager::Shutdown()

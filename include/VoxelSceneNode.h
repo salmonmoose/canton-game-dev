@@ -77,6 +77,9 @@ public:
     int GetMaterial(irr::core::vector3d<int>);
 
     const irr::video::SMaterial & getMaterial(irr::u32) const;
+
+    irr::video::SMaterial & getMaterial(irr::u32);
+
     irr::u32 getMaterialCount() const;
 
     void UpdateVoxel(VoxelData & vd, bool subtract);
