@@ -91,7 +91,7 @@ void IrrlichtEngineManager::SetupScene()
 
     mPlayer->Init();
 
-    //lightRenderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(256,256), "rtt1");
+    //lightRenderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(1024,1024), "rtt1");
     lightRenderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(64,64), "rtt1");
 
     camera = smgr->addCameraSceneNode();
@@ -102,21 +102,22 @@ void IrrlichtEngineManager::SetupScene()
     camera->setTarget(mPlayer->getPosition());
     camera->setPosition(mPlayer->getPosition() + cameraOffset);
 
-    irr::core::matrix4 mat;
-    mat.buildProjectionMatrixOrthoLH(80, 45, -128, 256);
+    irr::core::matrix4 cameraMat;
+    cameraMat.buildProjectionMatrixOrthoLH(80, 45, -128, 256);
 
-    camera->setProjectionMatrix(mat, true);
+    camera->setProjectionMatrix(cameraMat, true);
 
     lightCamera = smgr->addCameraSceneNode();
 
-    lightCameraOffset = irr::core::vector3df(0.f,32.f,0.f);
+    lightCameraOffset = irr::core::vector3df(-32.f,32.f,32.f);
 
     lightCamera->setTarget(mPlayer->getPosition());
     lightCamera->setPosition(mPlayer->getPosition() + lightCameraOffset);
 
-    mat.buildProjectionMatrixOrthoLH(45, 45, -128, 256);
+    irr::core::matrix4 lightMat;
+    lightMat.buildProjectionMatrixOrthoLH(45, 45, -128, 256);
 
-    lightCamera->setProjectionMatrix(mat, true);
+    lightCamera->setProjectionMatrix(lightMat, true);
 
     lightCamera = smgr->addCameraSceneNode();
 }
@@ -184,6 +185,9 @@ void IrrlichtEngineManager::Draw()
     //Shadow Pass
     driver->setRenderTarget(lightRenderTarget, true, true, irr::video::SColor(255,127,127,127));
 
+    smgr->setActiveCamera(lightCamera);
+    lightCamera->render();
+
     DrawZDepth(smgr->getRootSceneNode());
 
     //Render Pass
@@ -192,6 +196,8 @@ void IrrlichtEngineManager::Draw()
     driver->setRenderTarget(0, true, true, 0);
 
     mVoxelSceneNode->setMaterialTexture(0, IRR.lightRenderTarget);
+    mVoxelSceneNode->setMaterialTexture(1, IRR.driver->getTexture("./resources/UV_mapper.jpg"));
+    mVoxelSceneNode->setMaterialTexture(2, IRR.driver->getTexture("./resources/dirt.jpg"));
 
     smgr->drawAll();
 
@@ -213,8 +219,6 @@ void IrrlichtEngineManager::Draw()
 
 void IrrlichtEngineManager::DrawZDepth(irr::scene::ISceneNode * node)
 {
-    smgr->setActiveCamera(lightCamera);
-
     irr::core::list<irr::scene::ISceneNode*> nodeList = node->getChildren();
     irr::core::list<irr::scene::ISceneNode*>::Iterator nodeList_iterator;
 

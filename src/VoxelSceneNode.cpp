@@ -72,7 +72,6 @@ bool VoxelSceneNode::Initialize()
     setMaterialTexture(4, IRR.driver->getTexture("./resources/clay.jpg"));
     setMaterialTexture(5, IRR.driver->getTexture("./resources/sand.jpg"));
     setMaterialTexture(6, IRR.driver->getTexture("./resources/void.jpg"));
-    setMaterialTexture(0, IRR.lightRenderTarget);
 
 	dirty = true;
 
@@ -190,8 +189,8 @@ void VoxelSceneNode::preRenderCalculationsIfNeeded()
 	        			chunkMap[chunkPos].status = MESHING;
 	        			threads++;
 	        			std::thread meshThread(&VoxelSceneNode::MeshBackground, this, chunkPos);
-	        			//meshThread.detach();
-	        			meshThread.join();
+	        			meshThread.detach();
+	        			//meshThread.join();
 	        		}
 
 	        		//if(chunkMap[chunkPos].empty) { printf("empty\n"); }

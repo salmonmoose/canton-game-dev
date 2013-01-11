@@ -3,14 +3,24 @@ varying vec4 vColor;
 
 varying vec4 ShadowCoord;
 
+uniform mat4 mWorldViewProj;
 uniform mat4 mLightViewProj;
 
 varying vec4 diffuse,ambient;
 varying vec3 normal,lightDir,halfVector;
 
+varying vec2 texCoords;
+varying float shadowDist;
+
 void main() {
 
 	ShadowCoord = mLightViewProj * gl_Vertex;
+
+    vec4 shadowPos=mLightViewProj * gl_Vertex/256.0;
+    shadowDist = shadowPos.z/2.0;
+
+    texCoords=shadowPos.xy;
+    texCoords=0.5*texCoords+0.5;
 
     normal = normalize(gl_NormalMatrix * gl_Normal);
     lightDir = normalize(vec3(gl_LightSource[0].position));
