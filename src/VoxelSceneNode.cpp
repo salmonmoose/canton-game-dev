@@ -189,8 +189,8 @@ void VoxelSceneNode::preRenderCalculationsIfNeeded()
 	        			chunkMap[chunkPos].status = MESHING;
 	        			threads++;
 	        			std::thread meshThread(&VoxelSceneNode::MeshBackground, this, chunkPos);
-	        			meshThread.detach();
-	        			//meshThread.join();
+	        			//meshThread.detach();
+	        			meshThread.join();
 	        		}
 
 	        		//if(chunkMap[chunkPos].empty) { printf("empty\n"); }
