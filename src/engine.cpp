@@ -43,8 +43,8 @@ void IrrlichtEngineManager::SetupDevice()
     irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_OPENGL;
     //irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_BURNINGSVIDEO;
 
-    device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, true, false, &receiver);
-    //device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
+    //device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, true, false, &receiver);
+    device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
     
     if (!device)
         printf("Device failed to manifest\n");
@@ -92,7 +92,7 @@ void IrrlichtEngineManager::SetupScene()
     mPlayer->Init();
 
     lightRenderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(1024,1024), "rtt1");
-    //lightRenderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(256,256), "rtt1");
+    //lightRenderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(64,64), "rtt1");
 
     camera = smgr->addCameraSceneNode();
     camera->setName("playercam");
@@ -116,9 +116,9 @@ void IrrlichtEngineManager::SetupScene()
     lightCamera->setPosition(mPlayer->getPosition() + lightCameraOffset);
 
     irr::core::matrix4 lightMat;
-    lightMat.buildProjectionMatrixOrthoLH(80, 45, -128, 128);
+    lightMat.buildProjectionMatrixOrthoLH(120, 120, -128, 128);
 
-    lightCamera->setProjectionMatrix(cameraMat, true);
+    lightCamera->setProjectionMatrix(lightMat, true);
 }
 
 void IrrlichtEngineManager::SetupGUI()
