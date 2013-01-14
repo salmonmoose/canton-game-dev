@@ -20,6 +20,17 @@ void IrrlichtEngineManager::InitialiseVariables()
 	env = NULL;
 }
 
+//     .oooooo..o               .                          
+//    d8P'    `Y8             .o8                          
+//    Y88bo.       .ooooo.  .o888oo oooo  oooo  oo.ooooo.  
+//     `"Y8888o.  d88' `88b   888   `888  `888   888' `88b 
+//         `"Y88b 888ooo888   888    888   888   888   888 
+//    oo     .d8P 888    .o   888 .  888   888   888   888 
+//    8""88888P'  `Y8bod8P'   "888"  `V88V"V8P'  888bod8P' 
+//                                               888       
+//                                              o888o      
+                                                         
+
 void IrrlichtEngineManager::Startup()
 {
     SetupDevice();
@@ -32,8 +43,8 @@ void IrrlichtEngineManager::SetupDevice()
     irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_OPENGL;
     //irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_BURNINGSVIDEO;
 
-    //device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, false, false, &receiver);
-    device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
+    device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, true, false, &receiver);
+    //device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
     
     if (!device)
         printf("Device failed to manifest\n");
@@ -43,6 +54,28 @@ void IrrlichtEngineManager::SetupDevice()
     env = device->getGUIEnvironment();
     random = device->createDefaultRandomizer();
     gpu = driver->getGPUProgrammingServices();
+
+    //FIXME: this should generate ALL materials, and probably drop them in an enum;
+    if(IRR.gpu)
+    {
+        vsFileName = "./shaders/zdepth.vert.glsl";
+        psFileName = "./shaders/zdepth.frag.glsl";
+        
+        ShaderCallback * shaderCallback = new ShaderCallback();
+
+        ZDepthMaterialID = IRR.gpu->addHighLevelShaderMaterialFromFiles(
+            vsFileName, "vertexMain", video::EVST_VS_1_1,
+            psFileName, "pixelMain", video::EPST_PS_1_1,
+            shaderCallback, video::EMT_SOLID);
+
+        shaderCallback->drop();
+    }
+
+    ZDepthMaterial.setFlag(irr::video::EMF_BACK_FACE_CULLING, true);
+    ZDepthMaterial.setFlag(irr::video::EMF_WIREFRAME, false);
+    ZDepthMaterial.setFlag(irr::video::EMF_LIGHTING, true);
+
+    ZDepthMaterial.MaterialType = (video::E_MATERIAL_TYPE) ZDepthMaterialID;  
 }
 
 void IrrlichtEngineManager::SetupScene()
@@ -51,28 +84,41 @@ void IrrlichtEngineManager::SetupScene()
 
     vMob = new std::vector<std::unique_ptr<Mob>>();
 
-    mScalarTerrain = new ScalarTerrain();
-    mScalarTerrain->Init();
-
-    terrainMesh = smgr->addMeshSceneNode(&mScalarTerrain->Mesh);
+    mVoxelSceneNode = new VoxelSceneNode(smgr->getRootSceneNode(), smgr, 666);
+    mVoxelSceneNode->Initialize();
 
     mPlayer = new Player();
 
     mPlayer->Init();
 
-    mPlayer->mainMesh->setParent(terrainMesh);
+    lightRenderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(1024,1024), "rtt1");
+    //lightRenderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(64,64), "rtt1");
 
     camera = smgr->addCameraSceneNode();
+    camera->setName("playercam");
 
-    cameraOffset = irr::core::vector3df(24.f, 16.f, 0.f);
+    cameraOffset = irr::core::vector3df(-24.f, 16.f, 0.f);
 
     camera->setTarget(mPlayer->getPosition());
     camera->setPosition(mPlayer->getPosition() + cameraOffset);
 
-    irr::core::matrix4 mat;
-    mat.buildProjectionMatrixOrthoLH(60, 45, 0, 256);
+    irr::core::matrix4 cameraMat;
+    cameraMat.buildProjectionMatrixOrthoLH(80, 45, -128, 128);
 
-    camera->setProjectionMatrix(mat, true);
+    camera->setProjectionMatrix(cameraMat, true);
+
+    lightCamera = smgr->addCameraSceneNode();
+    lightCamera->setName("lightcam");
+
+    lightCameraOffset = irr::core::vector3df(-32.f,32.f,32.f);
+
+    lightCamera->setTarget(mPlayer->getPosition());
+    lightCamera->setPosition(mPlayer->getPosition() + lightCameraOffset);
+
+    irr::core::matrix4 lightMat;
+    lightMat.buildProjectionMatrixOrthoLH(120, 120, -128, 128);
+
+    lightCamera->setProjectionMatrix(lightMat, true);
 }
 
 void IrrlichtEngineManager::SetupGUI()
@@ -84,11 +130,24 @@ void IrrlichtEngineManager::SetupGUI()
 
     skin->setFont(env->getBuiltInFont(), gui::EGDF_TOOLTIP);
 
+    //renderTargetDisplay = env->addImage(lightRenderTarget, irr::core::position2d<s32>(0,0), false);
+
     shipPosition = env->addStaticText(L"shipPosition", core::rect<s32>(0,0,200,16), true);
     shipPosition->setDrawBorder(false);
     
     then = device->getTimer()->getTime();
 }
+
+//    ooooo     ooo                  .o8                .             
+//    `888'     `8'                 "888              .o8             
+//     888       8  oo.ooooo.   .oooo888   .oooo.   .o888oo  .ooooo.  
+//     888       8   888' `88b d88' `888  `P  )88b    888   d88' `88b 
+//     888       8   888   888 888   888   .oP"888    888   888ooo888 
+//     `88.    .8'   888   888 888   888  d8(  888    888 . 888    .o 
+//       `YbodP'     888bod8P' `Y8bod88P" `Y888""8o   "888" `Y8bod8P' 
+//                   888                                              
+//                  o888o                                             
+                                                                    
 
 void IrrlichtEngineManager::Update()
 {
@@ -101,25 +160,42 @@ void IrrlichtEngineManager::Update()
 
     camera->setTarget(mPlayer->getPosition());
     camera->setPosition(mPlayer->getPosition() + cameraOffset);
+    lightCamera->setTarget(mPlayer->getPosition());
+    lightCamera->setPosition(mPlayer->getPosition() + lightCameraOffset);
 
     for(vMobIterator = vMob->begin(); vMobIterator != vMob->end(); ++vMobIterator)
     {
         (*vMobIterator)->Update();
     }
-
-    mScalarTerrain->generateMesh(camera->getViewFrustum()); //FIXME: Perhaps this should depend on an active window.
 } 
+
+//    oooooooooo.                                       
+//    `888'   `Y8b                                      
+//     888      888 oooo d8b  .oooo.   oooo oooo    ooo 
+//     888      888 `888""8P `P  )88b   `88. `88.  .8'  
+//     888      888  888      .oP"888    `88..]88..8'   
+//     888     d88'  888     d8(  888     `888'`888'    
+//    o888bood8P'   d888b    `Y888""8o     `8'  `8'     
 
 void IrrlichtEngineManager::Draw()
 {
-    driver->beginScene(true, true, irr::video::SColor(255,100,101,140));
+    driver->beginScene(true, true, irr::video::SColor(255,100,100,140));
 
-    driver->setMaterial(mScalarTerrain->Material);
-    driver->setTransform(irr::video::ETS_WORLD, terrainMesh->getAbsoluteTransformation());
-    for(unsigned i = 0; i < terrainMesh->getMesh()->getMeshBufferCount(); i++)
-    {
-        driver->drawMeshBuffer(terrainMesh->getMesh()->getMeshBuffer(i));
-    }
+    //Shadow Pass
+    driver->setRenderTarget(lightRenderTarget, true, true, irr::video::SColor(255,127,127,127));
+
+    smgr->setActiveCamera(lightCamera);
+    lightCamera->render();
+
+    DrawZDepth(smgr->getRootSceneNode());
+
+    //Render Pass
+    smgr->setActiveCamera(camera);
+
+    driver->setRenderTarget(0, true, true, 0);
+
+    mVoxelSceneNode->setMaterialTexture(0, IRR.lightRenderTarget);
+    
     smgr->drawAll();
 
     env->drawAll();
@@ -136,6 +212,26 @@ void IrrlichtEngineManager::Draw()
     device->setWindowCaption(str.c_str());
 
     driver->endScene();
+}
+
+void IrrlichtEngineManager::DrawZDepth(irr::scene::ISceneNode * node)
+{
+    irr::core::list<irr::scene::ISceneNode*> nodeList = node->getChildren();
+    irr::core::list<irr::scene::ISceneNode*>::Iterator nodeList_iterator;
+
+    SMaterial & mat = node->getMaterial(0);
+    SMaterial tmp = mat;
+
+    mat = ZDepthMaterial;
+
+    node->render();
+
+    mat = tmp;
+
+    for(nodeList_iterator = nodeList.begin(); nodeList_iterator != nodeList.end(); nodeList_iterator++)
+    {
+        DrawZDepth(*nodeList_iterator);
+    }
 }
 
 void IrrlichtEngineManager::Shutdown()

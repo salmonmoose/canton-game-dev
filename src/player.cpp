@@ -99,7 +99,7 @@ void Player::Init()
     playerEngine1->setMaterialTexture(0, IRR.driver->getTexture("./resources/fireball.bmp"));
     playerEngine2->setMaterialTexture(0, IRR.driver->getTexture("./resources/fireball.bmp"));
 
-    Position.Y = 40.f;
+    Position.Y = 96.f;
     MaxSpeed = 64.f;
     MaxStrafe = 32.f;
     MaxTurnRate = 90.f;
@@ -142,7 +142,7 @@ void Player::AcceptInput()
 {
     mouse->Update(Position.Y);
 
-    double ground_height = (double) IRR.mScalarTerrain->GetAltitude(Position);
+    double ground_height = (double) IRR.mVoxelSceneNode->GetAltitude(Position);
 
     if(ground_height + 32.f > Position.Y)
     {
@@ -190,7 +190,7 @@ void Player::AcceptInput()
 
         IRR.vMob->push_back(std::move(missile));
     }
-
+/*
     if(IRR.receiver.ButtonPressed(EventReceiver::MOUSE_BUTTON_RIGHT))
     {
         //FIXME: This should be abstracted to the engine;
@@ -200,9 +200,14 @@ void Player::AcceptInput()
 
         IRR.vMob->push_back(std::move(enemy));
     }
-
+*/
     if(IRR.receiver.ButtonDown(EventReceiver::MOUSE_BUTTON_LEFT))
     {
-        IRR.mScalarTerrain->AddBrush(mouse->getPosition());
+        IRR.mVoxelSceneNode->AddBrush(mouse->getPosition());
+    }
+
+    if(IRR.receiver.ButtonDown(EventReceiver::MOUSE_BUTTON_RIGHT))
+    {
+        IRR.mVoxelSceneNode->RemoveBrush(mouse->getPosition());
     }
 }

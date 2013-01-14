@@ -5,6 +5,7 @@
 ./Debug
 *.sdf
 *.sublime*
+*.o
 build/
 bin/
 canton

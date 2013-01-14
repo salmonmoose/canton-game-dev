@@ -11,7 +11,7 @@
 #include <map>
 #include <string>
 #include "glslmaterial.h"
-#include "terrain.h"
+#include "VoxelSceneNode.h"
 
 #define IRR IrrlichtEngineManager::Instance()
 
@@ -23,13 +23,14 @@ using namespace video;
 using namespace io;
 using namespace gui;
 
-class GLSLMaterial; //Forward declaration
+//Forward declaration
+class GLSLMaterial; 
 
 class Mob;
 
 class Player;
 
-class ScalarTerrain;
+class VoxelSceneNode;
 
 class IrrlichtEngineManager
 {
@@ -60,11 +61,15 @@ public:
 
 	void Draw();
 
+	void DrawZDepth(irr::scene::ISceneNode * node);
+
 	void DrawAxis(const irr::core::vector3df & Position, const irr::core::vector3df & Value = irr::core::vector3df(10,10,10));
 
     void DrawAxis(const irr::core::vector3df & Position, const irr::core::vector3df & Value, const irr::core::vector3df & Rotation);
 
     void DrawAABBox(const irr::core::aabbox3df & BoundingBox);
+
+
 
     irr::f32 GetAltitude(const irr::core::vector3df & Position);
 
@@ -84,9 +89,11 @@ public:
 
     IRandomizer * random;
 
-	irr::video::ITexture * renderTarget;
+	irr::video::ITexture * lightRenderTarget;
+	irr::gui::IGUIImage * renderTargetDisplay;
 
 	irr::scene::ICameraSceneNode * camera;
+	irr::scene::ICameraSceneNode * lightCamera;
 
 	gui::IGUIEnvironment * env;
 
@@ -97,14 +104,20 @@ public:
 
     std::map<std::string, GLSLMaterial> shaderMap;
 
+    irr::io::path vsFileName;
+    irr::io::path psFileName;
+	irr::s32 ZDepthMaterialID;
+    irr::video::SMaterial ZDepthMaterial;
+
 	irr::f32 frameDeltaTime;
 	irr::gui::IGUIStaticText * shipPosition;
 
 	irr::core::vector3df cameraOffset;
+	irr::core::vector3df lightCameraOffset;
 
 	irr::scene::IMeshSceneNode * terrainMesh;
 
-	ScalarTerrain * mScalarTerrain;
+	VoxelSceneNode * mVoxelSceneNode;
 
 	Player * mPlayer;
 

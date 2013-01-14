@@ -1,5 +1,5 @@
-#ifndef TERRAIN_H
-#define TERRAIN_H
+#ifndef VOXEL_H
+#define VOXEL_H
 
 #include <thread>
 #include "pugixml.hpp"
@@ -7,7 +7,6 @@
 #include "anl.h"
 #include "implicitxml.h"
 #include <irrlicht.h>
-#include "marchingcubes.h"
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
 #include "brush.h"
@@ -103,7 +102,7 @@ public:
     std::vector<VoxelBrush> * vVoxels;
 };
 
-class TerrainChunk
+class VoxelChunk
 {
 public:
     Float3Array * values; //Provides contents for each cell
@@ -119,17 +118,12 @@ public:
     bool empty; //No visible cubes;
     bool obstruct; //At least one horizontal plane is filled
 
-    //irr::scene::SMesh * Mesh;
-    irr::scene::SMeshBuffer * buffer;
-    irr::scene::SMeshBuffer * tempBuffer;
-
-    TerrainChunk()
+    VoxelChunk()
     {
         values = new Float3Array(boost::extents[dimensions.X][dimensions.Y][dimensions.Z]);
         materials = new Unsigned3Array(boost::extents[dimensions.X][dimensions.Y][dimensions.Z]);
         filled = new Bool3Array(boost::extents[dimensions.X][dimensions.Y][dimensions.Z]);
         heights = new Int2Array(boost::extents[dimensions.X][dimensions.Z]);
-        buffer = new irr::scene::SMeshBuffer();
 
         status = EMPTY;
 
@@ -143,67 +137,17 @@ public:
     bool GetFilled(irr::core::vector3d<unsigned> position);
     int GetHeight(irr::core::vector2d<unsigned> position);
 
-    void UpdateVoxel(irr::core::vector3d<unsigned> position, float value, int material);
+    void UpdateVoxel(irr::core::vector3d<unsigned> position, float value, int material, bool subtract);
     void FillChunk(anl::CImplicitXML & noiseTree);
     void MeshChunk();
 };
 
-class TerrainMesh;
+class VoxelSceneNode;
 
-class ScalarTerrain
-{
-private:
-	double value;
-
-    static const int MAXTHREADS = 10;
-
-public:
-    anl::CImplicitXML noiseTree;
-    std::map<irr::core::vector3d<int>, TerrainChunk> worldMap;
-    std::map<irr::core::vector3d<int>, TerrainChunk>::iterator worldMap_iterator;
-
-    std::map<irr::core::vector3d<int>, TerrainMesh> worldMesh;
-    std::map<irr::core::vector3d<int>, TerrainMesh>::iterator worldMesh_iterator;
-
-    irr::io::path vsFileName;
-    irr::io::path psFileName;
-    irr::scene::SMesh Mesh;
-    irr::video::SMaterial Material;
-    irr::s32 terrainMaterial;
-
-    int threads;
-    int meshThreads;
-    int fillThreads;
-
-	ScalarTerrain();
-
-	~ScalarTerrain(){};
-
-    void Init();
-	void setupAccidentalNoise();
-	void generateChunk(int, int, int);
-	void bresenham(irr::core::vector3df, irr::core::vector3df);
-	void generateNavMesh();
-    float GetValue(irr::core::vector3d<int> position);
-    int GetMaterial(irr::core::vector3d<int> position);
-    void generateMesh(const irr::scene::SViewFrustum * Frustum);
-    void FillBackground(irr::core::vector3d<int> tl);
-    void MeshBackground(irr::core::vector3d<int> tl);
-
-    void UpdateVoxel(VoxelData & vd);
-
-    void AddBrush(irr::core::vector3df Position);
-    void RemoveBrush(irr::core::vector3df Position);
-
-    int GetAltitude(const irr::core::vector3d<int> & Position);
-    int GetAltitude(const irr::core::vector3df & Position);
-    bool GetFilled(const irr::core::vector3d<int> & Position);
-    bool GetFilled(const irr::core::vector3df & Position);
-
-    bool BlockFilled(irr::core::vector3df);
-};
-
-class TerrainMesh
+/*
+* This should be extended to implement various voxel rendering techniques.
+*/
+class ChunkMesh
 {
 public:
     int status;
@@ -215,13 +159,13 @@ public:
     irr::scene::SMeshBuffer * buffer;
     irr::scene::SMeshBuffer * tempBuffer;
     irr::core::vector3d<int> localPoint;
-    ScalarTerrain * parent;
+    VoxelSceneNode * parent;
 
     Unsigned3Array * generatedPoints;
 
-    TerrainMesh(){};
+    ChunkMesh(){};
 
-    void Initialize(ScalarTerrain * _parent, irr::core::vector3d<int> tl)
+    void Initialize(VoxelSceneNode * _parent, irr::core::vector3d<int> tl)
     {
         parent = _parent;
         localPoint = irr::core::vector3d<int>(
@@ -229,7 +173,13 @@ public:
             tl.Y * dimensions.Y,
             tl.Z * dimensions.Z
         );
+
         buffer = new irr::scene::SMeshBuffer();
+
+        buffer->setBoundingBox(irr::core::aabbox3df(
+            localPoint.X, localPoint.Y, localPoint.Z, localPoint.X + dimensions.X, localPoint.Y + dimensions.Y, localPoint.Z + dimensions.Z
+        ));
+
         status = DIRTY;
         Meshed = false;
     };
@@ -238,6 +188,4 @@ public:
     void NaiveNormals();
     void GenerateSurface(irr::core::vector3d<int> renderBlock, float Values[8], int Materials[8]);
 };
-
-
 #endif
