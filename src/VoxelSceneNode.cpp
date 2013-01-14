@@ -66,7 +66,7 @@ bool VoxelSceneNode::Initialize()
 
 	Material.MaterialType = (video::E_MATERIAL_TYPE) terrainMaterial;  
 
-    setMaterialTexture(1, IRR.driver->getTexture("./resources/UV_mapper.jpg"));
+    setMaterialTexture(1, IRR.driver->getTexture("./resources/grass.jpg"));
     setMaterialTexture(2, IRR.driver->getTexture("./resources/dirt.jpg"));
     setMaterialTexture(3, IRR.driver->getTexture("./resources/dirt.jpg"));
     setMaterialTexture(4, IRR.driver->getTexture("./resources/clay.jpg"));

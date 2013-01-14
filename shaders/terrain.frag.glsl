@@ -29,11 +29,11 @@ void main()
 
     vec4 shadowCoordinateWdivide = ShadowCoord / ShadowCoord.w ;
     
-    shadowCoordinateWdivide.z += 0.005;
-    
+    shadowCoordinateWdivide.z -= 0.005;
+
     vec4 shadowTexture = texture2D(ShadowMap, 0.5 * ShadowCoord.st + 0.5);
 
-    float distanceFromLight = texture2D(ShadowMap,shadowCoordinateWdivide.st).z;
+    float distanceFromLight = texture2D(ShadowMap,0.5 * shadowCoordinateWdivide.st + 0.5).z;
     
     if (ShadowCoord.w > 0.0)
         shadow = distanceFromLight < shadowCoordinateWdivide.z ? ambientColor : sunColor ;
@@ -50,13 +50,13 @@ void main()
     vec2 coord_y = gl_TexCoord[1].zx * tex_scale;
     vec2 coord_z = -gl_TexCoord[1].xy * tex_scale;
 
-    vec4 map0_x = vec4(1.0,1.0,1.0,0);
-    vec4 map0_y = vec4(1.0,1.0,1.0,0);
-    vec4 map0_z = vec4(1.0,1.0,1.0,0);
+    //vec4 map0_x = vec4(1.0,1.0,1.0,0);
+    //vec4 map0_y = vec4(1.0,1.0,1.0,0);
+    //vec4 map0_z = vec4(1.0,1.0,1.0,0);
 
-    //vec4 map0_x = texture2D(sideTex0, coord_x);
-    //vec4 map0_y = texture2D(topTex1, coord_y);
-    //vec4 map0_z = texture2D(sideTex0, coord_z);
+    vec4 map0_x = texture2D(sideTex0, coord_x);
+    vec4 map0_y = texture2D(topTex0, coord_y);
+    vec4 map0_z = texture2D(sideTex0, coord_z);
 
     vec4 map1_x = texture2D(sideTex1, coord_x);
     vec4 map1_y = texture2D(topTex1, coord_y);
@@ -96,7 +96,7 @@ void main()
     }
 
     //gl_FragColor = color * blended_color;
-    //gl_FragColor = shadow * color * blended_color;
-    gl_FragColor = shadowTexture;
+    gl_FragColor = shadow * color * blended_color;
+    //gl_FragColor = shadowTexture;
     //gl_FragColor = shadow;
 }

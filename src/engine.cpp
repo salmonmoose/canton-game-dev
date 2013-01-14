@@ -43,8 +43,8 @@ void IrrlichtEngineManager::SetupDevice()
     irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_OPENGL;
     //irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_BURNINGSVIDEO;
 
-    //device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, true, false, &receiver);
-    device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
+    device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, true, false, &receiver);
+    //device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
     
     if (!device)
         printf("Device failed to manifest\n");
@@ -195,9 +195,7 @@ void IrrlichtEngineManager::Draw()
     driver->setRenderTarget(0, true, true, 0);
 
     mVoxelSceneNode->setMaterialTexture(0, IRR.lightRenderTarget);
-    mVoxelSceneNode->setMaterialTexture(1, IRR.driver->getTexture("./resources/UV_mapper.jpg"));
-    mVoxelSceneNode->setMaterialTexture(2, IRR.driver->getTexture("./resources/dirt.jpg"));
-
+    
     smgr->drawAll();
 
     env->drawAll();
