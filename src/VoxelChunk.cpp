@@ -1,8 +1,7 @@
-
-#include "terrain.h"
+#include "Voxel.h"
 #include "anl.h"
 
-int TerrainChunk::GetHeight(irr::core::vector2d<unsigned> Position)
+int VoxelChunk::GetHeight(irr::core::vector2d<unsigned> Position)
 {
     if(status != EMPTY && status != FILLING)
     {
@@ -21,7 +20,7 @@ int TerrainChunk::GetHeight(irr::core::vector2d<unsigned> Position)
     }
 }
 
-bool TerrainChunk::GetFilled(irr::core::vector3d<unsigned> Position)
+bool VoxelChunk::GetFilled(irr::core::vector3d<unsigned> Position)
 {
     if(status != EMPTY && status != FILLING)
     {
@@ -40,21 +39,12 @@ bool TerrainChunk::GetFilled(irr::core::vector3d<unsigned> Position)
     }
 }
 
-void TerrainChunk::Initialize(irr::core::vector3d<unsigned> dimensions, irr::core::vector3d<int> position)
+void VoxelChunk::Initialize(irr::core::vector3d<unsigned> dimensions, irr::core::vector3d<int> position)
 {
-    
-    buffer->setBoundingBox(irr::core::aabbox3df(
-        (double) ((int)dimensions.X * position.X), 
-        (double) ((int)dimensions.Y * position.Y), 
-        (double) ((int)dimensions.Z * position.Z),
-        (double) (((int)dimensions.X * position.X) + (int)dimensions.X), 
-        (double) (((int)dimensions.Y * position.Y) + (int)dimensions.Y), 
-        (double) (((int)dimensions.Z * position.Z) + (int)dimensions.Z)
-    ));
     localPoint = irr::core::vector3d<int>(position.X,position.Y,position.Z);
 }
 
-float TerrainChunk::GetValue(irr::core::vector3d<unsigned> Position)
+float VoxelChunk::GetValue(irr::core::vector3d<unsigned> Position)
 {
     if(status != EMPTY && status != FILLING)
     {
@@ -66,7 +56,7 @@ float TerrainChunk::GetValue(irr::core::vector3d<unsigned> Position)
     }
 }
 
-int TerrainChunk::GetMaterial(irr::core::vector3d<unsigned> Position)
+int VoxelChunk::GetMaterial(irr::core::vector3d<unsigned> Position)
 {
     if(status != EMPTY && status != FILLING)
     {
@@ -78,25 +68,35 @@ int TerrainChunk::GetMaterial(irr::core::vector3d<unsigned> Position)
     }
 }
 
-void TerrainChunk::MeshChunk()
+void VoxelChunk::UpdateVoxel(irr::core::vector3d<unsigned> position, float value, int material, bool subtract)
 {
-    tempBuffer = new irr::scene::SMeshBuffer();
-    generateIsoSurface(* tempBuffer, * values, * materials, localPoint.X * dimensions.X, localPoint.Y * dimensions.Y, localPoint.Z * dimensions.Z);
-    buffer = tempBuffer;
-}
+    if(subtract)
+    {
+        if((*values)[position.X][position.Y][position.Z] > value)
+        {
+            (*values)[position.X][position.Y][position.Z] = value;
+            (*materials)[position.X][position.Y][position.Z] = material;
+            status = DIRTY;
+        }
+    }
+    else
+    {
+        if((*values)[position.X][position.Y][position.Z] < value)
+        {
+            (*values)[position.X][position.Y][position.Z] = value;
+            (*materials)[position.X][position.Y][position.Z] = material;
+            status = DIRTY;
+            empty = false;
+        }
+    }
 
-void TerrainChunk::UpdateVoxel(irr::core::vector3d<unsigned> position, float value, int material)
-{
-    (*values)[position.X][position.Y][position.Z] = value;
-    (*materials)[position.X][position.Y][position.Z] = material;
-
-    status = DIRTY;
+    
 }
 
 /**
 Using noise tree, populates an array with values
 **/
-void TerrainChunk::FillChunk(anl::CImplicitXML & noiseTree) {
+void VoxelChunk::FillChunk(anl::CImplicitXML & noiseTree) {
     double value;
     int xPos = localPoint.X * (int)dimensions.X;
     int yPos = localPoint.Y * (int)dimensions.Y;
@@ -122,8 +122,11 @@ void TerrainChunk::FillChunk(anl::CImplicitXML & noiseTree) {
 
                     //printf("%f\n", value);
 
+                    //printf("%f\n", value);
+
                     if(value > isolevel) {
                         empty = false; //a value has been found, block must be meshed
+                        //printf("this chunk isn't empty\n");
 
                         //if there is no highest block in this column, set this column's highest value to y.
                         //This effectively generates a height map, and vertical occlusion map for each chunk.
@@ -139,7 +142,7 @@ void TerrainChunk::FillChunk(anl::CImplicitXML & noiseTree) {
                     (*materials)[x][y][z] = 0;
                 }
             }
-            if(solid) obstruct=true; //if an entire layer is solid, chunk obstructs vertically
+            if(solid) obstruct = true; //if an entire layer is solid, chunk obstructs vertically
         }
         //Chunk is clean, allow rendering.
     } catch (char * exception) {
