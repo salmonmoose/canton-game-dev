@@ -34,17 +34,18 @@ void ShaderCallback::OnSetConstants(irr::video::IMaterialRendererServices * serv
     services->setPixelShaderConstant("topTex3",   &index[7], 1);
     services->setPixelShaderConstant("sideTex3",  &index[8], 1);
 
-	irr::core::vector3df pos = IRR.device->getSceneManager()->getActiveCamera()->getAbsolutePosition();
 
     float camFarZ = 64.f;
 
     services->setPixelShaderConstant("camFarZ", &camFarZ, 1);
 
-	services->setVertexShaderConstant("mLightPos", reinterpret_cast<f32*>(&pos), 3);
+	irr::core::vector3df pos = IRR.light->getPosition();
+	
+    services->setVertexShaderConstant("mLightPos", reinterpret_cast<f32*>(& pos), 3);
 
-	irr::video::SColorf col(0.0f, 1.0f, 1.0f, 0.0f);
+	irr::video::SColorf col(2.0f, 1.5f, 0.5f, 0.0f);
 
-	services->setVertexShaderConstant("mLightColor", reinterpret_cast<f32*>(&col), 4);
+	services->setVertexShaderConstant("mLightColor", reinterpret_cast<f32*>(& col), 4);
 
 	irr::core::matrix4 world = IRR.driver->getTransform(video::ETS_WORLD);
 	world = world.getTransposed();

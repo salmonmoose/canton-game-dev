@@ -9,7 +9,9 @@ uniform sampler2D sideTex2;
 uniform sampler2D topTex3;
 uniform sampler2D sideTex3;
 
-varying vec4 vNormal;
+uniform vec4 mLightColor;
+
+varying vec3 vNormal;
 varying vec4 vColor;
 
 varying vec4 diffuse,ambient;
@@ -25,7 +27,7 @@ void main()
     vec4 shadow = vec4(1.0, 0.0, 1.0, 0);
 
     vec4 ambientColor = vec4(0.25,0.25,0.5,0);
-    vec4 sunColor = vec4(1.0,0.75,0.25, 0);
+    
 
     vec4 shadowCoordinateWdivide = ShadowCoord / ShadowCoord.w ;
     
@@ -36,9 +38,9 @@ void main()
     float distanceFromLight = texture2D(ShadowMap,0.5 * shadowCoordinateWdivide.st + 0.5).z;
     
     if (ShadowCoord.w > 0.0)
-        shadow = distanceFromLight < shadowCoordinateWdivide.z ? ambientColor : sunColor ;
+        shadow = distanceFromLight < shadowCoordinateWdivide.z ? ambientColor : mLightColor ;
     
-    vec4 blend_weights = abs(vNormal);
+    vec3 blend_weights = abs(vNormal);
     blend_weights = (blend_weights) - 0.5f;//0.2679f;
     blend_weights = max(blend_weights, 0);
     blend_weights /= blend_weights.x + blend_weights.y + blend_weights.z;
@@ -54,18 +56,6 @@ void main()
     vec4 map0_y = texture2D(topTex0, coord_y);
     vec4 map0_z = texture2D(sideTex0, coord_z);
 
-    vec4 map1_x = texture2D(sideTex1, coord_x);
-    vec4 map1_y = texture2D(topTex1, coord_y);
-    vec4 map1_z = texture2D(sideTex1, coord_z);
-
-    vec4 map2_x = texture2D(sideTex2, coord_x);
-    vec4 map2_y = texture2D(topTex2, coord_y);
-    vec4 map2_z = texture2D(sideTex2, coord_z);
-
-    vec4 map3_x = texture2D(sideTex3, coord_x);
-    vec4 map3_y = texture2D(topTex3, coord_y);
-    vec4 map3_z = texture2D(sideTex3, coord_z);
-
     blended_color = 
         map0_x.xyzw * blend_weights.xxxx +
         map0_y.xyzw * blend_weights.yyyy +
@@ -77,17 +67,16 @@ void main()
     vec3 n,halfV;
     float NdotL,NdotHV;
 
-    vec4 color = ambient;
-    n = normalize(normal);
+    vec4 color = ambientColor;
+    n = normalize(vNormal);
 
-    NdotL = max(dot(n,lightDir),0.0);
+    NdotL = max(dot(vNormal,lightDir),0.0);
 
     if (NdotL > 0.0) {
         color += NdotL;
-        //halfV = normalize(halfVector);
-        NdotHV = max(dot(n,halfV),0.0);
+        NdotHV = max(dot(vNormal, halfVector), 0.0);
         color += gl_FrontMaterial.specular *
-                sunColor *
+                mLightColor *
                 pow(NdotHV, gl_FrontMaterial.shininess);
     }
 

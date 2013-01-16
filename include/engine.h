@@ -96,6 +96,8 @@ public:
 	irr::scene::ICameraSceneNode * camera;
 	irr::scene::ICameraSceneNode * lightCamera;
 
+    irr::scene::ILightSceneNode * light;
+
 	gui::IGUIEnvironment * env;
 
 	video::IGPUProgrammingServices * gpu;

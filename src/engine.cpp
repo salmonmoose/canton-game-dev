@@ -31,8 +31,8 @@ void IrrlichtEngineManager::SetupDevice()
 {
     irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_OPENGL;
 
-    //device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, true, false, &receiver);
-    device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
+    device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, true, false, &receiver);
+    //device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
     
     if (!device)
         printf("Device failed to manifest\n");
@@ -122,6 +122,9 @@ void IrrlichtEngineManager::SetupScene()
     lightMat.buildProjectionMatrixOrthoLH(120, 120, -128, 128);
 
     lightCamera->setProjectionMatrix(lightMat, true);
+
+    light = smgr->addLightSceneNode();
+    light->setPosition(mPlayer->getPosition() + lightCameraOffset);
 }
 
 void IrrlichtEngineManager::SetupGUI()
@@ -154,6 +157,7 @@ void IrrlichtEngineManager::Update()
     camera->setPosition(mPlayer->getPosition() + cameraOffset);
     lightCamera->setTarget(mPlayer->getPosition());
     lightCamera->setPosition(mPlayer->getPosition() + lightCameraOffset);
+    light->setPosition(lightCamera->getPosition());
 
     for(vMobIterator = vMob->begin(); vMobIterator != vMob->end(); ++vMobIterator)
     {
