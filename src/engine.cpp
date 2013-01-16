@@ -20,17 +20,6 @@ void IrrlichtEngineManager::InitialiseVariables()
 	env = NULL;
 }
 
-//     .oooooo..o               .                          
-//    d8P'    `Y8             .o8                          
-//    Y88bo.       .ooooo.  .o888oo oooo  oooo  oo.ooooo.  
-//     `"Y8888o.  d88' `88b   888   `888  `888   888' `88b 
-//         `"Y88b 888ooo888   888    888   888   888   888 
-//    oo     .d8P 888    .o   888 .  888   888   888   888 
-//    8""88888P'  `Y8bod8P'   "888"  `V88V"V8P'  888bod8P' 
-//                                               888       
-//                                              o888o      
-                                                         
-
 void IrrlichtEngineManager::Startup()
 {
     SetupDevice();
@@ -41,10 +30,9 @@ void IrrlichtEngineManager::Startup()
 void IrrlichtEngineManager::SetupDevice()
 {
     irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_OPENGL;
-    //irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_BURNINGSVIDEO;
 
-    device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, true, false, &receiver);
-    //device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
+    //device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, true, false, &receiver);
+    device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
     
     if (!device)
         printf("Device failed to manifest\n");
@@ -90,6 +78,21 @@ void IrrlichtEngineManager::SetupScene()
     mPlayer = new Player();
 
     mPlayer->Init();
+
+    for(int i = 0; i < 30; i ++)
+    {
+        irr::core::vector2df offset = getRandomInRadius(20.f);
+
+        std::unique_ptr<Mob> enemy = std::unique_ptr<Mob>(
+            new Enemy(
+                irr::core::vector3df(30.f + offset.X, 96.f, 30.f + offset.Y), 
+                irr::core::vector3df(0.f,0.f,0.f))
+            );
+
+        enemy->Init();
+
+        vMob->push_back(std::move(enemy));
+    }
 
     lightRenderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(1024,1024), "rtt1");
     //lightRenderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(64,64), "rtt1");
@@ -138,17 +141,6 @@ void IrrlichtEngineManager::SetupGUI()
     then = device->getTimer()->getTime();
 }
 
-//    ooooo     ooo                  .o8                .             
-//    `888'     `8'                 "888              .o8             
-//     888       8  oo.ooooo.   .oooo888   .oooo.   .o888oo  .ooooo.  
-//     888       8   888' `88b d88' `888  `P  )88b    888   d88' `88b 
-//     888       8   888   888 888   888   .oP"888    888   888ooo888 
-//     `88.    .8'   888   888 888   888  d8(  888    888 . 888    .o 
-//       `YbodP'     888bod8P' `Y8bod88P" `Y888""8o   "888" `Y8bod8P' 
-//                   888                                              
-//                  o888o                                             
-                                                                    
-
 void IrrlichtEngineManager::Update()
 {
 	const u32 now = device->getTimer()->getTime();
@@ -168,14 +160,6 @@ void IrrlichtEngineManager::Update()
         (*vMobIterator)->Update();
     }
 } 
-
-//    oooooooooo.                                       
-//    `888'   `Y8b                                      
-//     888      888 oooo d8b  .oooo.   oooo oooo    ooo 
-//     888      888 `888""8P `P  )88b   `88. `88.  .8'  
-//     888      888  888      .oP"888    `88..]88..8'   
-//     888     d88'  888     d8(  888     `888'`888'    
-//    o888bood8P'   d888b    `Y888""8o     `8'  `8'     
 
 void IrrlichtEngineManager::Draw()
 {
@@ -304,16 +288,9 @@ irr::core::vector2df IrrlichtEngineManager::getRandomInRadius(float radius)
     float u = IRR.random->frand() + IRR.random->frand();
     float r;
 
-    if(u > 1)
-    {
-        r = 2 - u;
-    }
-    else
-    {
-        r = u;
-    }
+    r = (u > 1) ? 2 - u : u;
 
-    return irr::core::vector2df(r * cos(t), r * sin(t));
+    return irr::core::vector2df(r * cos(t) * radius, r * sin(t) * radius);
 }
 
 irr::f32 IrrlichtEngineManager::getAngleBetween(const irr::core::vector3df& vec1, const irr::core::vector3df& vec2)

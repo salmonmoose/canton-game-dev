@@ -110,29 +110,13 @@ void VoxelSceneNode::preRenderCalculationsIfNeeded()
 		(int)ceil(bounding.MaxEdge.Z / dimensions.Z)
 	);
 
-	//printf("(%i,%i,%i)", newAabboxStart.X,newAabboxStart.Y,newAabboxStart.Z);
-	//printf("(%i,%i,%i)", newAabboxEnd.X,newAabboxEnd.Y,newAabboxEnd.Z);
-
-	//dirty = true;
-
 	if((newAabboxStart == aabboxStart && newAabboxEnd == aabboxEnd) && !dirty)
 	{
-		if(!dirty) 
-		{
-			//printf("clean\n");
-		} else {
-			//printf("box matches\n");
-		}
-
-		//printf("aldready generated, why bother?\n");
-        //FIXME: this doesn't work the world may change, without the the viewport changing
 		return;
 	}
 
 	aabboxStart = newAabboxStart;
 	aabboxEnd = newAabboxEnd;
-
-	//printf("(%i,%i,%i)-(%i,%i,%i)\n", aabboxStart.X,aabboxStart.Y,aabboxStart.Z,aabboxEnd.X,aabboxEnd.Y,aabboxEnd.Z);
 
 	if((aabboxEnd.X - aabboxStart.X) * (aabboxEnd.Y - aabboxStart.Y) * (aabboxEnd.Z - aabboxStart.Z) > 10000)
 	{
@@ -155,9 +139,9 @@ void VoxelSceneNode::preRenderCalculationsIfNeeded()
 
     dirty = false;
 
-	for(int z = aabboxStart.Z; z <= aabboxEnd.Z; z++)
+	for(int z = aabboxEnd.Z; z >= aabboxStart.Z; z--)
 	{
-		for(int x = aabboxStart.X; x <= aabboxEnd.X; x++)
+		for(int x = aabboxEnd.X; x >= aabboxStart.X; x--)
 		{
 			for(int y = aabboxEnd.Y; y >= aabboxStart.Y; y--)
 			{
@@ -179,13 +163,11 @@ void VoxelSceneNode::preRenderCalculationsIfNeeded()
 	        	{
 	        		if(meshMap[chunkPos].Meshed)
 	        		{
-	        			//printf("Adding Mesh buffer (%i,%i,%i)\n", chunkPos.X, chunkPos.Y, chunkPos.Z);
 	        			Mesh->addMeshBuffer(meshMap[chunkPos].buffer);
 	        		}
 
 	        		if((chunkMap[chunkPos].status == FILLED || chunkMap[chunkPos].status == DIRTY) && threads < MAXTHREADS && !chunkMap[chunkPos].empty)
 	        		{
-                        //printf("Meshing (%i,%i,%i)\n", chunkPos.X, chunkPos.Y, chunkPos.Z);
 	        			chunkMap[chunkPos].status = MESHING;
 	        			threads++;
 	        			std::thread meshThread(&VoxelSceneNode::MeshBackground, this, chunkPos);
@@ -193,11 +175,8 @@ void VoxelSceneNode::preRenderCalculationsIfNeeded()
 	        			meshThread.join();
 	        		}
 
-	        		//if(chunkMap[chunkPos].empty) { printf("empty\n"); }
-
 	        		if(chunkMap[chunkPos].status == EMPTY && threads < MAXTHREADS)
 	        		{
-	        			//printf("Filling (%i,%i,%i)\n", chunkPos.X, chunkPos.Y, chunkPos.Z);
                         chunkMap[chunkPos].status = FILLING;
 	        			threads++;
 	        			std::thread fillThread(&VoxelSceneNode::FillBackground, this, chunkPos);
@@ -207,7 +186,6 @@ void VoxelSceneNode::preRenderCalculationsIfNeeded()
 
 	        		if(chunkMap[chunkPos].obstruct)
 	        		{
-	        			//printf("Obstructing Chunk, ending Y loop\n");
 	        			y = aabboxStart.Y;
 	        		}
 	        	}
@@ -222,7 +200,8 @@ void VoxelSceneNode::preRenderCalculationsIfNeeded()
 void VoxelSceneNode::FillBackground(irr::core::vector3d<int> chunkPos)
 {
 	chunkMap[chunkPos].FillChunk(noiseTree);
-/*
+	
+	/*
 	for(int i = 0; i < 6; i++)
 	{
 		irr::core::vector3d<int> clean(chunkPos.X - Previous[i].X, chunkPos.Y - Previous[i].Y, chunkPos.Z - Previous[i].Z);
@@ -232,7 +211,7 @@ void VoxelSceneNode::FillBackground(irr::core::vector3d<int> chunkPos)
             chunkMap[clean].status = DIRTY;
         }
 	}
-*/
+	*/
 
 	dirty = true;
 	threads--;
@@ -292,11 +271,8 @@ float VoxelSceneNode::GetValue(irr::core::vector3d<int> Position)
 
     chunkMapIterator = chunkMap.find(vr.Chunk);
 
-    //printf("(%i,%i,%i)=(%i,%i,%i)+(%i,%i,%i)\n", Position.X, Position.Y, Position.Z, vr.Position.X, vr.Position.Y, vr.Position.Z, vr.Chunk.X, vr.Chunk.Y, vr.Chunk.Z);
-
     if(chunkMapIterator != chunkMap.end())
     {
-        //return 1.f;
         return chunkMapIterator->second.GetValue(vr.Position);
     }
     else
@@ -327,24 +303,18 @@ void VoxelSceneNode::UpdateVoxel(VoxelData & vd, bool subtract)
 
     chunkMapIterator = chunkMap.find(vr.Chunk);
 
-    if(chunkMapIterator != chunkMap.end())
+    if(chunkMap.find(vr.Chunk) == chunkMap.end())
     {
-        chunkMapIterator->second.UpdateVoxel(vr.Position, vd.Value, vd.Material, subtract);
-        chunkMapIterator->second.status = DIRTY;
-
-        if(vr.Position.X == 0)
-            chunkMap[irr::core::vector3d<int>(vr.Chunk.X - 1, vr.Chunk.Y, vr.Chunk.Z)].status = DIRTY;
-        if(vr.Position.X == dimensions.X -1)
-            chunkMap[irr::core::vector3d<int>(vr.Chunk.X + 1, vr.Chunk.Y, vr.Chunk.Z)].status = DIRTY;
-        if(vr.Position.Y == 0)
-            chunkMap[irr::core::vector3d<int>(vr.Chunk.X, vr.Chunk.Y - 1, vr.Chunk.Z)].status = DIRTY;
-        if(vr.Position.Y == dimensions.Y -1)
-            chunkMap[irr::core::vector3d<int>(vr.Chunk.X, vr.Chunk.Y + 1, vr.Chunk.Z)].status = DIRTY;
-        if(vr.Position.Z == 0)
-            chunkMap[irr::core::vector3d<int>(vr.Chunk.X, vr.Chunk.Y, vr.Chunk.Z - 1)].status = DIRTY;
-        if(vr.Position.Z == dimensions.Z -1)
-            chunkMap[irr::core::vector3d<int>(vr.Chunk.X, vr.Chunk.Y, vr.Chunk.Z + 1)].status = DIRTY;
+        chunkMap[vr.Chunk] = VoxelChunk();
+        chunkMap[vr.Chunk].Initialize(dimensions, vr.Chunk);
+        
+        meshMap[vr.Chunk] = ChunkMesh();
+        meshMap[vr.Chunk].Initialize(this, vr.Chunk);
+        
     }
+
+    chunkMap[vr.Chunk].UpdateVoxel(vr.Position, vd.Value, vd.Material, subtract);
+    chunkMap[vr.Chunk].status = DIRTY;
 }
 
 void VoxelSceneNode::AddBrush(irr::core::vector3df Position)

@@ -50,10 +50,6 @@ void main()
     vec2 coord_y = gl_TexCoord[1].zx * tex_scale;
     vec2 coord_z = -gl_TexCoord[1].xy * tex_scale;
 
-    //vec4 map0_x = vec4(1.0,1.0,1.0,0);
-    //vec4 map0_y = vec4(1.0,1.0,1.0,0);
-    //vec4 map0_z = vec4(1.0,1.0,1.0,0);
-
     vec4 map0_x = texture2D(sideTex0, coord_x);
     vec4 map0_y = texture2D(topTex0, coord_y);
     vec4 map0_z = texture2D(sideTex0, coord_z);
@@ -91,7 +87,7 @@ void main()
         //halfV = normalize(halfVector);
         NdotHV = max(dot(n,halfV),0.0);
         color += gl_FrontMaterial.specular *
-                gl_LightSource[0].specular *
+                sunColor *
                 pow(NdotHV, gl_FrontMaterial.shininess);
     }
 

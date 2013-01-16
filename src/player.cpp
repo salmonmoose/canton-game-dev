@@ -18,16 +18,6 @@ public:
     {
         mPlayer->AcceptInput();
         mPlayer->ApplyVectors();
-        IRR.shipPosition->setText(
-            (
-                core::stringw(L"Ship Position: (") +
-                core::stringw(mPlayer->getPosition().X) +
-                core::stringw(",") +
-                core::stringw(mPlayer->getPosition().Y) +
-                core::stringw(",") +
-                core::stringw(mPlayer->getPosition().Z) +
-                core::stringw(")")
-            ).c_str());
     }
 
     virtual void OnEnter()
@@ -189,6 +179,13 @@ void Player::AcceptInput()
         missile->Init();
 
         IRR.vMob->push_back(std::move(missile));
+    }
+
+    if(IRR.receiver.KeyDown(irr::KEY_LCONTROL))
+    {
+        std::unique_ptr<Mob> enemy = std::unique_ptr<Mob>(new Enemy(mouse->getPosition(), Rotation));
+        enemy->Init();
+        IRR.vMob->push_back(std::move(enemy));
     }
 /*
     if(IRR.receiver.ButtonPressed(EventReceiver::MOUSE_BUTTON_RIGHT))

@@ -2,12 +2,12 @@
 
 NullState::NullState()
 {
-    printf("New NullState\n");
+    //printf("New NullState\n");
 }
 
 NullState::~NullState()
 {
-    printf("Deleting a NullState\n");
+    //printf("Deleting a NullState\n");
 }
 
 void NullState::OnUpdate()
