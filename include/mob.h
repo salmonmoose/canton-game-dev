@@ -27,6 +27,9 @@ public:
 	const irr::core::vector3df & getRotation(){ return Rotation; }
 	const irr::core::vector3df & getVelocity(){ return Velocity; }
 
+	const float getAngleToVector(irr::core::vector3df);
+	const float getDistanceToVector(irr::core::vector3df);
+
 	irr::scene::IAnimatedMeshSceneNode * mainMesh;
 
 protected:

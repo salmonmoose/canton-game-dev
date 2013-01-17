@@ -13,6 +13,14 @@ public:
 	void Update();
 	void Init();
 
+    bool SeekTarget();
+    void PointAtTarget();
+    void Accelerate();
+
+    float DistanceToTarget();
+
+    std::shared_ptr<Mob> Target;
+
 	double life;
 };
 #endif

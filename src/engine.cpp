@@ -70,20 +70,27 @@ void IrrlichtEngineManager::SetupScene()
 {   
     smgr->setAmbientLight(video::SColorf(0.5f,0.5f,0.5f,0.5f));
 
-    vMob = new std::vector<std::unique_ptr<Mob>>();
+    vMob = new std::vector<std::shared_ptr<Mob>>();
 
     mVoxelSceneNode = new VoxelSceneNode(smgr->getRootSceneNode(), smgr, 666);
     mVoxelSceneNode->Initialize();
 
-    mPlayer = new Player();
+    mEnvironmentLight = new EnvironmentLight();
+    mEnvironmentLight->Initialize();
 
-    mPlayer->Init();
+    std::shared_ptr<Mob> player(new Player());
+
+    player->Init();
+
+    mPlayer = player;
+
+    vMob->push_back(std::move(player));
 
     for(int i = 0; i < 30; i ++)
     {
         irr::core::vector2df offset = getRandomInRadius(20.f);
 
-        std::unique_ptr<Mob> enemy = std::unique_ptr<Mob>(
+        std::shared_ptr<Mob> enemy = std::shared_ptr<Mob>(
             new Enemy(
                 irr::core::vector3df(30.f + offset.X, 96.f, 30.f + offset.Y), 
                 irr::core::vector3df(0.f,0.f,0.f))
@@ -109,22 +116,6 @@ void IrrlichtEngineManager::SetupScene()
     cameraMat.buildProjectionMatrixOrthoLH(80, 45, -128, 128);
 
     camera->setProjectionMatrix(cameraMat, true);
-
-    lightCamera = smgr->addCameraSceneNode();
-    lightCamera->setName("lightcam");
-
-    lightCameraOffset = irr::core::vector3df(-32.f,32.f,32.f);
-
-    lightCamera->setTarget(mPlayer->getPosition());
-    lightCamera->setPosition(mPlayer->getPosition() + lightCameraOffset);
-
-    irr::core::matrix4 lightMat;
-    lightMat.buildProjectionMatrixOrthoLH(120, 120, -128, 128);
-
-    lightCamera->setProjectionMatrix(lightMat, true);
-
-    light = smgr->addLightSceneNode();
-    light->setPosition(mPlayer->getPosition() + lightCameraOffset);
 }
 
 void IrrlichtEngineManager::SetupGUI()
@@ -151,18 +142,15 @@ void IrrlichtEngineManager::Update()
 
     then = now;
 
-    mPlayer->Update();
-
-    camera->setTarget(mPlayer->getPosition());
-    camera->setPosition(mPlayer->getPosition() + cameraOffset);
-    lightCamera->setTarget(mPlayer->getPosition());
-    lightCamera->setPosition(mPlayer->getPosition() + lightCameraOffset);
-    light->setPosition(lightCamera->getPosition());
-
     for(vMobIterator = vMob->begin(); vMobIterator != vMob->end(); ++vMobIterator)
     {
         (*vMobIterator)->Update();
     }
+
+    camera->setTarget(mPlayer->getPosition());
+    camera->setPosition(mPlayer->getPosition() + cameraOffset);
+
+    mEnvironmentLight->Update();
 } 
 
 void IrrlichtEngineManager::Draw()
@@ -172,8 +160,8 @@ void IrrlichtEngineManager::Draw()
     //Shadow Pass
     driver->setRenderTarget(lightRenderTarget, true, true, irr::video::SColor(255,127,127,127));
 
-    smgr->setActiveCamera(lightCamera);
-    lightCamera->render();
+    smgr->setActiveCamera(mEnvironmentLight->lightCamera);
+    mEnvironmentLight->lightCamera->render();
 
     DrawZDepth(smgr->getRootSceneNode());
 
@@ -185,6 +173,11 @@ void IrrlichtEngineManager::Draw()
     mVoxelSceneNode->setMaterialTexture(0, IRR.lightRenderTarget);
     
     smgr->drawAll();
+
+    driver->draw3DLine(
+        mPlayer->getPosition(),
+        mPlayer->getPosition() + mEnvironmentLight->lightCameraPosition
+        );
 
     env->drawAll();
 

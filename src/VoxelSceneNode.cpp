@@ -60,9 +60,9 @@ bool VoxelSceneNode::Initialize()
 	    shaderCallback->drop();
 	}
 
-	Material.setFlag(irr::video::EMF_BACK_FACE_CULLING, true);
+	Material.setFlag(irr::video::EMF_BACK_FACE_CULLING, false);
 	Material.setFlag(irr::video::EMF_WIREFRAME, false);
-	Material.setFlag(irr::video::EMF_LIGHTING, true);
+	Material.setFlag(irr::video::EMF_LIGHTING, false);
 
 	Material.MaterialType = (video::E_MATERIAL_TYPE) terrainMaterial;  
 

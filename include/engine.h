@@ -13,6 +13,7 @@
 #include <string>
 #include "glslmaterial.h"
 #include "VoxelSceneNode.h"
+#include "EnvironmentLight.h"
 
 #define IRR IrrlichtEngineManager::Instance()
 
@@ -32,6 +33,8 @@ class Mob;
 class Player;
 
 class VoxelSceneNode;
+
+class EnvironmentLight;
 
 class IrrlichtEngineManager
 {
@@ -98,12 +101,27 @@ public:
 
     irr::scene::ILightSceneNode * light;
 
+    EnvironmentLight * mEnvironmentLight;
+
 	gui::IGUIEnvironment * env;
 
 	video::IGPUProgrammingServices * gpu;
 
-    std::vector<std::unique_ptr<Mob>> * vMob;
-    std::vector<std::unique_ptr<Mob>>::iterator vMobIterator;
+    std::vector<std::shared_ptr<Mob>> * vMob;
+    std::vector<std::shared_ptr<Mob>>::iterator vMobIterator;
+
+    std::vector<std::shared_ptr<Mob>> * vEnemy;
+    std::vector<std::shared_ptr<Mob>>::iterator vEnemyIterator;
+
+    std::vector<std::shared_ptr<Mob>> * vPlayer;
+    std::vector<std::shared_ptr<Mob>>::iterator vPlayerIterator;
+
+    std::vector<std::shared_ptr<Mob>> * vPewPew;
+    std::vector<std::shared_ptr<Mob>>::iterator vPewPewIterator;
+
+    std::shared_ptr<Mob> mPlayer;
+
+    //Player * mPlayer;
 
     std::map<std::string, GLSLMaterial> shaderMap;
 
@@ -122,7 +140,7 @@ public:
 
 	VoxelSceneNode * mVoxelSceneNode;
 
-	Player * mPlayer;
+	
 
 protected:
 	IrrlichtEngineManager();

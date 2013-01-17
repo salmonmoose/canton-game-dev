@@ -38,7 +38,11 @@ void main()
     float distanceFromLight = texture2D(ShadowMap,0.5 * shadowCoordinateWdivide.st + 0.5).z;
     
     if (ShadowCoord.w > 0.0)
+    {
+        float offset = (distanceFromLight - shadowCoordinateWdivide.z);
+        //shadow = mix(ambientColor, (mLightColor * 8.f), offset);
         shadow = distanceFromLight < shadowCoordinateWdivide.z ? ambientColor : mLightColor ;
+    }   
     
     vec3 blend_weights = abs(vNormal);
     blend_weights = (blend_weights) - 0.5f;//0.2679f;
@@ -70,7 +74,7 @@ void main()
     vec4 color = ambientColor;
     n = normalize(vNormal);
 
-    NdotL = max(dot(vNormal,lightDir),0.0);
+    NdotL = max(dot(lightDir,vNormal),0.0);
 
     if (NdotL > 0.0) {
         color += NdotL;

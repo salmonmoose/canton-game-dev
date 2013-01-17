@@ -64,3 +64,28 @@ void Mob::ApplyVectors()
     mainMesh->setPosition(Position);
     mainMesh->setRotation(Rotation);
 }
+
+const float Mob::getAngleToVector(irr::core::vector3df target)
+{
+    irr::core::vector3df mobDirection = IRR.getRotatedVector(irr::core::vector3df(0,0,1), Rotation);
+    irr::core::vector3df targetDirection = target - Position;
+
+    mobDirection.normalize();
+    targetDirection.normalize();
+
+    irr::core::vector3df targetNormal(-targetDirection.Z, 1, targetDirection.X);
+
+    if(mobDirection.dotProduct(targetNormal) > 0)
+    {
+        return acos(mobDirection.dotProduct(targetDirection));
+    }
+    else
+    {
+        return 0-acos(mobDirection.dotProduct(targetDirection));
+    }
+}
+
+const float Mob::getDistanceToVector(irr::core::vector3df target)
+{
+    return Position.getDistanceFrom(target);
+}
