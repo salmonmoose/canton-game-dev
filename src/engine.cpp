@@ -31,7 +31,7 @@ void IrrlichtEngineManager::Startup()
 
 void IrrlichtEngineManager::SetupSystem()
 {
-    mThreadPool = new boost::threadpool::pool(2);
+    mThreadPool = new boost::threadpool::prio_pool(4);
 }
 
 void IrrlichtEngineManager::SetupDevice()

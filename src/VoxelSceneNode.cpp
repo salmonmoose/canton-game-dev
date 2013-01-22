@@ -192,28 +192,16 @@ void VoxelSceneNode::preRenderCalculationsIfNeeded()
 	        			Mesh->addMeshBuffer(meshMap[chunkPos].buffer);
 	        		}
 
-	        		if((chunkMap[chunkPos].status == FILLED || chunkMap[chunkPos].status == DIRTY) && threads < MAXTHREADS && !chunkMap[chunkPos].empty)
+	        		if((chunkMap[chunkPos].status == FILLED || chunkMap[chunkPos].status == DIRTY) && !chunkMap[chunkPos].empty)
 	        		{
 	        			chunkMap[chunkPos].status = MESHING;
-	        			threads++;
-
-	        			IRR.mThreadPool->schedule(boost::bind(&VoxelSceneNode::MeshBackground, this, chunkPos));//, this, chunkPos);
-
-	        			//std::thread meshThread(&VoxelSceneNode::MeshBackground, this, chunkPos);
-	        			//meshThread.detach();
-	        			//meshThread.join();
+        				boost::threadpool::schedule((*IRR.mThreadPool), boost::threadpool::prio_task_func(1,boost::bind(&VoxelSceneNode::MeshBackground, this, chunkPos)));
 	        		}
 
-	        		if(chunkMap[chunkPos].status == EMPTY && threads < MAXTHREADS)
+	        		if(chunkMap[chunkPos].status == EMPTY)
 	        		{
                         chunkMap[chunkPos].status = FILLING;
-	        			threads++;
-
-	        			IRR.mThreadPool->schedule(boost::bind(&VoxelSceneNode::FillBackground, this, chunkPos));//, this, chunkPos);
-	        			
-	        			//std::thread fillThread(&VoxelSceneNode::FillBackground, this, chunkPos);
-	        			//fillThread.detach();
-	        			//fillThread.join();
+                        boost::threadpool::schedule((*IRR.mThreadPool), boost::threadpool::prio_task_func(1,boost::bind(&VoxelSceneNode::FillBackground, this, chunkPos)));
 	        		}
 
 	        		if(chunkMap[chunkPos].obstruct)

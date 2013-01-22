@@ -141,7 +141,7 @@ public:
 
 	irr::scene::IMeshSceneNode * terrainMesh;
 
-	boost::threadpool::pool * mThreadPool;
+	boost::threadpool::prio_pool * mThreadPool;
 
 	VoxelSceneNode * mVoxelSceneNode;
 
