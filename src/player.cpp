@@ -180,7 +180,7 @@ void Player::AcceptInput()
 
         missile->Init();
 
-        IRR.vMob->push_back(std::move(missile));
+        IRR.AddMob(missile);
     }
 
     if(IRR.receiver.KeyDown(irr::KEY_LCONTROL))
@@ -191,7 +191,8 @@ void Player::AcceptInput()
                 Rotation)
             );
         enemy->Init();
-        IRR.vMob->push_back(std::move(enemy));
+        
+        IRR.AddMob(enemy);
     }
 /*
     if(IRR.receiver.ButtonPressed(EventReceiver::MOUSE_BUTTON_RIGHT))

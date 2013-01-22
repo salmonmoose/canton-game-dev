@@ -9,7 +9,7 @@ EnvironmentLight::EnvironmentLight()
 
 	irr::core::matrix4 lightMatrix;
 
-	lightMatrix.buildProjectionMatrixOrthoLH(120, 120, -128, 128);
+	lightMatrix.buildProjectionMatrixOrthoLH(200,  200, -128, 128);
 
 	lightCamera->setProjectionMatrix(lightMatrix, true);
 

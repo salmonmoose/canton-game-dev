@@ -25,6 +25,9 @@ public:
         mEnemy->PointAtTarget();
         if(mEnemy->DistanceToTarget() > 20)
             mEnemy->Accelerate();
+
+        if(mEnemy->DistanceToTarget() < 10)
+            mEnemy->Deccelerate();
         mEnemy->ApplyVectors();
     }
 
@@ -75,7 +78,7 @@ void Enemy::Init()
 	life = 100.f;
 	MaxSpeed = 96.f;
 	MaxStrafe = 32.f;
-	MaxTurnRate = 180.f;
+	MaxTurnRate = 240.f;
 	Drag = 0.5f;
 	Velocity = irr::core::vector3df(0.f,0.f,0.f);
 	SetState(new EnemyIdleState(this));
@@ -114,6 +117,11 @@ void Enemy::PointAtTarget()
 void Enemy::Accelerate()
 {
     Velocity += IRR.getRotatedVector(irr::core::vector3df(0,0,1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
+}
+
+void Enemy::Deccelerate()
+{
+    Velocity -= IRR.getRotatedVector(irr::core::vector3df(0,0,1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
 }
 
 float Enemy::DistanceToTarget()

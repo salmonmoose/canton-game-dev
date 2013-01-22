@@ -81,7 +81,7 @@ public:
         assert(Position.Z < Dimensions.Z);
     }
 
-    VoxelReference(irr::core::vector3d<int> chunk, irr::core::vector3d<unsigned> position, irr::core::vector3d<unsigned> dimensions)
+    VoxelReference(irr::core::vector3d<int> chunk, irr::core::vector3d<unsigned> position)
     {
         Chunk = chunk;
         Position = position;

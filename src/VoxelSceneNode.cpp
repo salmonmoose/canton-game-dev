@@ -89,6 +89,30 @@ void VoxelSceneNode::OnRegisterSceneNode()
 
 	//ISceneNode::OnRegisterSceneNode();
 }
+/*
+void VoxelSceneNode::preRenderFillChunks()
+{
+	irr::core::vector3d<int> playerChunk = VoxelReference(IRR.mPlayer.getPosition()).Chunk;
+	irr::core::vector3d<int> localSpace(3,2,3);
+
+	for(int x=playerChunk.X - localSpace.X; x <= playerChunk.X + localSpace.X)
+	{
+		for(int y=playerChunk.Y - localSpace.Y; y <= playerChunk.Y + localSpace.Y)
+		{
+			for(int z=playerChunk.Z - localSpace.Z; z <= playerChunk.Z + localSpace.Z)
+			{
+
+			}
+		}
+	}
+
+}
+*/
+
+void VoxelSceneNode::preRenderMeshChunks()
+{
+
+}
 
 void VoxelSceneNode::preRenderCalculationsIfNeeded()
 {
@@ -96,18 +120,20 @@ void VoxelSceneNode::preRenderCalculationsIfNeeded()
 	if (!camera)
 		return;
 
+	irr::core::vector3d<int> overDraw(1,0,1);
+
 	irr::core::aabbox3df bounding = camera->getViewFrustum()->getBoundingBox();
 
 	irr::core::vector3d<int> newAabboxStart(
-		(int)floor(bounding.MinEdge.X / dimensions.X),
-		(int)floor(bounding.MinEdge.Y / dimensions.Y),
-		(int)floor(bounding.MinEdge.Z / dimensions.Z)
+		(int)floor(bounding.MinEdge.X / dimensions.X) - overDraw.X,
+		(int)floor(bounding.MinEdge.Y / dimensions.Y) - overDraw.Y,
+		(int)floor(bounding.MinEdge.Z / dimensions.Z) - overDraw.Z
 	);
 
 	irr::core::vector3d<int> newAabboxEnd(
-		(int)ceil(bounding.MaxEdge.X / dimensions.X),
-		(int)ceil(bounding.MaxEdge.Y / dimensions.Y),
-		(int)ceil(bounding.MaxEdge.Z / dimensions.Z)
+		(int)ceil(bounding.MaxEdge.X / dimensions.X) + overDraw.X,
+		(int)ceil(bounding.MaxEdge.Y / dimensions.Y) + overDraw.Y,
+		(int)ceil(bounding.MaxEdge.Z / dimensions.Z) + overDraw.Z
 	);
 
 	if((newAabboxStart == aabboxStart && newAabboxEnd == aabboxEnd) && !dirty)
@@ -170,17 +196,23 @@ void VoxelSceneNode::preRenderCalculationsIfNeeded()
 	        		{
 	        			chunkMap[chunkPos].status = MESHING;
 	        			threads++;
-	        			std::thread meshThread(&VoxelSceneNode::MeshBackground, this, chunkPos);
+
+	        			IRR.mThreadPool->schedule(boost::bind(&VoxelSceneNode::MeshBackground, this, chunkPos));//, this, chunkPos);
+
+	        			//std::thread meshThread(&VoxelSceneNode::MeshBackground, this, chunkPos);
 	        			//meshThread.detach();
-	        			meshThread.join();
+	        			//meshThread.join();
 	        		}
 
 	        		if(chunkMap[chunkPos].status == EMPTY && threads < MAXTHREADS)
 	        		{
                         chunkMap[chunkPos].status = FILLING;
 	        			threads++;
-	        			std::thread fillThread(&VoxelSceneNode::FillBackground, this, chunkPos);
-	        			fillThread.detach();
+
+	        			IRR.mThreadPool->schedule(boost::bind(&VoxelSceneNode::FillBackground, this, chunkPos));//, this, chunkPos);
+	        			
+	        			//std::thread fillThread(&VoxelSceneNode::FillBackground, this, chunkPos);
+	        			//fillThread.detach();
 	        			//fillThread.join();
 	        		}
 
@@ -197,7 +229,7 @@ void VoxelSceneNode::preRenderCalculationsIfNeeded()
     Mesh->setDirty();
 }
 
-void VoxelSceneNode::FillBackground(irr::core::vector3d<int> chunkPos)
+void VoxelSceneNode::FillBackground(const irr::core::vector3d<int> chunkPos)
 {
 	chunkMap[chunkPos].FillChunk(noiseTree);
 	
@@ -218,7 +250,7 @@ void VoxelSceneNode::FillBackground(irr::core::vector3d<int> chunkPos)
 	chunkMap[chunkPos].status = FILLED;
 }
 
-void VoxelSceneNode::MeshBackground(irr::core::vector3d<int> chunkPos)
+void VoxelSceneNode::MeshBackground(const irr::core::vector3d<int> chunkPos)
 {
     meshMap[chunkPos].Initialize(this, chunkPos);
 	meshMap[chunkPos].GenerateMesh();

@@ -66,6 +66,8 @@ public:
     bool isReadOnlyMaterials() const { return true; };
 
     void preRenderCalculationsIfNeeded();
+    void preRenderFillChunks();
+    void preRenderMeshChunks();
 
     irr::scene::IShadowVolumeSceneNode * addShadowVolumeSceneNode(const irr::scene::IMesh *, irr::s32, bool, irr::f32){ return 0; };
 

@@ -26,7 +26,7 @@ void main()
 {
     vec4 shadow = vec4(1.0, 0.0, 1.0, 0);
 
-    vec4 ambientColor = vec4(0.25,0.25,0.5,0);
+    vec4 ambientColor = vec4(0.5,0.5,0.75,0);
     
 
     vec4 shadowCoordinateWdivide = ShadowCoord / ShadowCoord.w ;
@@ -40,7 +40,7 @@ void main()
     if (ShadowCoord.w > 0.0)
     {
         float offset = (distanceFromLight - shadowCoordinateWdivide.z);
-        //shadow = mix(ambientColor, (mLightColor * 8.f), offset);
+        //shadow = mix(ambientColor, mLightColor, offset);
         shadow = distanceFromLight < shadowCoordinateWdivide.z ? ambientColor : mLightColor ;
     }   
     
@@ -74,7 +74,7 @@ void main()
     vec4 color = ambientColor;
     n = normalize(vNormal);
 
-    NdotL = max(dot(lightDir,vNormal),0.0);
+    NdotL = max(dot(lightDir,-vNormal),0.0);
 
     if (NdotL > 0.0) {
         color += NdotL;

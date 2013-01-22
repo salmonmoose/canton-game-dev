@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include "engine.h"
 
@@ -22,9 +23,15 @@ void IrrlichtEngineManager::InitialiseVariables()
 
 void IrrlichtEngineManager::Startup()
 {
+    SetupSystem();
     SetupDevice();
 	SetupScene();
     SetupGUI();
+}
+
+void IrrlichtEngineManager::SetupSystem()
+{
+    mThreadPool = new boost::threadpool::pool(2);
 }
 
 void IrrlichtEngineManager::SetupDevice()
@@ -84,7 +91,7 @@ void IrrlichtEngineManager::SetupScene()
 
     mPlayer = player;
 
-    vMob->push_back(std::move(player));
+    AddMob(player);
 
     for(int i = 0; i < 30; i ++)
     {
@@ -98,7 +105,7 @@ void IrrlichtEngineManager::SetupScene()
 
         enemy->Init();
 
-        vMob->push_back(std::move(enemy));
+        AddMob(enemy);
     }
 
     lightRenderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(1024,1024), "rtt1");
@@ -116,6 +123,12 @@ void IrrlichtEngineManager::SetupScene()
     cameraMat.buildProjectionMatrixOrthoLH(80, 45, -128, 128);
 
     camera->setProjectionMatrix(cameraMat, true);
+}
+
+void IrrlichtEngineManager::AddMob(std::shared_ptr<Mob> mob)
+{
+    std::shared_ptr<Mob> incomming(mob);
+    vMob->push_back(incomming);
 }
 
 void IrrlichtEngineManager::SetupGUI()
@@ -184,7 +197,7 @@ void IrrlichtEngineManager::Draw()
     int fps = driver->getFPS();
     int prims = driver->getPrimitiveCountDrawn();
 
-    irr::core::stringw str = L"Canton InDev [";
+    irr::core::stringw str = L"Dark Equinox InDev [";
         str += driver->getName();
         str += "] fps:";
         str += fps;
@@ -267,6 +280,11 @@ void IrrlichtEngineManager::DrawAABBox(const irr::core::aabbox3df & BoundingBox)
 }
 
 //irr::s32 getMaterialID(const std::string name)
+
+const int IrrlichtEngineManager::GetGameTick()
+{
+    return then;
+}
 
 irr::core::vector3df IrrlichtEngineManager::getRotatedVector(const irr::core::vector3df & Direction, const irr::core::vector3df & Rotation)
 {

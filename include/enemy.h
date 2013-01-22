@@ -16,6 +16,7 @@ public:
     bool SeekTarget();
     void PointAtTarget();
     void Accelerate();
+    void Deccelerate();
 
     float DistanceToTarget();
 

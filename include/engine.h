@@ -14,6 +14,7 @@
 #include "glslmaterial.h"
 #include "VoxelSceneNode.h"
 #include "EnvironmentLight.h"
+#include "threadpool.hpp"
 
 #define IRR IrrlichtEngineManager::Instance()
 
@@ -49,6 +50,8 @@ public:
 
 	void Startup();
 
+	void SetupSystem();
+
 	void SetupDevice();
 
 	void SetupScene();
@@ -73,7 +76,9 @@ public:
 
     void DrawAABBox(const irr::core::aabbox3df & BoundingBox);
 
+    void AddMob(std::shared_ptr<Mob>);
 
+    const int GetGameTick();
 
     irr::f32 GetAltitude(const irr::core::vector3df & Position);
 
@@ -121,8 +126,6 @@ public:
 
     std::shared_ptr<Mob> mPlayer;
 
-    //Player * mPlayer;
-
     std::map<std::string, GLSLMaterial> shaderMap;
 
     irr::io::path vsFileName;
@@ -138,9 +141,9 @@ public:
 
 	irr::scene::IMeshSceneNode * terrainMesh;
 
-	VoxelSceneNode * mVoxelSceneNode;
+	boost::threadpool::pool * mThreadPool;
 
-	
+	VoxelSceneNode * mVoxelSceneNode;
 
 protected:
 	IrrlichtEngineManager();
