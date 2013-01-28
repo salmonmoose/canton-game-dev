@@ -28,6 +28,24 @@ void main()
 
     vec4 ambientColor = vec4(0.5,0.5,0.75,0);
     
+    /**
+    * Lights
+    */
+    vec3 n,halfV;
+    float NdotL,NdotHV;
+
+    vec4 color = ambientColor;
+    n = normalize(vNormal);
+
+    NdotL = max(dot(lightDir,-vNormal),0.0);
+
+    if (NdotL > 0.0) {
+        color += NdotL;
+        NdotHV = max(dot(vNormal, halfVector), 0.0);
+        color += gl_FrontMaterial.specular *
+            mLightColor *
+            pow(NdotHV, gl_FrontMaterial.shininess);
+    }
 
     vec4 shadowCoordinateWdivide = ShadowCoord / ShadowCoord.w ;
     
@@ -41,7 +59,7 @@ void main()
     {
         float offset = (distanceFromLight - shadowCoordinateWdivide.z);
         //shadow = mix(ambientColor, mLightColor, offset);
-        shadow = distanceFromLight < shadowCoordinateWdivide.z ? ambientColor : mLightColor ;
+        shadow = distanceFromLight < shadowCoordinateWdivide.z ? color : mLightColor ;
     }   
     
     vec3 blend_weights = abs(vNormal);
@@ -65,24 +83,6 @@ void main()
         map0_y.xyzw * blend_weights.yyyy +
         map0_z.xyzw * blend_weights.zzzz;
 
-    /**
-    * Lights
-    */
-    vec3 n,halfV;
-    float NdotL,NdotHV;
-
-    vec4 color = ambientColor;
-    n = normalize(vNormal);
-
-    NdotL = max(dot(lightDir,-vNormal),0.0);
-
-    if (NdotL > 0.0) {
-        color += NdotL;
-        NdotHV = max(dot(vNormal, halfVector), 0.0);
-        color += gl_FrontMaterial.specular *
-                mLightColor *
-                pow(NdotHV, gl_FrontMaterial.shininess);
-    }
 
     //gl_FragColor = color * blended_color;
     gl_FragColor = shadow * color * blended_color;

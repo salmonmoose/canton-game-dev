@@ -7,7 +7,7 @@ LDLIBS = \
 	-L/usr/X11R6/lib$(LIBSELECT) \
 	-L../libs/irrlicht-1.8.0/lib/Linux \
 	-L../libs/accidentalnoise/lib/Linux \
-	-L../libs/boost_1_50_0/stage/lib \
+	-L../../dev/libs/boost-svn/stage/lib \
 	-lboost_system \
 	-lboost_thread \
 	-lIrrlicht \
@@ -21,8 +21,8 @@ SRCS = $(wildcard src/*.cpp)
 OBJS = $(subst .cpp,.o,$(SRCS)) \
 
 STATIC = \
-	../libs/boost_1_50_0/stage/lib/libboost_system.a \
-	../libs/boost_1_50_0/stage/lib/libboost_thread.a
+	../../dev/libs/boost-svn/stage/lib/libboost_system.a \
+	../../dev/libs/boost-svn/stage/lib/libboost_thread.a
 
 .PHONY: default all release debug
 
@@ -36,7 +36,7 @@ CPPFLAGS = \
 	-Wall \
 	-std=c++0x \
 	-ffast-math \
-	-I../libs/boost_1_50_0 \
+	-I../../dev/libs/boost-svn \
 	-I../libs/threadpool/boost \
 	-I../libs/pugixml/src \
 	-I../libs/accidentalnoise/include \

@@ -75,6 +75,8 @@ public:
     void AddBrush(irr::core::vector3df);
     void RemoveBrush(irr::core::vector3df);
     float GetValue(irr::core::vector3d<int>);
+    void SetValue(irr::core::vector3d<int>, float);
+    void SetValue(int,int,int,float);
 
     int GetMaterial(irr::core::vector3d<int>);
 

@@ -89,7 +89,7 @@ void Player::Init()
     playerEngine1->setMaterialTexture(0, IRR.driver->getTexture("./resources/fireball.bmp"));
     playerEngine2->setMaterialTexture(0, IRR.driver->getTexture("./resources/fireball.bmp"));
 
-    Position.Y = 96.f;
+    Position.Y = 32.f;
     MaxSpeed = 64.f;
     MaxStrafe = 32.f;
     MaxTurnRate = 90.f;

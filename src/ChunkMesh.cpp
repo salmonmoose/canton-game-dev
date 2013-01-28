@@ -320,11 +320,31 @@ static int triTable[256][16] = {
     { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
 };
 
+void ChunkMesh::Initialize(VoxelSceneNode * _parent, irr::core::vector3d<int> position)
+{
+    parent = _parent;
+
+    chunkPos = position;
+
+    localPoint = irr::core::vector3d<int>(
+        position.X * (int)dimensions.X,
+        position.Y * (int)dimensions.Y,
+        position.Z * (int)dimensions.Z
+    );
+
+    buffer = new irr::scene::SMeshBuffer();
+
+    buffer->setBoundingBox(irr::core::aabbox3df(
+        localPoint.X, localPoint.Y, localPoint.Z, localPoint.X + dimensions.X, localPoint.Y + dimensions.Y, localPoint.Z + dimensions.Z
+    ));
+
+    status = DIRTY;
+    Meshed = false;
+};
+
 void ChunkMesh::GenerateMesh()
 {
 	generatedPoints = new Unsigned3Array(boost::extents[dimensions.X + 1][dimensions.Y + 1][dimensions.Z + 1]);
-
-    //printf("LocalPoint (%i,%i,%i)\n", localPoint.X, localPoint.Y, localPoint.Z);
 
     tempBuffer = new irr::scene::SMeshBuffer;
 	
@@ -351,7 +371,8 @@ void ChunkMesh::GenerateMesh()
                         z + localPoint.Z + points[i].Z
                     ));
 				}
-                
+
+
                 GenerateSurface(irr::core::vector3d<int>(x,y,z), Values, Materials);
 			}
 		}
@@ -393,10 +414,18 @@ void ChunkMesh::GenerateSurface(irr::core::vector3d<int> renderBlock, float Valu
 	float mu;
 	irr::core::vector3d<int> vertList[12];
 
-	for(int i = 0; i < 8; i++)
+    for(int i = 0; i < 8; i++)
 	{
 		if(Values[i] > isolevel) cubeIndex |= (1 << i);
 	}
+
+    if(renderBlock.X == 0 && renderBlock.Y == 0 && renderBlock.Z == 0)    
+        printf(
+            "Index = %i, Values = %f, %f, %f, %f, %f, %f, %f, %f\n",
+            cubeIndex,
+            Values[0], Values[1], Values[2], Values[3],
+            Values[4], Values[5], Values[6], Values[7]
+            );
 /*
     printf("Position (%i,%i,%i) is %i\n", 
         localPoint.X + (int) renderBlock.X,
@@ -428,8 +457,6 @@ void ChunkMesh::GenerateSurface(irr::core::vector3d<int> renderBlock, float Valu
                     localPoint.Y + _y + (points[p1].Y + mu * (points[p2].Y - points[p1].Y)),
                     localPoint.Z + _z + (points[p1].Z + mu * (points[p2].Z - points[p1].Z))
                     );
-
-                //printf("Point at (%f,%f,%f)\n", tmpVec.X, tmpVec.Y, tmpVec.Z);
 
 				tempBuffer->Vertices.push_back(
 					irr::video::S3DVertex(
