@@ -78,6 +78,7 @@ void IrrlichtEngineManager::SetupScene()
     smgr->setAmbientLight(video::SColorf(0.5f,0.5f,0.5f,0.5f));
 
     vMob = new std::vector<std::shared_ptr<Mob>>();
+    vNewMobs = new std::vector<std::shared_ptr<Mob>>();
 
     mVoxelSceneNode = new VoxelSceneNode(smgr->getRootSceneNode(), smgr, 666);
     mVoxelSceneNode->Initialize();
@@ -108,6 +109,8 @@ void IrrlichtEngineManager::SetupScene()
         AddMob(enemy);
     }
 
+    UpdateMobList();
+
     lightRenderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(1024,1024), "rtt1");
     //lightRenderTarget = driver->addRenderTargetTexture(irr::core::dimension2d<u32>(64,64), "rtt1");
 
@@ -128,7 +131,17 @@ void IrrlichtEngineManager::SetupScene()
 void IrrlichtEngineManager::AddMob(std::shared_ptr<Mob> mob)
 {
     std::shared_ptr<Mob> incomming(mob);
-    vMob->push_back(incomming);
+    vNewMobs->push_back(incomming);
+}
+
+void IrrlichtEngineManager::UpdateMobList()
+{
+    if(vNewMobs->size() > 0)
+    {
+        //printf("Adding %i mobs\n", vNewMobs->size());   
+        vMob->insert(vMob->end(), vNewMobs->begin(), vNewMobs->end());
+        vNewMobs = new std::vector<std::shared_ptr<Mob>>();
+    }
 }
 
 void IrrlichtEngineManager::SetupGUI()
@@ -159,6 +172,8 @@ void IrrlichtEngineManager::Update()
     {
         (*vMobIterator)->Update();
     }
+
+    UpdateMobList();
 
     camera->setTarget(mPlayer->getPosition());
     camera->setPosition(mPlayer->getPosition() + cameraOffset);

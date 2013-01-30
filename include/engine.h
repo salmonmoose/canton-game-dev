@@ -66,6 +66,8 @@ public:
 
 	void Update();
 
+    void UpdateMobList();
+
 	void Draw();
 
 	void DrawZDepth(irr::scene::ISceneNode * node);
@@ -111,6 +113,9 @@ public:
 	gui::IGUIEnvironment * env;
 
 	video::IGPUProgrammingServices * gpu;
+
+    std::vector<std::shared_ptr<Mob>> * vNewMobs;
+    std::vector<std::shared_ptr<Mob>>::iterator vNewMobsIterator;
 
     std::vector<std::shared_ptr<Mob>> * vMob;
     std::vector<std::shared_ptr<Mob>>::iterator vMobIterator;
