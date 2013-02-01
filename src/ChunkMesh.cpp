@@ -418,7 +418,7 @@ void ChunkMesh::GenerateSurface(irr::core::vector3d<int> renderBlock, float Valu
 	{
 		if(Values[i] > isolevel) cubeIndex |= (1 << i);
 	}
-
+#ifdef _VOXEL_DEBUG_
     if(renderBlock.X == 0 && renderBlock.Y == 0 && renderBlock.Z == 0)    
         printf(
             "Index = %i, Values = %f, %f, %f, %f, %f, %f, %f, %f\n",
@@ -426,14 +426,7 @@ void ChunkMesh::GenerateSurface(irr::core::vector3d<int> renderBlock, float Valu
             Values[0], Values[1], Values[2], Values[3],
             Values[4], Values[5], Values[6], Values[7]
             );
-/*
-    printf("Position (%i,%i,%i) is %i\n", 
-        localPoint.X + (int) renderBlock.X,
-        localPoint.Y + (int) renderBlock.Y,
-        localPoint.Z + (int) renderBlock.Z,
-        cubeIndex
-    );
-*/
+#endif
 
 	for(int i = 0; i < 12; i++)
 	{

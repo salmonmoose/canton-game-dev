@@ -50,15 +50,19 @@ void VoxelChunk::Initialize(VoxelSceneNode * _parent, irr::core::vector3d<int> p
         position.Y * (int)dimensions.Y,
         position.Z * (int)dimensions.Z
     );
+
+#ifdef _VOXEL_DEBUG_
     printf("Initialized at (%i,%i,%i)\n",
         localPoint.X,
         localPoint.Y,
         localPoint.Z
         );
+#endif
 }
 
 float VoxelChunk::GetValue(irr::core::vector3d<int> Position)
 {
+#ifdef _VOXEL_DEBUG_
     if(Position.X == 0 && Position.Y == 0 && Position.Z == 0)
         printf("Getting (%i,%i,%i) of %f\n", 
             localPoint.X + Position.X, 
@@ -66,11 +70,13 @@ float VoxelChunk::GetValue(irr::core::vector3d<int> Position)
             localPoint.Z + Position.Z, 
             (*values)[Position.X][Position.Y][Position.Z]  
         );
+#endif
     return (*values)[Position.X][Position.Y][Position.Z];
 }
 
 void VoxelChunk::SetValue(irr::core::vector3d<int> Position, float Value)
 {
+#ifdef _VOXEL_DEBUG_
     if(Position.X == 0 && Position.Y == 0 && Position.Z == 0)
         printf("Setting (%i,%i,%i) of %f\n", 
             localPoint.X + Position.X, 
@@ -78,6 +84,7 @@ void VoxelChunk::SetValue(irr::core::vector3d<int> Position, float Value)
             localPoint.Z + Position.Z, 
             Value
         );
+#endif
     (*values)[Position.X][Position.Y][Position.Z] = Value;
 }
 
@@ -122,7 +129,6 @@ void VoxelChunk::UpdateVoxel(irr::core::vector3d<int> position, float value, int
 Using noise tree, populates an array with values
 **/
 void VoxelChunk::FillChunk(anl::CImplicitXML & noiseTree) {
-    printf("Filling\n");
     double value;
 
     empty=false;
@@ -167,6 +173,4 @@ void VoxelChunk::FillChunk(anl::CImplicitXML & noiseTree) {
     } catch (char * exception) {
         printf("Exception raised: %s\n", exception);
     }
-
-    printf("filled\n");
 }

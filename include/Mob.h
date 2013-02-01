@@ -2,11 +2,14 @@
 #define MOB_H
 
 #include "irrlicht.h"
-#include "state.h"
-#include "factory.h"
+#include "State.h"
+#include "Ability.h"
+#include "Factory.h"
 #include <memory>
+#include <vector>
 
 class State;
+class Ability;
 
 class Mob
 {
@@ -31,6 +34,9 @@ public:
 	const float getDistanceToVector(irr::core::vector3df);
 
 	irr::scene::IAnimatedMeshSceneNode * mainMesh;
+
+    std::vector<std::shared_ptr<Ability>> vAbility;
+    std::vector<std::shared_ptr<Ability>>::iterator vAbilityIterator;
 
 protected:
 	State * mState;

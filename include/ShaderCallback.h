@@ -2,7 +2,7 @@
 #define SHADERCALLBACK_H
 
 #include <irrlicht.h>
-#include "engine.h"
+#include "Engine.h"
 
 class ShaderCallback : public irr::video::IShaderConstantSetCallBack
 {

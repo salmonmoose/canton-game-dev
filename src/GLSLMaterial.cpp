@@ -1,4 +1,4 @@
-#include "glslmaterial.h"
+#include "GLSLMaterial.h"
 
 GLSLMaterial::GLSLMaterial()
 {

@@ -1,6 +1,6 @@
-#include "enemy.h"
-#include "state.h"
-#include "engine.h"
+#include "MobEnemy.h"
+#include "State.h"
+#include "Engine.h"
 
 class EnemyState : public State
 {

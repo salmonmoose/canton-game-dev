@@ -2,7 +2,7 @@
 #define STATE_H
 
 #include "irrlicht.h"
-#include "mob.h"
+#include "Mob.h"
 #include <iostream>
 
 class State

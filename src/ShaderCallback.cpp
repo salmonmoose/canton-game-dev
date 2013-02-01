@@ -1,4 +1,4 @@
-#include "shadercallback.h"
+#include "ShaderCallback.h"
 
 void ShaderCallback::OnSetConstants(irr::video::IMaterialRendererServices * services, irr::s32 userData)
 {

@@ -265,7 +265,7 @@ void VoxelSceneNode::FillBackground(const irr::core::vector3d<int> chunkPos)
     }
     else
     {
-        printf("This block obstructs, no point in going down\n");
+        //printf("This block obstructs, no point in going down\n");
     }
 
 	dirty = true;

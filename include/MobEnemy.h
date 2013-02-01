@@ -2,7 +2,7 @@
 #define ENEMY_H
 
 #include "irrlicht.h"
-#include "mob.h"
+#include "Mob.h"
 
 class Enemy : public Mob
 {

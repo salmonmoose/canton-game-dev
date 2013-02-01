@@ -1,6 +1,6 @@
-#include "mob.h"
-#include "nullstate.h"
-#include "engine.h"
+#include "Mob.h"
+#include "StateNullState.h"
+#include "Engine.h"
 
 Mob::Mob(bool Visible, bool Solid, bool Mobile) : _Visible(Visible), _Solid(Solid), _Mobile(Mobile)
 {

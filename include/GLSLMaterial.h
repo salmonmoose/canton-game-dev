@@ -2,8 +2,8 @@
 #define GLSL_MATERIAL
 
 #include "irrlicht.h"
-#include "engine.h"
-#include "shadercallback.h"
+#include "Engine.h"
+#include "ShaderCallback.h"
 
 class GLSLMaterial
 {

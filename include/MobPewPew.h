@@ -2,7 +2,7 @@
 #define PEWPEW_H
 
 #include "irrlicht.h"
-#include "mob.h"
+#include "Mob.h"
 
 class PewPew : public Mob
 {

@@ -2,7 +2,7 @@
 #define MOUSE_H
 
 #include "irrlicht.h"
-#include "engine.h"
+#include "Engine.h"
 
 class Mouse
 {

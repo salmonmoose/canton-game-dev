@@ -1,8 +1,8 @@
 #include <iostream>
 #include <irrlicht.h>
 
-#include <canton.h>
-#include <engine.h>
+#include <Game.h>
+#include <Engine.h>
 
 int main(int argc, char* argv[])
 {
@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
 
 	while(IRR.device->run())
 	{
-		IRR.receiver.endEventProcess();
+		IRR.receiver.EndEventProcess();
 		
         IRR.Update();
 
@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 			IRR.Draw();
 		}
 
-		IRR.receiver.startEventProcess();
+		IRR.receiver.StartEventProcess();
 	}
 
 	IRR.Shutdown();

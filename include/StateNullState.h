@@ -1,7 +1,7 @@
 #ifndef NULLSTATE_H
 #define NULLSTATE_H
 
-#include "state.h"
+#include "State.h"
 
 class NullState : public State
 {

@@ -3,15 +3,12 @@
 
 #include <memory>
 #include <irrlicht.h>
-#include "functions.h"
-#include "eventhandler.h"
-#include "mob.h"
-#include "player.h"
-#include "enemy.h"
+#include "EventReceiver.h"
+#include "Mob.h"
 #include <vector>
 #include <map>
 #include <string>
-#include "glslmaterial.h"
+#include "GLSLMaterial.h"
 #include "VoxelSceneNode.h"
 #include "EnvironmentLight.h"
 #include "threadpool.hpp"

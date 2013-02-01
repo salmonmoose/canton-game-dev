@@ -1,8 +1,8 @@
-#include "player.h"
-#include "state.h"
-#include "engine.h"
-#include "pewpew.h"
-#include "enemy.h"
+#include "MobPlayer.h"
+#include "State.h"
+#include "Engine.h"
+#include "MobPewPew.h"
+#include "MobEnemy.h"
 
 class PlayerControledState : public State
 {

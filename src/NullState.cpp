@@ -1,4 +1,4 @@
-#include "nullstate.h"
+#include "StateNullState.h"
 
 NullState::NullState()
 {

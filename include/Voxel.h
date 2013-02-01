@@ -9,8 +9,7 @@
 #include <irrlicht.h>
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
-#include "brush.h"
-#include "engine.h"
+#include "Engine.h"
 
 static irr::core::vector3d<unsigned> dimensions(16,16,16);
 static float isolevel = 0.5;

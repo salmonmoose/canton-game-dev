@@ -1,33 +1,8 @@
-#ifndef EVENTHANDLER_H
-#define EVENTHANDLER_H
+#include "EventReceiver.h"
 
-#include <irrlicht.h>
-#include <iostream>
-
-
-class EventReceiver : public irr::IEventReceiver
+bool EventReceiver::OnEvent(const irr::SEvent & event)
 {
-private:
-    enum  KEY_STATE_ENUM {UP, DOWN, PRESSED, RELEASED};
-    enum PROCESS_STATE_ENUM {STARTED, ENDED};
-
-    KEY_STATE_ENUM keyState[irr::KEY_KEY_CODES_COUNT];
-    
-    PROCESS_STATE_ENUM processState;
-
-    struct SMouseState
-    {
-        irr::core::position2di Position;
-        float Wheel;
-        KEY_STATE_ENUM Button[3];
-    } mouseState;
-
-public:
-    enum MOUSE_BUTTON_ENUM {MOUSE_BUTTON_LEFT, MOUSE_BUTTON_MIDDLE, MOUSE_BUTTON_RIGHT};
-    
-    bool OnEvent(const irr::SEvent& event)
-    {
-        bool eventprocessed = false;
+	bool eventprocessed = false;
 
         if(event.EventType == irr::EET_KEY_INPUT_EVENT)
         {   
@@ -136,178 +111,159 @@ public:
             eventprocessed = true;
         }
         return eventprocessed;
-    }
+}
 
-    float Wheel()
+float EventReceiver::Wheel() { return mouseState.Wheel; }
+
+int EventReceiver::MouseX() { return mouseState.Position.X; }
+
+int EventReceiver::MouseY() { return mouseState.Position.Y; }
+
+irr::core::position2di EventReceiver::MousePosition() { return mouseState.Position; }
+
+bool EventReceiver::KeyDown(irr::EKEY_CODE keyCode)
+{
+    if(keyState[keyCode] == DOWN || keyState[keyCode] == PRESSED) 
+    	{ return true; }
+    else 
+    	{ return false; }
+}
+
+bool EventReceiver::KeyPressed(irr::EKEY_CODE keyCode)
+{
+    if(keyState[keyCode] == PRESSED)
     {
-        return mouseState.Wheel;
+        return true;
     }
-
-    int MouseX()
+    else
     {
-        return mouseState.Position.X;
+        return false;
     }
+}
 
-    int MouseY()
+bool EventReceiver::KeyUp(irr::EKEY_CODE keyCode)
+{
+    if(keyState[keyCode] == UP || keyState[keyCode] == RELEASED)
     {
-        return mouseState.Position.Y;
+        return true;
     }
-
-    irr::core::position2di MousePosition()
+    else
     {
-        return mouseState.Position;
+        return false;
     }
+}
 
-    bool KeyDown(irr::EKEY_CODE keyCode)
+bool EventReceiver::KeyReleased(irr::EKEY_CODE keyCode)
+{
+    if(keyState[keyCode] == RELEASED)
     {
-        if(keyState[keyCode] == DOWN || keyState[keyCode] == PRESSED)
-        {   
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return true;
     }
-
-    bool KeyPressed(irr::EKEY_CODE keyCode)
+    else
     {
-        if(keyState[keyCode] == PRESSED)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return false;
     }
+}
 
-    bool KeyUp(irr::EKEY_CODE keyCode)
-    {
-        if(keyState[keyCode] == UP || keyState[keyCode] == RELEASED)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+bool EventReceiver::ButtonDown(MOUSE_BUTTON_ENUM buttonCode)
+{
+    if(mouseState.Button[buttonCode] == DOWN || mouseState.Button[buttonCode] == PRESSED)
+    {   
+        return true;
     }
-
-    bool KeyReleased(irr::EKEY_CODE keyCode)
+    else
     {
-        if(keyState[keyCode] == RELEASED)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return false;
     }
+}
 
-    bool ButtonDown(MOUSE_BUTTON_ENUM buttonCode)
+bool EventReceiver::ButtonPressed(MOUSE_BUTTON_ENUM buttonCode)
+{
+    if(mouseState.Button[buttonCode] == PRESSED)
     {
-        if(mouseState.Button[buttonCode] == DOWN || mouseState.Button[buttonCode] == PRESSED)
-        {   
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return true;
     }
-
-    bool ButtonPressed(MOUSE_BUTTON_ENUM buttonCode)
+    else
     {
-        if(mouseState.Button[buttonCode] == PRESSED)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return false;
     }
+}
 
-    bool ButtonUp(MOUSE_BUTTON_ENUM buttonCode)
+bool EventReceiver::ButtonUp(MOUSE_BUTTON_ENUM buttonCode)
+{
+    if(mouseState.Button[buttonCode] == UP || mouseState.Button[buttonCode] == RELEASED)
     {
-        if(mouseState.Button[buttonCode] == UP || mouseState.Button[buttonCode] == RELEASED)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return true;
     }
-
-    bool ButtonReleased(MOUSE_BUTTON_ENUM buttonCode)
+    else
     {
-        if(mouseState.Button[buttonCode] == RELEASED)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return false;
     }
+}
 
-    void endEventProcess()
+bool EventReceiver::ButtonReleased(MOUSE_BUTTON_ENUM buttonCode)
+{
+    if(mouseState.Button[buttonCode] == RELEASED)
     {
-        processState = ENDED;
+        return true;
     }
-
-    void startEventProcess()
+    else
     {
-        processState = STARTED;
-
-        for(int i = 0; i < irr::KEY_KEY_CODES_COUNT; i++)
-        {
-            if(keyState[i] == RELEASED)
-            {
-                keyState[i] = UP;
-            }
-
-            if(keyState[i] == PRESSED)
-            {
-                keyState[i] = DOWN;
-            }
-        }
-
-        for(int i = 0; i < 3; i++)
-        {
-            if(mouseState.Button[i] == RELEASED)
-            {
-                mouseState.Button[i] = UP;
-            }
-
-            if(mouseState.Button[i] == PRESSED)
-            {
-                mouseState.Button[i] = DOWN;
-            }
-        }
-
-        mouseState.Wheel = 0.f;
+        return false;
     }
+}
 
-    EventReceiver()
+void EventReceiver::EndEventProcess()
+{
+    processState = ENDED;
+}
+
+void EventReceiver::StartEventProcess()
+{
+    processState = STARTED;
+
+    for(int i = 0; i < irr::KEY_KEY_CODES_COUNT; i++)
     {
-        for(irr::u32 i = 0; i < irr::KEY_KEY_CODES_COUNT; ++i)
+        if(keyState[i] == RELEASED)
         {
             keyState[i] = UP;
         }
 
-        for(irr::u32 i = 0; i < 3; ++i)
+        if(keyState[i] == PRESSED)
+        {
+            keyState[i] = DOWN;
+        }
+    }
+
+    for(int i = 0; i < 3; i++)
+    {
+        if(mouseState.Button[i] == RELEASED)
         {
             mouseState.Button[i] = UP;
         }
 
-        mouseState.Position.X = 0;
-        mouseState.Position.Y = 0;
-        mouseState.Wheel = 0.f;
+        if(mouseState.Button[i] == PRESSED)
+        {
+            mouseState.Button[i] = DOWN;
+        }
     }
-};
 
-#endif
+    mouseState.Wheel = 0.f;
+}
+
+EventReceiver::EventReceiver()
+{
+    for(irr::u32 i = 0; i < irr::KEY_KEY_CODES_COUNT; ++i)
+    {
+        keyState[i] = UP;
+    }
+
+    for(irr::u32 i = 0; i < 3; ++i)
+    {
+        mouseState.Button[i] = UP;
+    }
+
+    mouseState.Position.X = 0;
+    mouseState.Position.Y = 0;
+    mouseState.Wheel = 0.f;
+}

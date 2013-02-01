@@ -1,6 +1,6 @@
 
 #include <iostream>
-#include "engine.h"
+#include "Engine.h"
 
 IrrlichtEngineManager::IrrlichtEngineManager()
 {

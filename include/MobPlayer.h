@@ -2,8 +2,8 @@
 #define PLAYER_H
 
 #include "irrlicht.h"
-#include "mob.h"
-#include "mouse.h"
+#include "Mob.h"
+#include "Mouse.h"
 
 class Mouse;
 
