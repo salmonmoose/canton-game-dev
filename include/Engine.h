@@ -76,7 +76,7 @@ public:
 
     void DrawAABBox(const irr::core::aabbox3df & BoundingBox);
 
-    std::shared_ptr<Mob> AddMob(std::string);
+    void AddMob(std::string);
 
     const int GetGameTick();
 
@@ -130,6 +130,7 @@ public:
     std::vector<std::shared_ptr<Mob>>::iterator vPewPewIterator;
 
     std::shared_ptr<Mob> mPlayer;
+    std::shared_ptr<Mob> mMob;
 
     std::map<std::string, GLSLMaterial> shaderMap;
 

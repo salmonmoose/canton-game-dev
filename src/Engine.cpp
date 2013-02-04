@@ -86,13 +86,17 @@ void IrrlichtEngineManager::SetupScene()
     mEnvironmentLight = new EnvironmentLight();
     mEnvironmentLight->Initialize();
 
-    mPlayer = AddMob("Player");
+    AddMob("Player");
+
+    mPlayer = mMob;
 
     for(int i = 0; i < 30; i ++)
     {
         irr::core::vector2df offset = getRandomInRadius(20.f);
 
         AddMob("Enemy");
+
+        mMob->SetPosition(irr::core::vector3df(offset.X, mPlayer->getPosition().Y, offset.Y));
     }
 
     UpdateMobList();
@@ -114,26 +118,21 @@ void IrrlichtEngineManager::SetupScene()
     camera->setProjectionMatrix(cameraMat, true);
 }
 
-std::shared_ptr<Mob> IrrlichtEngineManager::AddMob(std::string ID)
+void IrrlichtEngineManager::AddMob(std::string ID)
 {
     std::shared_ptr<Mob> incomming = MobFactory::instance().build_shared_ptr(ID);
 
     if(incomming)
     {
-        printf("Found %s\n", ID.c_str());
-
-        std::shared_ptr<Mob> reference = incomming;
+        mMob = incomming;
 
         incomming->Init();
 
         vNewMobs->push_back(incomming);        
-
-        return reference;
     }
     else
     {
         printf("Didn't Find %s\n", ID.c_str());
-        return 0;
     }
 }
 
