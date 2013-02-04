@@ -7,7 +7,7 @@
 class Enemy : public Mob
 {
 public:
-	Enemy(irr::core::vector3df pos, irr::core::vector3df rot);
+	Enemy();
 	~Enemy();
 
 	void Update();

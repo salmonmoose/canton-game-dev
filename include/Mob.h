@@ -26,6 +26,10 @@ public:
 	void OnMessage(std::string * message);
 	void ApplyVectors();
 
+	void SetPosition( const irr::core::vector3df _position ){ Position = _position; }
+	void SetRotation( const irr::core::vector3df _rotation ){ Rotation = _rotation; }
+	void SetVelocity( const irr::core::vector3df _velocity ){ Velocity = _velocity; }
+
 	const irr::core::vector3df & getPosition(){ return Position; }
 	const irr::core::vector3df & getRotation(){ return Rotation; }
 	const irr::core::vector3df & getVelocity(){ return Velocity; }

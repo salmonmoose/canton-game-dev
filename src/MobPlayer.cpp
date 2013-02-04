@@ -174,25 +174,12 @@ void Player::AcceptInput()
     if(IRR.receiver.KeyDown(irr::KEY_SPACE))
     {
         //FIXME: This should be abstracted to the engine;
-        std::shared_ptr<Mob> missile = std::shared_ptr<Mob>(
-            new PewPew(Position, Rotation, Velocity)
-            );
-
-        missile->Init();
-
-        IRR.AddMob(missile);
+        IRR.AddMob("PewPew");
     }
 
     if(IRR.receiver.KeyDown(irr::KEY_LCONTROL))
     {
-        std::shared_ptr<Mob> enemy = std::shared_ptr<Mob>(
-            new Enemy(
-                mouse->getPosition(), 
-                Rotation)
-            );
-        enemy->Init();
-        
-        IRR.AddMob(enemy);
+        IRR.AddMob("Enemy");
     }
 /*
     if(IRR.receiver.ButtonPressed(EventReceiver::MOUSE_BUTTON_RIGHT))

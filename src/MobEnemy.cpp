@@ -61,11 +61,9 @@ public:
 };
 
 
-Enemy::Enemy(irr::core::vector3df pos, irr::core::vector3df rot) : Mob(true,true,true)
+Enemy::Enemy() : Mob(true,true,true)
 {
-	Position = pos;
-	Rotation = rot;
-	mainMesh = IRR.smgr->addAnimatedMeshSceneNode(IRR.smgr->getMesh("./resources/indevship.obj"));
+	
 }
 
 Enemy::~Enemy()
@@ -75,6 +73,7 @@ Enemy::~Enemy()
 
 void Enemy::Init()
 {
+    mainMesh = IRR.smgr->addAnimatedMeshSceneNode(IRR.smgr->getMesh("./resources/indevship.obj"));
 	life = 100.f;
 	MaxSpeed = 96.f;
 	MaxStrafe = 32.f;

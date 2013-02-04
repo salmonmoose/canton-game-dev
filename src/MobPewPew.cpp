@@ -35,16 +35,13 @@ public:
 };
 
 
-PewPew::PewPew(irr::core::vector3df pos, irr::core::vector3df rot, irr::core::vector3df vel) : Mob(true, true, true)
+PewPew::PewPew() : Mob(true, true, true)
 {
-    Position = pos;
-    Rotation = rot;
-    Velocity = vel;
-    mainMesh = IRR.smgr->addAnimatedMeshSceneNode(IRR.smgr->getMesh("./resources/indevship.obj"));
 }
 
 void PewPew::Init()
 {
+    mainMesh = IRR.smgr->addAnimatedMeshSceneNode(IRR.smgr->getMesh("./resources/indevship.obj"));
     life = 100.f;
     MaxSpeed = 80.f;
     MaxStrafe = 0.f;

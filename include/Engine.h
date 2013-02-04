@@ -11,6 +11,7 @@
 #include "GLSLMaterial.h"
 #include "VoxelSceneNode.h"
 #include "EnvironmentLight.h"
+#include "FactoryMobFactory.h"
 #include "threadpool.hpp"
 
 #define IRR IrrlichtEngineManager::Instance()
@@ -28,7 +29,7 @@ class GLSLMaterial;
 
 class Mob;
 
-class Player;
+class MobFactory;
 
 class VoxelSceneNode;
 
@@ -75,7 +76,7 @@ public:
 
     void DrawAABBox(const irr::core::aabbox3df & BoundingBox);
 
-    void AddMob(std::shared_ptr<Mob>);
+    std::shared_ptr<Mob> AddMob(std::string);
 
     const int GetGameTick();
 
@@ -110,6 +111,8 @@ public:
 	gui::IGUIEnvironment * env;
 
 	video::IGPUProgrammingServices * gpu;
+
+	MobFactory * mMobFactory;
 
     std::vector<std::shared_ptr<Mob>> * vNewMobs;
     std::vector<std::shared_ptr<Mob>>::iterator vNewMobsIterator;

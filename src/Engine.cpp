@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include "Engine.h"
 
@@ -31,7 +30,8 @@ void IrrlichtEngineManager::Startup()
 
 void IrrlichtEngineManager::SetupSystem()
 {
-    mThreadPool = new boost::threadpool::prio_pool(4);
+    mThreadPool = new boost::threadpool::prio_pool(2);
+    MobFactory::instance().Initialize();
 }
 
 void IrrlichtEngineManager::SetupDevice()
@@ -86,27 +86,13 @@ void IrrlichtEngineManager::SetupScene()
     mEnvironmentLight = new EnvironmentLight();
     mEnvironmentLight->Initialize();
 
-    std::shared_ptr<Mob> player(new Player());
-
-    player->Init();
-
-    mPlayer = player;
-
-    AddMob(player);
+    mPlayer = AddMob("Player");
 
     for(int i = 0; i < 30; i ++)
     {
         irr::core::vector2df offset = getRandomInRadius(20.f);
 
-        std::shared_ptr<Mob> enemy = std::shared_ptr<Mob>(
-            new Enemy(
-                irr::core::vector3df(30.f + offset.X, 96.f, 30.f + offset.Y), 
-                irr::core::vector3df(0.f,0.f,0.f))
-            );
-
-        enemy->Init();
-
-        AddMob(enemy);
+        AddMob("Enemy");
     }
 
     UpdateMobList();
@@ -128,17 +114,33 @@ void IrrlichtEngineManager::SetupScene()
     camera->setProjectionMatrix(cameraMat, true);
 }
 
-void IrrlichtEngineManager::AddMob(std::shared_ptr<Mob> mob)
+std::shared_ptr<Mob> IrrlichtEngineManager::AddMob(std::string ID)
 {
-    std::shared_ptr<Mob> incomming(mob);
-    vNewMobs->push_back(incomming);
+    std::shared_ptr<Mob> incomming = MobFactory::instance().build_shared_ptr(ID);
+
+    if(incomming)
+    {
+        printf("Found %s\n", ID.c_str());
+
+        std::shared_ptr<Mob> reference = incomming;
+
+        incomming->Init();
+
+        vNewMobs->push_back(incomming);        
+
+        return reference;
+    }
+    else
+    {
+        printf("Didn't Find %s\n", ID.c_str());
+        return 0;
+    }
 }
 
 void IrrlichtEngineManager::UpdateMobList()
 {
     if(vNewMobs->size() > 0)
     {
-        //printf("Adding %i mobs\n", vNewMobs->size());   
         vMob->insert(vMob->end(), vNewMobs->begin(), vNewMobs->end());
         vNewMobs = new std::vector<std::shared_ptr<Mob>>();
     }
