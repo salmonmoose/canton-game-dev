@@ -32,6 +32,7 @@ void IrrlichtEngineManager::SetupSystem()
 {
     mThreadPool = new boost::threadpool::prio_pool(2);
     MobFactory::instance().Initialize();
+    AbilityFactory::instance().Initialize();
 }
 
 void IrrlichtEngineManager::SetupDevice()
@@ -88,6 +89,8 @@ void IrrlichtEngineManager::SetupScene()
 
     AddMob("Player");
 
+    mMob->AddAbility("FirePewPew");
+
     mPlayer = mMob;
 
     for(int i = 0; i < 30; i ++)
@@ -95,6 +98,8 @@ void IrrlichtEngineManager::SetupScene()
         irr::core::vector2df offset = getRandomInRadius(20.f);
 
         AddMob("Enemy");
+
+        mMob->AddAbility("FirePewPew");
 
         mMob->SetPosition(irr::core::vector3df(offset.X, mPlayer->getPosition().Y, offset.Y));
     }

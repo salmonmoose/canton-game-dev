@@ -173,13 +173,13 @@ void Player::AcceptInput()
 
     if(IRR.receiver.KeyDown(irr::KEY_SPACE))
     {
-        //FIXME: This should be abstracted to the engine;
-        IRR.AddMob("PewPew");
+        IRR.mVoxelSceneNode->AddBrush(mouse->getPosition());
     }
 
     if(IRR.receiver.KeyDown(irr::KEY_LCONTROL))
     {
         IRR.AddMob("Enemy");
+        IRR.mMob->SetPosition(Position);
     }
 /*
     if(IRR.receiver.ButtonPressed(EventReceiver::MOUSE_BUTTON_RIGHT))
@@ -192,9 +192,15 @@ void Player::AcceptInput()
         IRR.vMob->push_back(std::move(enemy));
     }
 */
+
     if(IRR.receiver.ButtonDown(EventReceiver::MOUSE_BUTTON_LEFT))
     {
-        IRR.mVoxelSceneNode->AddBrush(mouse->getPosition());
+        //FIXME: This should be abstracted to the engine;
+        IRR.AddMob("PewPew");
+
+        IRR.mMob->SetPosition(Position);
+        IRR.mMob->SetRotation(Rotation);
+        IRR.mMob->SetVelocity(Velocity);
     }
 
     if(IRR.receiver.ButtonDown(EventReceiver::MOUSE_BUTTON_RIGHT))

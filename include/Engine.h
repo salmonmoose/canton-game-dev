@@ -12,6 +12,7 @@
 #include "VoxelSceneNode.h"
 #include "EnvironmentLight.h"
 #include "FactoryMobFactory.h"
+#include "FactoryAbilityFactory.h"
 #include "threadpool.hpp"
 
 #define IRR IrrlichtEngineManager::Instance()

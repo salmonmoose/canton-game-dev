@@ -30,6 +30,8 @@ public:
 	void SetRotation( const irr::core::vector3df _rotation ){ Rotation = _rotation; }
 	void SetVelocity( const irr::core::vector3df _velocity ){ Velocity = _velocity; }
 
+	void AddAbility(std::string);
+
 	const irr::core::vector3df & getPosition(){ return Position; }
 	const irr::core::vector3df & getRotation(){ return Rotation; }
 	const irr::core::vector3df & getVelocity(){ return Velocity; }
@@ -39,7 +41,9 @@ public:
 
 	irr::scene::IAnimatedMeshSceneNode * mainMesh;
 
-    std::vector<std::shared_ptr<Ability>> vAbility;
+	std::map<std::string, std::shared_ptr<Ability>> * mapAbility;
+
+    std::vector<std::shared_ptr<Ability>> * vAbility;
     std::vector<std::shared_ptr<Ability>>::iterator vAbilityIterator;
 
 protected:

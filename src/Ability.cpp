@@ -1,5 +1,10 @@
 #include "Ability.h"
 
+Ability::Ability()
+{
+
+}
+
 void Ability::Initialize(Mob * mob)
 {
     mMob = mob;
@@ -12,10 +17,24 @@ void Ability::Update()
 
 }
 
-void Ability::Activate()
+void Ability::Trigger()
 {
-    if(IRR.GetGameTick() > LastTick + Rate)
-    {
-        LastTick = IRR.GetGameTick();
-    }
+
+}
+
+bool Ability::Ready()
+{
+	return IRR.GetGameTick() > LastTick + Rate;
+}
+
+const int Ability::GetCoolDown()
+{
+	if(!Ready()) 
+	{
+		return IRR.GetGameTick() - (LastTick + Rate);
+	}
+	else
+	{
+		return 0;
+	}
 }

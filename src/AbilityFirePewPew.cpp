@@ -1,6 +1,6 @@
-#include "Ability.h"
+#include "AbilityFirePewPew.h"
 
-class FiewPewPew : public Ability
+FirePewPew::FirePewPew() : Ability()
 {
-	
-};
+
+}

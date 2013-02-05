@@ -15,12 +15,10 @@ public:
     virtual ~Ability(){};
     virtual void Initialize(Mob *);
     virtual void Update();
-    virtual void Activate();
+    virtual void Trigger();
 
-    const int getCoolDown();
+    const int GetCoolDown();
     bool Ready();
-
-
 
 private:
     int Rate;

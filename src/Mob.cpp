@@ -1,10 +1,35 @@
 #include "Mob.h"
 #include "StateNullState.h"
 #include "Engine.h"
+#include "FactoryAbilityFactory.h"
 
 Mob::Mob(bool Visible, bool Solid, bool Mobile) : _Visible(Visible), _Solid(Solid), _Mobile(Mobile)
 {
     mState = new NullState();
+    mapAbility = new std::map<std::string, std::shared_ptr<Ability>>();
+}
+
+void Mob::AddAbility(std::string ID)
+{
+    std::shared_ptr<Ability> incomming = AbilityFactory::instance().build_shared_ptr(ID);
+
+    if(incomming)
+    {
+        mapAbility[ID] = incomming;
+    }
+}
+
+void Mob::TriggerAbility(std::string ID)
+{
+    auto fit = mapAbility.find(key);
+
+    if (fit == mapAbility.end())
+    {
+        printf("Didn't find: %s\n", key.c_str());
+        return 0;
+    }
+
+    fit->second()->Trigger();
 }
 
 void Mob::Update()

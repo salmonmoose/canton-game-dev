@@ -1,19 +1,19 @@
-#ifndef FACTORY_H
-#define FACTORY_H
+#ifndef GENERICFACTORY_H
+#define GENERICFACTORY_H
 
 #include <map>
 #include <functional>
 #include <memory>
 
-template <typename T>
+template <typename GenericType>
 
-T* newT() { 
-    return new T(); 
+GenericType* newGenericType() { 
+    return new GenericType(); 
 }
 
 template <typename Key, typename Abstraction>
 
-struct generic_factory
+struct Factory
 {
     typedef std::function<Abstraction*()> creator_t;
 
@@ -48,10 +48,10 @@ struct generic_factory
         return true;
     }
 
-    template <typename T>
+    template <typename GenericType>
     bool register_type(Key const& key) {
     	printf("Registering %s\n", key.c_str());
-        register_creator(key, newT<T>);
+        register_creator(key, newGenericType<GenericType>);
         return true;
     }
 
