@@ -17,6 +17,8 @@ public:
     virtual void Update();
     virtual void Trigger();
 
+    Mob * Parent() { return mMob; }
+
     const int GetCoolDown();
     bool Ready();
 

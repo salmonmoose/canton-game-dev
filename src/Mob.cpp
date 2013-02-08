@@ -15,21 +15,22 @@ void Mob::AddAbility(std::string ID)
 
     if(incomming)
     {
-        mapAbility[ID] = incomming;
+        incomming->Initialize(this);
+        (*mapAbility)[ID] = incomming;
     }
 }
 
 void Mob::TriggerAbility(std::string ID)
 {
-    auto fit = mapAbility.find(key);
+    auto fit = mapAbility->find(ID);
 
-    if (fit == mapAbility.end())
+    if (fit == mapAbility->end())
     {
-        printf("Didn't find: %s\n", key.c_str());
-        return 0;
+        printf("Didn't find: %s\n", ID.c_str());
+        return;
     }
 
-    fit->second()->Trigger();
+    fit->second->Trigger();
 }
 
 void Mob::Update()

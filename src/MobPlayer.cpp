@@ -181,26 +181,10 @@ void Player::AcceptInput()
         IRR.AddMob("Enemy");
         IRR.mMob->SetPosition(Position);
     }
-/*
-    if(IRR.receiver.ButtonPressed(EventReceiver::MOUSE_BUTTON_RIGHT))
-    {
-        //FIXME: This should be abstracted to the engine;
-        std::unique_ptr<Mob> enemy = std::unique_ptr<Mob>(new Enemy(mouse->getPosition(), Rotation));
-
-        enemy->Init();
-
-        IRR.vMob->push_back(std::move(enemy));
-    }
-*/
-
+    
     if(IRR.receiver.ButtonDown(EventReceiver::MOUSE_BUTTON_LEFT))
     {
-        //FIXME: This should be abstracted to the engine;
-        IRR.AddMob("PewPew");
-
-        IRR.mMob->SetPosition(Position);
-        IRR.mMob->SetRotation(Rotation);
-        IRR.mMob->SetVelocity(Velocity);
+        TriggerAbility("FirePewPew");
     }
 
     if(IRR.receiver.ButtonDown(EventReceiver::MOUSE_BUTTON_RIGHT))

@@ -19,7 +19,7 @@ void Ability::Update()
 
 void Ability::Trigger()
 {
-
+	LastTick = IRR.GetGameTick();
 }
 
 bool Ability::Ready()

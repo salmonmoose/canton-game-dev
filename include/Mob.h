@@ -31,6 +31,7 @@ public:
 	void SetVelocity( const irr::core::vector3df _velocity ){ Velocity = _velocity; }
 
 	void AddAbility(std::string);
+	void TriggerAbility(std::string);
 
 	const irr::core::vector3df & getPosition(){ return Position; }
 	const irr::core::vector3df & getRotation(){ return Rotation; }
