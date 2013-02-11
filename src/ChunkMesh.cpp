@@ -445,12 +445,6 @@ void ChunkMesh::GenerateSurface(irr::core::vector3d<int> renderBlock, float Valu
 
 				(*generatedPoints)[_x][_y][_z] = tempBuffer->Vertices.size();
 
-                irr::core::vector3df tmpVec(
-                    localPoint.X + _x + (points[p1].X + mu * (points[p2].X - points[p1].X)),
-                    localPoint.Y + _y + (points[p1].Y + mu * (points[p2].Y - points[p1].Y)),
-                    localPoint.Z + _z + (points[p1].Z + mu * (points[p2].Z - points[p1].Z))
-                    );
-
 				tempBuffer->Vertices.push_back(
 					irr::video::S3DVertex(
 						localPoint.X + _x + (points[p1].X + mu * (points[p2].X - points[p1].X)),
