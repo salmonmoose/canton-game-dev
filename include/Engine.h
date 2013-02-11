@@ -79,6 +79,8 @@ public:
 
     void AddMob(std::string, std::vector<std::shared_ptr<Mob>> *);
 
+    void CheckCollisions(const std::vector<std::shared_ptr<Mob>> *, const std::vector<std::shared_ptr<Mob>> *);
+
     const int GetGameTick();
 
     irr::f32 GetAltitude(const irr::core::vector3df & Position);

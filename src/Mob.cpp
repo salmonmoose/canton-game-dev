@@ -49,11 +49,30 @@ void Mob::Draw()
     }
 }
 
-void Mob::Collide(Mob mobs[])
+void Mob::Collide(const std::vector<std::shared_ptr<Mob>> * incomming)
 {
     if(_Solid)
     {
-        ///????
+        std::vector<std::shared_ptr<Mob>>::const_iterator incommingIterator;
+        for(incommingIterator = incomming->begin(); incommingIterator != incomming->end(); ++incommingIterator)
+        {
+            Collide((*incommingIterator));
+        }
+    }
+}
+
+void Mob::Collide(const std::shared_ptr<Mob> incomming) 
+{
+    if(getPosition().getDistanceFromSQ(incomming->getPosition()) < 2.f)
+    {
+        printf("Object Centers (%f,%f,%f)-(%f,%f,%f)\n",
+            getPosition().X,
+            getPosition().Y,
+            getPosition().Z,
+            incomming->getPosition().X,
+            incomming->getPosition().Y,
+            incomming->getPosition().Z
+        );
     }
 }
 

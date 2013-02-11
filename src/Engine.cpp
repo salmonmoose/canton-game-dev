@@ -60,8 +60,8 @@ void IrrlichtEngineManager::SetupDevice()
         ShaderCallback * shaderCallback = new ShaderCallback();
 
         ZDepthMaterialID = IRR.gpu->addHighLevelShaderMaterialFromFiles(
-            vsFileName, "vertexMain", video::EVST_VS_1_1,
-            psFileName, "pixelMain", video::EPST_PS_1_1,
+            vsFileName, "vertexMain", video::EVST_VS_3_0,
+            psFileName, "pixelMain", video::EPST_PS_3_0,
             shaderCallback, video::EMT_SOLID);
 
         shaderCallback->drop();
@@ -180,6 +180,9 @@ void IrrlichtEngineManager::Update()
 
     then = now;
 
+    CheckCollisions(vPlayerPewPew, vEnemy);
+    CheckCollisions(vEnemyPewPew, vPlayer);
+
     for(vMobIterator = vMob->begin(); vMobIterator != vMob->end(); ++vMobIterator)
     {
         (*vMobIterator)->Update();
@@ -252,6 +255,16 @@ void IrrlichtEngineManager::DrawZDepth(irr::scene::ISceneNode * node)
     for(nodeList_iterator = nodeList.begin(); nodeList_iterator != nodeList.end(); nodeList_iterator++)
     {
         DrawZDepth(*nodeList_iterator);
+    }
+}
+
+void IrrlichtEngineManager::CheckCollisions(const std::vector<std::shared_ptr<Mob>> * source, const std::vector<std::shared_ptr<Mob>> * target)
+{
+    std::vector<std::shared_ptr<Mob>>::const_iterator sourceIterator;
+
+    for(sourceIterator = source->begin(); sourceIterator != source->end(); ++sourceIterator)
+    {
+        (*sourceIterator)->Collide(target);
     }
 }
 

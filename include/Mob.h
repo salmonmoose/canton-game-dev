@@ -20,7 +20,8 @@ public:
     virtual void Init();
 	virtual void Update();
 	virtual void Draw();
-	virtual void Collide(Mob mobs[]);
+	virtual void Collide(const std::vector<std::shared_ptr<Mob>> *);
+	virtual void Collide(const std::shared_ptr<Mob>);
 
 	void SetState(State * newState);
 	void OnMessage(std::string * message);
