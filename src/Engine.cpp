@@ -80,6 +80,10 @@ void IrrlichtEngineManager::SetupScene()
 
     vMob = new std::vector<std::shared_ptr<Mob>>();
     vNewMobs = new std::vector<std::shared_ptr<Mob>>();
+    vEnemy = new std::vector<std::shared_ptr<Mob>>();
+    vPlayer = new std::vector<std::shared_ptr<Mob>>();
+    vEnemyPewPew = new std::vector<std::shared_ptr<Mob>>();
+    vPlayerPewPew = new std::vector<std::shared_ptr<Mob>>();
 
     mVoxelSceneNode = new VoxelSceneNode(smgr->getRootSceneNode(), smgr, 666);
     mVoxelSceneNode->Initialize();
@@ -87,7 +91,7 @@ void IrrlichtEngineManager::SetupScene()
     mEnvironmentLight = new EnvironmentLight();
     mEnvironmentLight->Initialize();
 
-    AddMob("Player");
+    AddMob("Player", vPlayer);
 
     mMob->AddAbility("FirePewPew");
 
@@ -97,7 +101,7 @@ void IrrlichtEngineManager::SetupScene()
     {
         irr::core::vector2df offset = getRandomInRadius(20.f);
 
-        AddMob("Enemy");
+        AddMob("Enemy", vEnemy);
 
         mMob->AddAbility("FirePewPew");
 
@@ -123,17 +127,19 @@ void IrrlichtEngineManager::SetupScene()
     camera->setProjectionMatrix(cameraMat, true);
 }
 
-void IrrlichtEngineManager::AddMob(std::string ID)
+void IrrlichtEngineManager::AddMob(std::string ID, std::vector<std::shared_ptr<Mob>> * vType)
 {
-    std::shared_ptr<Mob> incomming = MobFactory::instance().build_shared_ptr(ID);
+    std::shared_ptr<Mob> NewMob = MobFactory::instance().build_shared_ptr(ID);
 
-    if(incomming)
+    if(NewMob)
     {
-        mMob = incomming;
+        std::shared_ptr<Mob> Type = NewMob;
+        mMob = NewMob;
 
-        incomming->Init();
+        NewMob->Init();
 
-        vNewMobs->push_back(incomming);        
+        vNewMobs->push_back(NewMob);
+        vType->push_back(Type);        
     }
     else
     {

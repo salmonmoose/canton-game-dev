@@ -178,7 +178,7 @@ void Player::AcceptInput()
 
     if(IRR.receiver.KeyDown(irr::KEY_LCONTROL))
     {
-        IRR.AddMob("Enemy");
+        IRR.AddMob("Enemy", IRR.vEnemy);
         IRR.mMob->SetPosition(Position);
     }
     

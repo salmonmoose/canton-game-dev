@@ -77,7 +77,7 @@ public:
 
     void DrawAABBox(const irr::core::aabbox3df & BoundingBox);
 
-    void AddMob(std::string);
+    void AddMob(std::string, std::vector<std::shared_ptr<Mob>> *);
 
     const int GetGameTick();
 
@@ -127,8 +127,11 @@ public:
     std::vector<std::shared_ptr<Mob>> * vPlayer;
     std::vector<std::shared_ptr<Mob>>::iterator vPlayerIterator;
 
-    std::vector<std::shared_ptr<Mob>> * vPewPew;
-    std::vector<std::shared_ptr<Mob>>::iterator vPewPewIterator;
+    std::vector<std::shared_ptr<Mob>> * vEnemyPewPew;
+    std::vector<std::shared_ptr<Mob>>::iterator vEnemyPewPewIterator;
+
+    std::vector<std::shared_ptr<Mob>> * vPlayerPewPew;
+    std::vector<std::shared_ptr<Mob>>::iterator vPlayerPewPewIterator;
 
     std::shared_ptr<Mob> mPlayer;
     std::shared_ptr<Mob> mMob;
