@@ -61,18 +61,11 @@ void Mob::Collide(const std::vector<std::shared_ptr<Mob>> * incomming)
     }
 }
 
-void Mob::Collide(const std::shared_ptr<Mob> incomming) 
+void Mob::Collide(const std::shared_ptr<Mob> incoming) 
 {
-    if(getPosition().getDistanceFromSQ(incomming->getPosition()) < 2.f)
+    if(getTransformedBoundingBox().intersectsWithBox(incoming->getTransformedBoundingBox()))
     {
-        printf("Object Centers (%f,%f,%f)-(%f,%f,%f)\n",
-            getPosition().X,
-            getPosition().Y,
-            getPosition().Z,
-            incomming->getPosition().X,
-            incomming->getPosition().Y,
-            incomming->getPosition().Z
-        );
+        
     }
 }
 
@@ -91,6 +84,11 @@ void Mob::SetState(State * newState)
 	mState = newState;
 
 	mState->OnEnter();
+}
+
+const irr::core::vector3df & Mob::getTargetPosition()
+{
+    return getPosition();
 }
 
 void Mob::OnMessage(std::string * message)

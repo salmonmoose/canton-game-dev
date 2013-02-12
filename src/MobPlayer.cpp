@@ -50,44 +50,10 @@ void Player::Init()
 {
     mainMesh = IRR.smgr->addAnimatedMeshSceneNode(IRR.smgr->getMesh("./resources/indevship.obj"));
 
-    playerEngine1 = IRR.smgr->addParticleSystemSceneNode(false);
-    playerEngine2 = IRR.smgr->addParticleSystemSceneNode(false);
-
-    playerEngine1->setParent(mainMesh);
-    playerEngine2->setParent(mainMesh);
-
-    //TODO: this AABBox should come from engine meshes.
-    playerEngineEmitter1 = playerEngine1->createBoxEmitter(
-        core::aabbox3d<f32>(-0.5,-0.25,-1,-0.25,0,-1),
-        core::vector3df(0.0f,0.0f,-0.0f),
-        50,60, 
-        video::SColor(0,255,255,255),
-        video::SColor(0,255,255,255), 
-        100,200
-    );
-    
-    playerEngineEmitter2 = playerEngine2->createBoxEmitter(
-        core::aabbox3d<f32>(0.5,-0.25,-1,0.25,0,-1),
-        core::vector3df(0.0f,0.0f,-0.0f),
-        50,60,
-        video::SColor(0,255,255,255),
-        video::SColor(0,255,255,255),
-        100,200
-    );
-
-    playerEngineEmitter1->setMinStartSize(core::dimension2d<f32>(0.5f, 0.5f));
-    playerEngineEmitter1->setMaxStartSize(core::dimension2d<f32>(0.5f, 0.5f));
-
-    playerEngineEmitter2->setMinStartSize(core::dimension2d<f32>(0.5f, 0.5f));
-    playerEngineEmitter2->setMaxStartSize(core::dimension2d<f32>(0.5f, 0.5f));
-
-    playerEngine1->setEmitter(playerEngineEmitter1);
-    playerEngine2->setEmitter(playerEngineEmitter2);
-    playerEngineEmitter1->drop();
-    playerEngineEmitter2->drop();
-
-    playerEngine1->setMaterialTexture(0, IRR.driver->getTexture("./resources/fireball.bmp"));
-    playerEngine2->setMaterialTexture(0, IRR.driver->getTexture("./resources/fireball.bmp"));
+    AddAbility("MoveForwards");
+    AddAbility("MoveBackwards");
+    AddAbility("StrafeLeft");
+    AddAbility("StrafeRight");
 
     Position.Y = 32.f;
     MaxSpeed = 64.f;
@@ -100,6 +66,11 @@ void Player::Init()
     mouse = new Mouse();
 
     SetState(new PlayerControledState(this));
+}
+
+const irr::core::vector3df & Player::getTargetPosition()
+{
+    return mouse->getPosition();
 }
 
 float Player::getAngleToMouse()
@@ -132,30 +103,19 @@ void Player::AcceptInput()
 {
     mouse->Update(Position.Y);
 
-    double ground_height = (double) IRR.mVoxelSceneNode->GetAltitude(Position);
-
-    if(ground_height + 32.f > Position.Y)
-    {
-        //Velocity.Y += Lift * IRR.frameDeltaTime;        
-    }
-
-    //FIXME: this should be a property of all MOBs, Gravity should be per-level set.
-    //Velocity.Y -= Gravity * IRR.frameDeltaTime;
-
-
     if(IRR.receiver.KeyDown(irr::KEY_KEY_A))
     {
-        Velocity += IRR.getRotatedVector(core::vector3df(-1,0,0), Rotation) * MaxStrafe * IRR.frameDeltaTime;
+        TriggerAbility("StrafeLeft");
     }
     
     if(IRR.receiver.KeyDown(irr::KEY_KEY_D))
     {
-        Velocity += IRR.getRotatedVector(core::vector3df(1,0,0), Rotation) * MaxStrafe * IRR.frameDeltaTime;
+        TriggerAbility("StrafeRight");
     }
 
     float angle = getAngleToMouse();
 
-    Rotation.Y += MaxTurnRate * (angle / TurnBuffer) * IRR.frameDeltaTime;
+    Rotation.Y += mStats.GetTurnRate() * (angle / TurnBuffer) * IRR.frameDeltaTime;
     if(Rotation.Y < -360)
         Rotation.Y += 360;
     if(Rotation.Y > 360)
@@ -163,32 +123,17 @@ void Player::AcceptInput()
 
     if(IRR.receiver.KeyDown(irr::KEY_KEY_W))
     {
-        Velocity += IRR.getRotatedVector(core::vector3df(0,0,1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
+        TriggerAbility("MoveForwards");
     }
     
     if(IRR.receiver.KeyDown(irr::KEY_KEY_S))
     {
-        Velocity += IRR.getRotatedVector(core::vector3df(0,0,-1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
+        TriggerAbility("MoveBackwards");
     }
 
-    if(IRR.receiver.KeyDown(irr::KEY_SPACE))
-    {
-        IRR.mVoxelSceneNode->AddBrush(mouse->getPosition());
-    }
-
-    if(IRR.receiver.KeyDown(irr::KEY_LCONTROL))
-    {
-        IRR.AddMob("Enemy", IRR.vEnemy);
-        IRR.mMob->SetPosition(Position);
-    }
     
     if(IRR.receiver.ButtonDown(EventReceiver::MOUSE_BUTTON_LEFT))
     {
         TriggerAbility("FirePewPew");
-    }
-
-    if(IRR.receiver.ButtonDown(EventReceiver::MOUSE_BUTTON_RIGHT))
-    {
-        IRR.mVoxelSceneNode->RemoveBrush(mouse->getPosition());
     }
 }

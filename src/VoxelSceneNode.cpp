@@ -201,15 +201,17 @@ void VoxelSceneNode::preRenderMeshChunks()
                         {
                             Mesh->addMeshBuffer(meshMap[chunkPos].buffer);
                         }
-                        if((chunkMap[chunkPos].status == FILLED || chunkMap[chunkPos].status == DIRTY) && !chunkMap[chunkPos].empty)
+                        if(!chunkMap[chunkPos].empty)
                         {
-                            chunkMap[chunkPos].status = MESHING;
-                            boost::threadpool::schedule(
-                                (*IRR.mThreadPool), 
-                                boost::threadpool::prio_task_func(10, boost::bind(&VoxelSceneNode::MeshBackground, this, chunkPos))
-                            );
+                            if(chunkMap[chunkPos].status == FILLED || chunkMap[chunkPos].status == DIRTY)
+                            {
+                                chunkMap[chunkPos].status = MESHING;
+                                boost::threadpool::schedule(
+                                    (*IRR.mThreadPool), 
+                                    boost::threadpool::prio_task_func(10, boost::bind(&VoxelSceneNode::MeshBackground, this, chunkPos))
+                                );
+                            }
                         }
-
                         if(chunkMap[chunkPos].obstruct)
                         {
                             y = aabboxStart.Y;

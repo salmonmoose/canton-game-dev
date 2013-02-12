@@ -20,6 +20,8 @@ public:
 
     float DistanceToTarget();
 
+    const irr::core::vector3df & getTargetPosition();
+
     std::shared_ptr<Mob> Target;
 
 	double life;

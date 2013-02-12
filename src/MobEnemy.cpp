@@ -23,11 +23,16 @@ public:
     virtual void OnUpdate()
     {
         mEnemy->PointAtTarget();
-        if(mEnemy->DistanceToTarget() > 20)
-            mEnemy->Accelerate();
 
-        if(mEnemy->DistanceToTarget() < 10)
-            mEnemy->Deccelerate();
+        if(mEnemy->DistanceToTarget() > 20)
+        {
+            mEnemy->TriggerAbility("MoveForwards");
+        }
+        else if(mEnemy->DistanceToTarget() < 10)
+        {
+            mEnemy->TriggerAbility("MoveBackwards");
+        }
+
         mEnemy->ApplyVectors();
     }
 
@@ -45,11 +50,11 @@ public:
 
 	virtual void OnUpdate()
 	{
+        //if target, change state
         if(mEnemy->SeekTarget())
         {
             mEnemy->SetState(new EnemyHuntState(mEnemy));
         }
-        //if target, change state
 		mEnemy->ApplyVectors();
 	}
 
@@ -74,6 +79,12 @@ Enemy::~Enemy()
 void Enemy::Init()
 {
     mainMesh = IRR.smgr->addAnimatedMeshSceneNode(IRR.smgr->getMesh("./resources/indevship.obj"));
+
+    AddAbility("MoveForwards");
+    AddAbility("MoveBackwards");
+    AddAbility("StrafeLeft");
+    AddAbility("StrafeRight");
+
 	life = 100.f;
 	MaxSpeed = 96.f;
 	MaxStrafe = 32.f;
@@ -101,6 +112,19 @@ bool Enemy::SeekTarget()
     }
 }
 
+const irr::core::vector3df & Enemy::getTargetPosition()
+{
+    if(Target)
+    {
+        return Target->getPosition();
+    }
+    else
+    {
+        return getPosition();
+    }
+
+}
+
 void Enemy::PointAtTarget()
 {
     float angle = getAngleToVector(Target->getPosition());
@@ -115,12 +139,12 @@ void Enemy::PointAtTarget()
 
 void Enemy::Accelerate()
 {
-    Velocity += IRR.getRotatedVector(irr::core::vector3df(0,0,1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
+    TriggerAbility("MoveForwards");
 }
 
 void Enemy::Deccelerate()
 {
-    Velocity -= IRR.getRotatedVector(irr::core::vector3df(0,0,1), Rotation) * MaxSpeed * IRR.frameDeltaTime;
+    TriggerAbility("MoveBackwards");
 }
 
 float Enemy::DistanceToTarget()

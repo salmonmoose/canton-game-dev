@@ -5,6 +5,7 @@
 #include "State.h"
 #include "Ability.h"
 #include "Factory.h"
+#include "Stats.h"
 #include <memory>
 #include <vector>
 
@@ -38,10 +39,17 @@ public:
 	const irr::core::vector3df & getRotation(){ return Rotation; }
 	const irr::core::vector3df & getVelocity(){ return Velocity; }
 
+	const irr::core::aabbox3df & getBoundingBox(){ return mainMesh->getBoundingBox(); }
+	const irr::core::aabbox3df & getTransformedBoundingBox(){ return mainMesh->getTransformedBoundingBox(); }
+
+	virtual const irr::core::vector3df & getTargetPosition();
+
 	const float getAngleToVector(irr::core::vector3df);
 	const float getDistanceToVector(irr::core::vector3df);
 
 	irr::scene::IAnimatedMeshSceneNode * mainMesh;
+
+	Stats mStats;
 
 	std::map<std::string, std::shared_ptr<Ability>> * mapAbility;
 

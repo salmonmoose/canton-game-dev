@@ -37,6 +37,7 @@ public:
 
 PewPew::PewPew() : Mob(true, true, true)
 {
+    
 }
 
 void PewPew::Init()
@@ -59,4 +60,9 @@ void PewPew::Update()
 void PewPew::Accelerate()
 {
     Velocity += IRR.getRotatedVector(core::vector3df(0,0,1), Rotation) * MaxSpeed * IRR.frameDeltaTime;   
+}
+
+const irr::core::vector3df & PewPew::getTargetPosition()
+{
+    return getPosition();
 }

@@ -4,18 +4,13 @@
 #include "irrlicht.h"
 #include "Mob.h"
 #include "Mouse.h"
+#include "Stats.h"
 
 class Mouse;
 
 class Player : public Mob
 {
 public:
-
-    irr::scene::IParticleSystemSceneNode * playerEngine1;
-    irr::scene::IParticleSystemSceneNode * playerEngine2;
-    
-    irr::scene::IParticleEmitter * playerEngineEmitter1;
-    irr::scene::IParticleEmitter * playerEngineEmitter2;
 
     Mouse * mouse;
 
@@ -28,6 +23,8 @@ public:
     void Init();
     void AcceptInput();
     float getAngleToMouse();
+
+    const irr::core::vector3df & getTargetPosition();
 
 protected:
 };

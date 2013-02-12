@@ -8,7 +8,7 @@ Ability::Ability()
 void Ability::Initialize(Mob * mob)
 {
     mMob = mob;
-    Rate = 2000;
+    Rate = 200;
     LastTick = -Rate;
 }
 
