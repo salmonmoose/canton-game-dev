@@ -54,6 +54,7 @@ void Player::Init()
     AddAbility("MoveBackwards");
     AddAbility("StrafeLeft");
     AddAbility("StrafeRight");
+    AddAbility("PointAtTarget");
 
     Position.Y = 32.f;
     MaxSpeed = 64.f;
@@ -103,6 +104,8 @@ void Player::AcceptInput()
 {
     mouse->Update(Position.Y);
 
+    TriggerAbility("PointAtTarget");
+
     if(IRR.receiver.KeyDown(irr::KEY_KEY_A))
     {
         TriggerAbility("StrafeLeft");
@@ -113,14 +116,6 @@ void Player::AcceptInput()
         TriggerAbility("StrafeRight");
     }
 
-    float angle = getAngleToMouse();
-
-    Rotation.Y += mStats.GetTurnRate() * (angle / TurnBuffer) * IRR.frameDeltaTime;
-    if(Rotation.Y < -360)
-        Rotation.Y += 360;
-    if(Rotation.Y > 360)
-        Rotation.Y -= 360;
-
     if(IRR.receiver.KeyDown(irr::KEY_KEY_W))
     {
         TriggerAbility("MoveForwards");
@@ -130,7 +125,6 @@ void Player::AcceptInput()
     {
         TriggerAbility("MoveBackwards");
     }
-
     
     if(IRR.receiver.ButtonDown(EventReceiver::MOUSE_BUTTON_LEFT))
     {

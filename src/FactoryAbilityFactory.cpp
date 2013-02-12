@@ -18,4 +18,5 @@ void AbilityFactory::RegisterTypes()
 	bool MoveBackwards_r = instance().register_type<MoveBackwards>("MoveBackwards");
 	bool StrafeLeft_r = instance().register_type<StrafeLeft>("StrafeLeft");
 	bool StrafeRight_r = instance().register_type<StrafeRight>("StrafeRight");
+	bool PointAtTarget_r = instance().register_type<PointAtTarget>("PointAtTarget");
 }

@@ -22,7 +22,7 @@ public:
 
     virtual void OnUpdate()
     {
-        mEnemy->PointAtTarget();
+        mEnemy->TriggerAbility("PointAtTarget");
 
         if(mEnemy->DistanceToTarget() > 20)
         {
@@ -84,6 +84,7 @@ void Enemy::Init()
     AddAbility("MoveBackwards");
     AddAbility("StrafeLeft");
     AddAbility("StrafeRight");
+    AddAbility("PointAtTarget");
 
 	life = 100.f;
 	MaxSpeed = 96.f;
