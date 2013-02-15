@@ -40,9 +40,9 @@ public:
 	const irr::core::vector3df & getVelocity(){ return Velocity; }
 
 	const irr::core::aabbox3df & getBoundingBox(){ return mainMesh->getBoundingBox(); }
-	const irr::core::aabbox3df & getTransformedBoundingBox(){ return mainMesh->getTransformedBoundingBox(); }
+	const irr::core::aabbox3df getTransformedBoundingBox(){ return irr::core::aabbox3df(mainMesh->getTransformedBoundingBox()); }
 
-	virtual const irr::core::vector3df & getTargetPosition();
+	virtual const irr::core::vector3df getTargetPosition();
 
 	const float getAngleToVector(irr::core::vector3df);
 	const float getDistanceToVector(irr::core::vector3df);

@@ -69,7 +69,7 @@ void Player::Init()
     SetState(new PlayerControledState(this));
 }
 
-const irr::core::vector3df & Player::getTargetPosition()
+const irr::core::vector3df Player::getTargetPosition()
 {
     return mouse->getPosition();
 }

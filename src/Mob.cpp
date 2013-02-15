@@ -86,7 +86,7 @@ void Mob::SetState(State * newState)
 	mState->OnEnter();
 }
 
-const irr::core::vector3df & Mob::getTargetPosition()
+const irr::core::vector3df Mob::getTargetPosition()
 {
     return getPosition();
 }

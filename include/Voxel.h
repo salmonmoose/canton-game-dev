@@ -40,6 +40,11 @@ struct VoxelData
         Value = _value;
         Material = _material;
     }
+
+    bool Solid()
+    {
+        return Value > isolevel;
+    }
 };
 
 struct VoxelReference

@@ -66,7 +66,7 @@ bool VoxelSceneNode::Initialize()
 
 	Material.MaterialType = (video::E_MATERIAL_TYPE) terrainMaterial;  
 
-    setMaterialTexture(1, IRR.driver->getTexture("./resources/grass.jpg"));
+    setMaterialTexture(1, IRR.driver->getTexture("./resources/terrain.png"));
     setMaterialTexture(2, IRR.driver->getTexture("./resources/dirt.jpg"));
     setMaterialTexture(3, IRR.driver->getTexture("./resources/dirt.jpg"));
     setMaterialTexture(4, IRR.driver->getTexture("./resources/clay.jpg"));
@@ -317,7 +317,15 @@ int VoxelSceneNode::GetAltitude(const irr::core::vector3d<int> & Position)
 
 	return -1;
 }
+void VoxelSceneNode::SetMaterial(irr::core::vector3d<int> Position, int value)
+{
+    VoxelReference vr(Position);
 
+    if(chunkMap.find(vr.Chunk) != chunkMap.end())
+    {
+        chunkMap[vr.Chunk].SetMaterial(vr.Position, value);
+    }
+}
 void VoxelSceneNode::SetValue(irr::core::vector3d<int> Position, float value)
 {
     VoxelReference vr(Position);
@@ -355,11 +363,18 @@ int VoxelSceneNode::GetMaterial(irr::core::vector3d<int> Position)
 
     if(chunkMap.find(vr.Chunk) != chunkMap.end())
     {
-        return chunkMap[vr.Chunk].GetMaterial(vr.Position);
+        if(chunkMap[vr.Chunk].status != EMPTY && chunkMap[vr.Chunk].status != FILLING)
+        {
+            return chunkMap[vr.Chunk].GetMaterial(vr.Position);
+        }
+        else
+        {
+            return -1;
+        }
     }
     else
     {
-        return 0;
+        return -2;
     }
 }
 

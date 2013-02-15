@@ -19,4 +19,12 @@ void AbilityFactory::RegisterTypes()
 	bool StrafeLeft_r = instance().register_type<StrafeLeft>("StrafeLeft");
 	bool StrafeRight_r = instance().register_type<StrafeRight>("StrafeRight");
 	bool PointAtTarget_r = instance().register_type<PointAtTarget>("PointAtTarget");
+
+	assert(FirePewPew_r);
+	
+	assert(MoveForwards_r);
+	assert(MoveBackwards_r);
+	assert(StrafeLeft_r);
+	assert(StrafeRight_r);
+	assert(PointAtTarget_r);
 }

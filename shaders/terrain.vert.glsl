@@ -11,7 +11,6 @@ uniform vec3 mLightPos;
 varying vec4 diffuse,ambient;
 varying vec3 normal,lightDir,halfVector;
 
-varying vec2 texCoords;
 varying float shadowDist;
 
 void main() {
@@ -20,9 +19,6 @@ void main() {
 
     vec4 shadowPos=mLightViewProj * gl_Vertex/256.0;
     shadowDist = shadowPos.z/2.0;
-
-    texCoords=shadowPos.xy;
-    texCoords=0.5*texCoords+0.5;
 
     normal = normalize(gl_NormalMatrix * gl_Normal);
     
@@ -34,7 +30,8 @@ void main() {
     ambient += gl_LightModel.ambient * gl_FrontMaterial.ambient;
 
     vNormal = gl_Normal;
-    gl_TexCoord[1] = gl_Vertex;
+    gl_TexCoord[0] = gl_MultiTexCoord0;
+    gl_TexCoord[1] = gl_Vertex / 16;
     vColor = gl_Color;
 
     gl_Position = ftransform();

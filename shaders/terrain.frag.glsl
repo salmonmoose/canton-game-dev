@@ -19,7 +19,6 @@ varying vec3 normal,lightDir,halfVector;
 
 varying vec4 ShadowCoord;
 
-varying vec2 texCoords;
 varying float shadowDist;
 
 void main()
@@ -68,11 +67,15 @@ void main()
     blend_weights /= blend_weights.x + blend_weights.y + blend_weights.z;
 
     vec4 blended_color;
-    float tex_scale = 1.0 / 32.0;
 
-    vec2 coord_x = -gl_TexCoord[1].zy * tex_scale;
-    vec2 coord_y = gl_TexCoord[1].zx * tex_scale;
-    vec2 coord_z = -gl_TexCoord[1].xy * tex_scale;
+    //vec2 coord_x = gl_TexCoord[1].zy + gl_TexCoord[0].xy;
+    //vec2 coord_y = gl_TexCoord[1].zx + gl_TexCoord[0].xy;
+    //vec2 coord_z = gl_TexCoord[1].xy + gl_TexCoord[0].xy;
+
+    vec2 coord_x = gl_TexCoord[0].xy;
+    vec2 coord_y = gl_TexCoord[0].xy;
+    vec2 coord_z = gl_TexCoord[0].xy;
+
 
     vec4 map0_x = texture2D(sideTex0, coord_x);
     vec4 map0_y = texture2D(topTex0, coord_y);
@@ -83,9 +86,5 @@ void main()
         map0_y.xyzw * blend_weights.yyyy +
         map0_z.xyzw * blend_weights.zzzz;
 
-
-    //gl_FragColor = color * blended_color;
     gl_FragColor = shadow * color * blended_color;
-    //gl_FragColor = shadowTexture;
-    //gl_FragColor = shadow;
 }

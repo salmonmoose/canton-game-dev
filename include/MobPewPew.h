@@ -18,7 +18,7 @@ public:
 	void Update();
     void Init();
     void Accelerate();
-    const irr::core::vector3df & getTargetPosition();
+    const irr::core::vector3df getTargetPosition();
 	double life;
 };
 #endif

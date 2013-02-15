@@ -372,7 +372,6 @@ void ChunkMesh::GenerateMesh()
                     ));
 				}
 
-
                 GenerateSurface(irr::core::vector3d<int>(x,y,z), Values, Materials);
 			}
 		}
@@ -418,6 +417,7 @@ void ChunkMesh::GenerateSurface(irr::core::vector3d<int> renderBlock, float Valu
 	{
 		if(Values[i] > isolevel) cubeIndex |= (1 << i);
 	}
+
 #ifdef _VOXEL_DEBUG_
     if(renderBlock.X == 0 && renderBlock.Y == 0 && renderBlock.Z == 0)    
         printf(
@@ -428,7 +428,9 @@ void ChunkMesh::GenerateSurface(irr::core::vector3d<int> renderBlock, float Valu
             );
 #endif
 
-	for(int i = 0; i < 12; i++)
+    irr::core::vector2df material;
+
+    for(int i = 0; i < 12; i++)
 	{
 		p1 = edges[i][0];
 		p2 = edges[i][1];
@@ -443,6 +445,13 @@ void ChunkMesh::GenerateSurface(irr::core::vector3d<int> renderBlock, float Valu
 			{
 				mu = (isolevel - Values[p1]) / (Values[p2] - Values[p1]);
 
+                std::div_t material_ref = std::div(Materials[p1], 16);
+
+                material = irr::core::vector2df(
+                    material_ref.quot * float(1.f / 16),
+                    material_ref.rem * float(1.f / 16)
+                );
+
 				(*generatedPoints)[_x][_y][_z] = tempBuffer->Vertices.size();
 
 				tempBuffer->Vertices.push_back(
@@ -454,7 +463,7 @@ void ChunkMesh::GenerateSurface(irr::core::vector3d<int> renderBlock, float Valu
                         0.f,
                         0.f,
 						SColor(1.f,1.f,1.f,1.f),
-						0.f, 0.f
+						material.X, material.Y
 					)
 				);
 			}

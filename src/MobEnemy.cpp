@@ -113,7 +113,7 @@ bool Enemy::SeekTarget()
     }
 }
 
-const irr::core::vector3df & Enemy::getTargetPosition()
+const irr::core::vector3df Enemy::getTargetPosition()
 {
     if(Target)
     {

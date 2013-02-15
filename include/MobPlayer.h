@@ -24,7 +24,7 @@ public:
     void AcceptInput();
     float getAngleToMouse();
 
-    const irr::core::vector3df & getTargetPosition();
+    const irr::core::vector3df getTargetPosition();
 
 protected:
 };

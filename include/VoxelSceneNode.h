@@ -78,6 +78,7 @@ public:
     void SetValue(irr::core::vector3d<int>, float);
     void SetValue(int,int,int,float);
 
+    void SetMaterial(irr::core::vector3d<int>, int);
     int GetMaterial(irr::core::vector3d<int>);
 
     const irr::video::SMaterial & getMaterial(irr::u32) const;
