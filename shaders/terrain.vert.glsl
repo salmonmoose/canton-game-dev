@@ -30,8 +30,13 @@ void main() {
     ambient += gl_LightModel.ambient * gl_FrontMaterial.ambient;
 
     vNormal = gl_Normal;
+    
     gl_TexCoord[0] = gl_MultiTexCoord0;
-    gl_TexCoord[1] = gl_Vertex / 16;
+    gl_TexCoord[1] = gl_MultiTexCoord1;
+    gl_TexCoord[2] = gl_MultiTexCoord2;
+
+    gl_TexCoord[3] = gl_Vertex / 16.0;
+    
     vColor = gl_Color;
 
     gl_Position = ftransform();

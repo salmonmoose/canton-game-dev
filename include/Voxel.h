@@ -177,10 +177,113 @@ public:
 
     ChunkMesh(){};
 
-
     void Initialize(VoxelSceneNode * parent, irr::core::vector3d<int> tl);
     void GenerateMesh();
     void NaiveNormals();
     void GenerateSurface(irr::core::vector3d<int> renderBlock, float Values[8], int Materials[8]);
+};
+
+//static const E_VERTEX_TYPE EVT_VOXEL = static_cast<E_VERTEX_TYPE>(VALUE3 + 1);
+
+struct S3DVertexVoxel : public irr::video::S3DVertex
+{
+    S3DVertexVoxel() : irr::video::S3DVertex() {}
+
+    S3DVertexVoxel(
+        irr::f32 x, irr::f32 y, irr::f32 z, 
+        irr::video::SColor c, 
+        irr::f32 tu, irr::f32 tv, 
+        irr::f32 tu2, irr::f32 tv2, 
+        irr::f32 tu3, irr::f32 tv3
+    ) : irr::video::S3DVertex(x,y,z, 0.0f, 0.0f, 0.0f, c, tu,tv), TCoords2(tu2,tv2), TCoords3(tu3, tv3) {}
+
+    S3DVertexVoxel(
+        const irr::core::vector3df& pos, 
+        irr::video::SColor color,
+        const irr::core::vector2d<irr::f32>& tcoords, 
+        const irr::core::vector2d<irr::f32>& tcoords2, 
+        const irr::core::vector2d<irr::f32>& tcoords3
+    ) : irr::video::S3DVertex(pos, irr::core::vector3df(), color, tcoords), TCoords2(tcoords2), TCoords3(tcoords3) {}
+
+    S3DVertexVoxel(
+        const irr::core::vector3df& pos, 
+        const irr::core::vector3df& normal, 
+        const irr::video::SColor& color,
+        const irr::core::vector2d<irr::f32>& tcoords, 
+        const irr::core::vector2d<irr::f32>& tcoords2,
+        const irr::core::vector2d<irr::f32>& tcoords3
+    ) : irr::video::S3DVertex(pos, normal, color, tcoords), TCoords2(tcoords2), TCoords3(tcoords3) {}
+
+    S3DVertexVoxel(
+        irr::f32 x, irr::f32 y, irr::f32 z, 
+        irr::f32 nx, irr::f32 ny, irr::f32 nz, 
+        irr::video::SColor c, 
+        irr::f32 tu, irr::f32 tv, 
+        irr::f32 tu2, irr::f32 tv2,
+        irr::f32 tu3, irr::f32 tv3
+    ) : irr::video::S3DVertex(x,y,z, nx,ny,nz, c, tu,tv), TCoords2(tu2,tv2) {}
+
+    S3DVertexVoxel(
+        irr::f32 x, irr::f32 y, irr::f32 z, 
+        irr::f32 nx, irr::f32 ny, irr::f32 nz, 
+        irr::video::SColor c, 
+        irr::f32 tu, irr::f32 tv
+    ) : irr::video::S3DVertex(x,y,z, nx,ny,nz, c, tu,tv), TCoords2(tu,tv), TCoords3(tu,tv) {}
+
+    S3DVertexVoxel(
+        const irr::core::vector3df& pos, 
+        const irr::core::vector3df& normal,
+        irr::video::SColor color, 
+        const irr::core::vector2d<irr::f32>& tcoords
+    ) : irr::video::S3DVertex(pos, normal, color, tcoords), TCoords2(tcoords), TCoords3(tcoords) {}
+
+    S3DVertexVoxel(irr::video::S3DVertex& o) : irr::video::S3DVertex(o) {}
+
+    irr::core::vector2d<irr::f32> TCoords2;
+    irr::core::vector2d<irr::f32> TCoords3;
+
+    bool operator==(const S3DVertexVoxel& other) const
+    {
+        return (
+            (static_cast<irr::video::S3DVertex>(*this)==other) &&
+            (TCoords2 == other.TCoords2) &&
+            (TCoords3 == other.TCoords3)
+        );
+    }
+
+    bool operator!=(const S3DVertexVoxel& other) const
+    {
+        return (
+            (static_cast<irr::video::S3DVertex>(*this)!=other) ||
+            (TCoords2 != other.TCoords2) ||
+            (TCoords3 != other.TCoords3)
+        );
+    }
+
+    bool operator<(const S3DVertexVoxel& other) const
+    {
+        return (
+            (static_cast<irr::video::S3DVertex>(*this) < other) ||
+            ((static_cast<irr::video::S3DVertex>(*this) == other) && (TCoords2 < other.TCoords2))
+        );
+    }
+
+    irr::video::E_VERTEX_TYPE getType() const
+    {
+        return static_cast<irr::video::E_VERTEX_TYPE>(100);
+    }
+
+    S3DVertexVoxel getInterpolated(const S3DVertexVoxel& other, irr::f32 d)
+    {
+        d = irr::core::clamp(d, 0.0f, 1.0f);
+        return S3DVertexVoxel(
+            Pos.getInterpolated(other.Pos, d),
+            Normal.getInterpolated(other.Normal, d),
+            Color.getInterpolated(other.Color, d),
+            TCoords.getInterpolated(other.TCoords, d),
+            TCoords2.getInterpolated(other.TCoords2, d),
+            TCoords3.getInterpolated(other.TCoords3, d)
+        );
+    }
 };
 #endif

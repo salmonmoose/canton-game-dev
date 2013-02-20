@@ -68,23 +68,44 @@ void main()
 
     vec4 blended_color;
 
-    //vec2 coord_x = gl_TexCoord[1].zy + gl_TexCoord[0].xy;
-    //vec2 coord_y = gl_TexCoord[1].zx + gl_TexCoord[0].xy;
-    //vec2 coord_z = gl_TexCoord[1].xy + gl_TexCoord[0].xy;
+    vec2 coord_x_r = gl_TexCoord[3].zy + gl_TexCoord[0].xy;
+    vec2 coord_y_r = gl_TexCoord[3].zx + gl_TexCoord[0].xy;
+    vec2 coord_z_r = gl_TexCoord[3].xy + gl_TexCoord[0].xy;
 
-    vec2 coord_x = gl_TexCoord[0].xy;
-    vec2 coord_y = gl_TexCoord[0].xy;
-    vec2 coord_z = gl_TexCoord[0].xy;
+    vec2 coord_x_g = gl_TexCoord[3].zy + gl_TexCoord[1].xy;
+    vec2 coord_y_g = gl_TexCoord[3].zx + gl_TexCoord[1].xy;
+    vec2 coord_z_g = gl_TexCoord[3].xy + gl_TexCoord[1].xy;
 
+    vec2 coord_x_b = gl_TexCoord[3].zy + gl_TexCoord[2].xy;
+    vec2 coord_y_b = gl_TexCoord[3].zx + gl_TexCoord[2].xy;
+    vec2 coord_z_b = gl_TexCoord[3].xy + gl_TexCoord[2].xy;
 
-    vec4 map0_x = texture2D(sideTex0, coord_x);
-    vec4 map0_y = texture2D(topTex0, coord_y);
-    vec4 map0_z = texture2D(sideTex0, coord_z);
+    vec4 map_r_x = texture2D(sideTex0, coord_x_r);
+    vec4 map_r_y = texture2D(topTex0,  coord_y_r);
+    vec4 map_r_z = texture2D(sideTex0, coord_z_r);
 
-    blended_color = 
-        map0_x.xyzw * blend_weights.xxxx +
-        map0_y.xyzw * blend_weights.yyyy +
-        map0_z.xyzw * blend_weights.zzzz;
+    vec4 map_g_x = texture2D(sideTex0, coord_x_g);
+    vec4 map_g_y = texture2D(topTex0,  coord_y_g);
+    vec4 map_g_z = texture2D(sideTex0, coord_z_g);
 
-    gl_FragColor = shadow * color * blended_color;
+    vec4 map_b_x = texture2D(sideTex0, coord_x_b);
+    vec4 map_b_y = texture2D(topTex0,  coord_y_b);
+    vec4 map_b_z = texture2D(sideTex0, coord_z_b);
+
+    vec4 blended_color_r = 
+        map_r_x.xyzw * blend_weights.xxxx +
+        map_r_y.xyzw * blend_weights.yyyy +
+        map_r_z.xyzw * blend_weights.zzzz;
+
+    vec4 blended_color_g = 
+        map_g_x.xyzw * blend_weights.xxxx +
+        map_g_y.xyzw * blend_weights.yyyy +
+        map_g_z.xyzw * blend_weights.zzzz;
+
+    vec4 blended_color_b =  
+        map_b_x.xyzw * blend_weights.xxxx +
+        map_b_y.xyzw * blend_weights.yyyy +
+        map_b_z.xyzw * blend_weights.zzzz;
+
+    gl_FragColor = shadow * color * blended_color_r;
 }
