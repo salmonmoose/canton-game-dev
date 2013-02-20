@@ -12,9 +12,9 @@ static irr::core::vector3d<int> points[8] = {
 };
 
 static irr::video::SColor colorList[3] = {
-    irr::video::SColor(1.f,1.f,0.f,0.f),
-    irr::video::SColor(1.f,0.f,1.f,0.f),
-    irr::video::SColor(1.f,0.f,0.f,1.f)
+    irr::video::SColor(255,255,0,0),
+    irr::video::SColor(255,0,255,0),
+    irr::video::SColor(255,0,0,255)
 };
 
 static unsigned int edges[12][2] = {

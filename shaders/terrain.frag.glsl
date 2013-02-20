@@ -66,8 +66,6 @@ void main()
     blend_weights = max(blend_weights, 0);
     blend_weights /= blend_weights.x + blend_weights.y + blend_weights.z;
 
-    vec4 blended_color;
-
     vec2 coord_x_r = gl_TexCoord[3].zy + gl_TexCoord[0].xy;
     vec2 coord_y_r = gl_TexCoord[3].zx + gl_TexCoord[0].xy;
     vec2 coord_z_r = gl_TexCoord[3].xy + gl_TexCoord[0].xy;
@@ -107,5 +105,10 @@ void main()
         map_b_y.xyzw * blend_weights.yyyy +
         map_b_z.xyzw * blend_weights.zzzz;
 
-    gl_FragColor = shadow * color * blended_color_r;
+    vec4 blended_color = 
+        blended_color_r * vColor.r +
+        blended_color_g * vColor.g +
+        blended_color_b * vColor.b;
+
+    gl_FragColor = blended_color;
 }

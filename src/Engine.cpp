@@ -39,8 +39,8 @@ void IrrlichtEngineManager::SetupDevice()
 {
     irr::video::E_DRIVER_TYPE driverType = irr::video::EDT_OPENGL;
 
-    device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, true, false, &receiver);
-    //device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
+    //device = createDevice(driverType, dimension2d<u32>(920, 540), 16, false, true, false, &receiver);
+    device = createDevice(driverType, dimension2d<u32>(320, 240), 16, false, false, false, &receiver);
     
     if (!device)
         printf("Device failed to manifest\n");
