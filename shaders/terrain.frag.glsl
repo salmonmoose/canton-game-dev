@@ -61,29 +61,21 @@ void main()
     blend_weights = max(blend_weights, 0);
     blend_weights /= blend_weights.x + blend_weights.y + blend_weights.z;
 
-    vec2 coord_x_r =  vTexCoord.zy + gl_TexCoord[0].xy;
-    vec2 coord_y_r = -vTexCoord.zx + gl_TexCoord[0].xy;
-    vec2 coord_z_r =  vTexCoord.xy + gl_TexCoord[0].xy;
+    vec2 coord_x =  vTexCoord.zy;
+    vec2 coord_y = -vTexCoord.zx;
+    vec2 coord_z =  vTexCoord.xy;
 
-    vec2 coord_x_g =  vTexCoord.zy + gl_TexCoord[1].xy;
-    vec2 coord_y_g = -vTexCoord.zx + gl_TexCoord[1].xy;
-    vec2 coord_z_g =  vTexCoord.xy + gl_TexCoord[1].xy;
+    vec4 map_r_x = texture2D(sideTex0, (fract(coord_x) * 0.125 ) + gl_TexCoord[0].xy);
+    vec4 map_r_y = texture2D(topTex0,  (fract(coord_y) * 0.125 ) + gl_TexCoord[0].xy);
+    vec4 map_r_z = texture2D(sideTex0, (fract(coord_z) * 0.125 ) + gl_TexCoord[0].xy);
 
-    vec2 coord_x_b =  vTexCoord.zy + gl_TexCoord[2].xy;
-    vec2 coord_y_b = -vTexCoord.zx + gl_TexCoord[2].xy;
-    vec2 coord_z_b =  vTexCoord.xy + gl_TexCoord[2].xy;
+    vec4 map_g_x = texture2D(sideTex0, (fract(coord_x) * 0.125 ) + gl_TexCoord[1].xy);
+    vec4 map_g_y = texture2D(topTex0,  (fract(coord_y) * 0.125 ) + gl_TexCoord[1].xy);
+    vec4 map_g_z = texture2D(sideTex0, (fract(coord_z) * 0.125 ) + gl_TexCoord[1].xy);
 
-    vec4 map_r_x = texture2D(sideTex0, coord_x_r);
-    vec4 map_r_y = texture2D(topTex0,  coord_y_r);
-    vec4 map_r_z = texture2D(sideTex0, coord_z_r);
-
-    vec4 map_g_x = texture2D(sideTex0, coord_x_g);
-    vec4 map_g_y = texture2D(topTex0,  coord_y_g);
-    vec4 map_g_z = texture2D(sideTex0, coord_z_g);
-
-    vec4 map_b_x = texture2D(sideTex0, coord_x_b);
-    vec4 map_b_y = texture2D(topTex0,  coord_y_b);
-    vec4 map_b_z = texture2D(sideTex0, coord_z_b);
+    vec4 map_b_x = texture2D(sideTex0, (fract(coord_x) * 0.125 ) + gl_TexCoord[2].xy);
+    vec4 map_b_y = texture2D(topTex0,  (fract(coord_y) * 0.125 ) + gl_TexCoord[2].xy);
+    vec4 map_b_z = texture2D(sideTex0, (fract(coord_z) * 0.125 ) + gl_TexCoord[2].xy);
 
     vec4 blended_color_r;
     vec4 blended_color_g;
@@ -111,7 +103,7 @@ if(true) {
     blended_color_b = map_b_y.xyzw * blend_weights.yyyy;
 }
 
-if(false) {
+if(true) {
     blended_color = 
         blended_color_r * vColor.r +
         blended_color_g * vColor.g +
@@ -119,8 +111,6 @@ if(false) {
 } else {
     blended_color = blended_color_r;
 }
-
-    
 
     gl_FragColor = blended_color;
 }

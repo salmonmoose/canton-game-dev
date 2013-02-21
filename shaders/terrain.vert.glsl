@@ -33,11 +33,14 @@ void main() {
 
     vNormal = gl_Normal;
     
-    gl_TexCoord[0] = gl_MultiTexCoord1.xy;
-    gl_TexCoord[1].xy = (gl_MultiTexCoord1.z, gl_MultiTexCoord2.z);
-    gl_TexCoord[2] = gl_MultiTexCoord2.xy;
+    gl_TexCoord[0].xy = gl_MultiTexCoord1.xy;
+    gl_TexCoord[1].x = gl_MultiTexCoord1.z;
+    gl_TexCoord[1].y = gl_MultiTexCoord2.z;
+    gl_TexCoord[2].xy = gl_MultiTexCoord2.xy;
 
-    vTexCoord = gl_multiTexCoord0;
+    gl_TexCoord[3] = gl_MultiTexCoord0;
+
+    vTexCoord = gl_Vertex;
 
     vColor = gl_Color;
 
