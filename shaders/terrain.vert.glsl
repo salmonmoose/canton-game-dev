@@ -8,6 +8,8 @@ uniform mat4 mLightViewProj;
 
 uniform vec3 mLightPos;
 
+varying vec4 vTexCoord;
+
 varying vec4 diffuse,ambient;
 varying vec3 normal,lightDir,halfVector;
 
@@ -31,12 +33,12 @@ void main() {
 
     vNormal = gl_Normal;
     
-    gl_TexCoord[0] = gl_MultiTexCoord0;
-    gl_TexCoord[1] = gl_MultiTexCoord1;
-    gl_TexCoord[2] = gl_MultiTexCoord2;
+    gl_TexCoord[0] = gl_MultiTexCoord1.xy;
+    gl_TexCoord[1].xy = (gl_MultiTexCoord1.z, gl_MultiTexCoord2.z);
+    gl_TexCoord[2] = gl_MultiTexCoord2.xy;
 
-    gl_TexCoord[3] = gl_Vertex / 16.0;
-    
+    vTexCoord = gl_multiTexCoord0;
+
     vColor = gl_Color;
 
     gl_Position = ftransform();

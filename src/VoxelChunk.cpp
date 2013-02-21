@@ -179,7 +179,8 @@ void VoxelChunk::FillChunk(anl::CImplicitXML & noiseTree) {
 
                     parent->SetValue(irr::core::vector3d<int>(x + localPoint.X, y + localPoint.Y, z + localPoint.Z), value);
 
-                    parent->SetMaterial(irr::core::vector3d<int>(x + localPoint.X, y + localPoint.Y, z + localPoint.Z), floor(IRR.random->frand() * 255));
+                    parent->SetMaterial(irr::core::vector3d<int>(x + localPoint.X, y + localPoint.Y, z + localPoint.Z), floor(IRR.random->frand() * 63));
+                    //parent->SetMaterial(irr::core::vector3d<int>(x + localPoint.X, y + localPoint.Y, z + localPoint.Z), 0);
                 }
             }
             if(solid) obstruct = true; //if an entire layer is solid, chunk obstructs vertically

@@ -2,17 +2,12 @@ uniform sampler2D ShadowMap;
 
 uniform sampler2D topTex0;
 uniform sampler2D sideTex0;
-uniform sampler2D topTex1;
-uniform sampler2D sideTex1;
-uniform sampler2D topTex2;
-uniform sampler2D sideTex2;
-uniform sampler2D topTex3;
-uniform sampler2D sideTex3;
 
 uniform vec4 mLightColor;
 
 varying vec3 vNormal;
 varying vec4 vColor;
+varying vec4 vTexCoord;
 
 varying vec4 diffuse,ambient;
 varying vec3 normal,lightDir,halfVector;
@@ -66,17 +61,17 @@ void main()
     blend_weights = max(blend_weights, 0);
     blend_weights /= blend_weights.x + blend_weights.y + blend_weights.z;
 
-    vec2 coord_x_r = gl_TexCoord[3].zy + gl_TexCoord[0].xy;
-    vec2 coord_y_r = gl_TexCoord[3].zx + gl_TexCoord[0].xy;
-    vec2 coord_z_r = gl_TexCoord[3].xy + gl_TexCoord[0].xy;
+    vec2 coord_x_r =  vTexCoord.zy + gl_TexCoord[0].xy;
+    vec2 coord_y_r = -vTexCoord.zx + gl_TexCoord[0].xy;
+    vec2 coord_z_r =  vTexCoord.xy + gl_TexCoord[0].xy;
 
-    vec2 coord_x_g = gl_TexCoord[3].zy + gl_TexCoord[1].xy;
-    vec2 coord_y_g = gl_TexCoord[3].zx + gl_TexCoord[1].xy;
-    vec2 coord_z_g = gl_TexCoord[3].xy + gl_TexCoord[1].xy;
+    vec2 coord_x_g =  vTexCoord.zy + gl_TexCoord[1].xy;
+    vec2 coord_y_g = -vTexCoord.zx + gl_TexCoord[1].xy;
+    vec2 coord_z_g =  vTexCoord.xy + gl_TexCoord[1].xy;
 
-    vec2 coord_x_b = gl_TexCoord[3].zy + gl_TexCoord[2].xy;
-    vec2 coord_y_b = gl_TexCoord[3].zx + gl_TexCoord[2].xy;
-    vec2 coord_z_b = gl_TexCoord[3].xy + gl_TexCoord[2].xy;
+    vec2 coord_x_b =  vTexCoord.zy + gl_TexCoord[2].xy;
+    vec2 coord_y_b = -vTexCoord.zx + gl_TexCoord[2].xy;
+    vec2 coord_z_b =  vTexCoord.xy + gl_TexCoord[2].xy;
 
     vec4 map_r_x = texture2D(sideTex0, coord_x_r);
     vec4 map_r_y = texture2D(topTex0,  coord_y_r);
@@ -90,25 +85,42 @@ void main()
     vec4 map_b_y = texture2D(topTex0,  coord_y_b);
     vec4 map_b_z = texture2D(sideTex0, coord_z_b);
 
-    vec4 blended_color_r = 
+    vec4 blended_color_r;
+    vec4 blended_color_g;
+    vec4 blended_color_b;
+    vec4 blended_color;
+
+if(true) {
+    blended_color_r = 
         map_r_x.xyzw * blend_weights.xxxx +
         map_r_y.xyzw * blend_weights.yyyy +
         map_r_z.xyzw * blend_weights.zzzz;
 
-    vec4 blended_color_g = 
+    blended_color_g = 
         map_g_x.xyzw * blend_weights.xxxx +
         map_g_y.xyzw * blend_weights.yyyy +
         map_g_z.xyzw * blend_weights.zzzz;
 
-    vec4 blended_color_b =  
+    blended_color_b =  
         map_b_x.xyzw * blend_weights.xxxx +
         map_b_y.xyzw * blend_weights.yyyy +
         map_b_z.xyzw * blend_weights.zzzz;
+} else {
+    blended_color_r = map_r_y.xyzw * blend_weights.yyyy;
+    blended_color_g = map_g_y.xyzw * blend_weights.yyyy;
+    blended_color_b = map_b_y.xyzw * blend_weights.yyyy;
+}
 
-    vec4 blended_color = 
+if(false) {
+    blended_color = 
         blended_color_r * vColor.r +
         blended_color_g * vColor.g +
         blended_color_b * vColor.b;
+} else {
+    blended_color = blended_color_r;
+}
+
+    
 
     gl_FragColor = blended_color;
 }

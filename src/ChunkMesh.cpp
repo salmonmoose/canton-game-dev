@@ -417,6 +417,12 @@ void ChunkMesh::GenerateSurface(irr::core::vector3d<int> renderBlock, float Valu
     unsigned char p1,p2;
 	int _x, _y, _z;
 	float mu;
+
+    int atlasSize = 8;
+    float textureOffset = float(1.f / atlasSize);
+
+    irr::core::vector2df atlas2df(atlasSize, atlasSize);
+
 	irr::core::vector3df vertList[12];
     irr::core::vector2df matList[12];
 
@@ -448,11 +454,11 @@ void ChunkMesh::GenerateSurface(irr::core::vector3d<int> renderBlock, float Valu
 		{
 			mu = (isolevel - Values[p1]) / (Values[p2] - Values[p1]);
 
-            std::div_t material_ref = std::div(Materials[p1], 16);
+            std::div_t material_ref = std::div(Materials[p1], atlasSize);
 
             matList[i] = irr::core::vector2df(
-                material_ref.quot * float(1.f / 16),
-                material_ref.rem * float(1.f / 16)
+                material_ref.quot * textureOffset,
+                material_ref.rem * textureOffset
             );
 
             vertList[i] = irr::core::vector3df(
@@ -471,17 +477,31 @@ void ChunkMesh::GenerateSurface(irr::core::vector3d<int> renderBlock, float Valu
             vertList[triTable[cubeIndex][i]] - vertList[triTable[cubeIndex][i+2]]
         ));
 
+        //Pack R.U, R.V and G.U Coords into Tangent
+        irr::core::vector3df tangent(
+            matList[triTable[cubeIndex][i + 0]].X,
+            matList[triTable[cubeIndex][i + 0]].Y,
+            matList[triTable[cubeIndex][i + 1]].X
+        );
+
+        //Pack B.U, B.V and G.V Coords into Binormal
+        irr::core::vector3df binormal(
+            matList[triTable[cubeIndex][i + 2]].X,
+            matList[triTable[cubeIndex][i + 2]].Y,
+            matList[triTable[cubeIndex][i + 1]].Y
+        );
+
         for(int j = 0; j < 3; j++)
         {
             tempBuffer->Indices.push_back(tempBuffer->Vertices.size());
             tempBuffer->Vertices.push_back(
-                S3DVertexVoxel(
+                S3DVertexTangents(
                     vertList[triTable[cubeIndex][i + j]],
                     normal,
                     colorList[j],
-                    matList[triTable[cubeIndex][i]],
-                    matList[triTable[cubeIndex][i+1]],
-                    matList[triTable[cubeIndex][i+2]]
+                    atlas2df,
+                    tangent,
+                    binormal
                 )
             );
         }

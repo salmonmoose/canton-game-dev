@@ -187,10 +187,14 @@ public:
 
 struct S3DVertexVoxel : public irr::video::S3DVertex
 {
+
+    irr::core::vector2d<irr::f32> TCoords2;
+    irr::core::vector2d<irr::f32> TCoords3;
+
     S3DVertexVoxel() : irr::video::S3DVertex() {}
 
     S3DVertexVoxel(
-        irr::f32 x, irr::f32 y, irr::f32 z, 
+        irr::f32 x, irr::f32 y, irr::f32 z,
         irr::video::SColor c, 
         irr::f32 tu, irr::f32 tv, 
         irr::f32 tu2, irr::f32 tv2, 
@@ -239,8 +243,6 @@ struct S3DVertexVoxel : public irr::video::S3DVertex
 
     S3DVertexVoxel(irr::video::S3DVertex& o) : irr::video::S3DVertex(o) {}
 
-    irr::core::vector2d<irr::f32> TCoords2;
-    irr::core::vector2d<irr::f32> TCoords3;
 
     bool operator==(const S3DVertexVoxel& other) const
     {
