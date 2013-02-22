@@ -53,9 +53,9 @@ bool VoxelSceneNode::Initialize()
 	    ShaderCallback * shaderCallback = new ShaderCallback();
 
 	    terrainMaterial = IRR.gpu->addHighLevelShaderMaterialFromFiles(
-	        vsFileName, "vertexMain", video::EVST_VS_3_0,
-	        psFileName, "pixelMain", video::EPST_PS_3_0,
-	        shaderCallback, video::EMT_SOLID);
+	        vsFileName, "vertexMain", irr::video::EVST_VS_3_0,
+	        psFileName, "pixelMain", irr::video::EPST_PS_3_0,
+	        shaderCallback, irr::video::EMT_SOLID);
 
 	    shaderCallback->drop();
 	}

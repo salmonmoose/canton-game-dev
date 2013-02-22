@@ -112,5 +112,5 @@ if(true) {
     blended_color = blended_color_r;
 }
 
-    gl_FragColor = blended_color;
+    gl_FragColor = blended_color_r;
 }

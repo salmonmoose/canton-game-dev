@@ -25,13 +25,6 @@ void ShaderCallback::OnSetConstants(irr::video::IMaterialRendererServices * serv
     services->setPixelShaderConstant("ShadowMap", &index[0], 1);
     services->setPixelShaderConstant("topTex0",   &index[1], 1);
     services->setPixelShaderConstant("sideTex0",  &index[2], 1);
-    services->setPixelShaderConstant("topTex1",   &index[3], 1);
-    services->setPixelShaderConstant("sideTex1",  &index[4], 1);
-    services->setPixelShaderConstant("topTex2",   &index[5], 1);
-    services->setPixelShaderConstant("sideTex2",  &index[6], 1);
-    services->setPixelShaderConstant("topTex3",   &index[7], 1);
-    services->setPixelShaderConstant("sideTex3",  &index[8], 1);
-
 
     float camFarZ = 64.f;
 

@@ -490,6 +490,13 @@ void ChunkMesh::GenerateSurface(irr::core::vector3d<int> renderBlock, float Valu
             matList[triTable[cubeIndex][i + 2]].Y,
             matList[triTable[cubeIndex][i + 1]].Y
         );
+        
+#ifdef _VOXEL_DEBUG_
+        printf(
+            "Texcoords: (%f,%f)-(%f,%f)-(%f,%f)\n",
+            tangent.X, tangent.Y, tangent.Z, binormal.Z, binormal.X, binormal.Y
+        );
+#endif
 
         for(int j = 0; j < 3; j++)
         {
