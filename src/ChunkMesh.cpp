@@ -338,7 +338,7 @@ void ChunkMesh::Initialize(VoxelSceneNode * _parent, irr::core::vector3d<int> po
         position.Z * (int)dimensions.Z
     );
 
-    buffer = new irr::scene::SMeshBuffer();
+    buffer = new irr::scene::SMeshBufferTangents();
 
     buffer->setBoundingBox(irr::core::aabbox3df(
         localPoint.X, localPoint.Y, localPoint.Z, localPoint.X + dimensions.X, localPoint.Y + dimensions.Y, localPoint.Z + dimensions.Z
@@ -352,7 +352,7 @@ void ChunkMesh::GenerateMesh()
 {
 	generatedPoints = new Unsigned3Array(boost::extents[dimensions.X + 1][dimensions.Y + 1][dimensions.Z + 1]);
 
-    tempBuffer = new irr::scene::SMeshBuffer;
+    tempBuffer = new irr::scene::SMeshBufferTangents;
 	
 	float Values[8];
 	int Materials[8];

@@ -68,11 +68,9 @@ void main()
     vec4 map_r_x = texture2D(sideTex0, (fract(coord_x) * 0.125 ) + gl_TexCoord[0].xy);
     vec4 map_r_y = texture2D(topTex0,  (fract(coord_y) * 0.125 ) + gl_TexCoord[0].xy);
     vec4 map_r_z = texture2D(sideTex0, (fract(coord_z) * 0.125 ) + gl_TexCoord[0].xy);
-
     vec4 map_g_x = texture2D(sideTex0, (fract(coord_x) * 0.125 ) + gl_TexCoord[1].xy);
     vec4 map_g_y = texture2D(topTex0,  (fract(coord_y) * 0.125 ) + gl_TexCoord[1].xy);
     vec4 map_g_z = texture2D(sideTex0, (fract(coord_z) * 0.125 ) + gl_TexCoord[1].xy);
-
     vec4 map_b_x = texture2D(sideTex0, (fract(coord_x) * 0.125 ) + gl_TexCoord[2].xy);
     vec4 map_b_y = texture2D(topTex0,  (fract(coord_y) * 0.125 ) + gl_TexCoord[2].xy);
     vec4 map_b_z = texture2D(sideTex0, (fract(coord_z) * 0.125 ) + gl_TexCoord[2].xy);
@@ -112,5 +110,5 @@ if(true) {
     blended_color = blended_color_r;
 }
 
-    gl_FragColor = blended_color_r;
+    gl_FragColor = blended_color;
 }
