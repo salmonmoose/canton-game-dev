@@ -1,7 +1,7 @@
 #include "Voxel.h"
 #include "anl.h"
 
-int VoxelChunk::GetHeight(irr::core::vector2d<unsigned> Position)
+int VoxelChunk::GetHeight(irr::core::vector2d<int> Position)
 {
     if(status != EMPTY && status != FILLING)
     {
@@ -20,7 +20,7 @@ int VoxelChunk::GetHeight(irr::core::vector2d<unsigned> Position)
     }
 }
 
-bool VoxelChunk::GetFilled(irr::core::vector3d<unsigned> Position)
+bool VoxelChunk::GetFilled(irr::core::vector3d<int> Position)
 {
     if(status != EMPTY && status != FILLING)
     {
@@ -39,36 +39,86 @@ bool VoxelChunk::GetFilled(irr::core::vector3d<unsigned> Position)
     }
 }
 
-void VoxelChunk::Initialize(irr::core::vector3d<unsigned> dimensions, irr::core::vector3d<int> position)
+void VoxelChunk::Initialize(VoxelSceneNode * _parent, irr::core::vector3d<int> position)
 {
-    localPoint = irr::core::vector3d<int>(position.X,position.Y,position.Z);
+    parent = _parent;
+
+    chunkPos = position;
+
+    localPoint = irr::core::vector3d<int>(
+        position.X * (int)dimensions.X,
+        position.Y * (int)dimensions.Y,
+        position.Z * (int)dimensions.Z
+    );
+
+#ifdef _VOXEL_DEBUG_
+    printf("Initialized at (%i,%i,%i)\n",
+        localPoint.X,
+        localPoint.Y,
+        localPoint.Z
+        );
+#endif
 }
 
-float VoxelChunk::GetValue(irr::core::vector3d<unsigned> Position)
+
+
+void VoxelChunk::SetValue(irr::core::vector3d<int> Position, float Value)
 {
-    if(status != EMPTY && status != FILLING)
-    {
-        return (*values)[Position.X][Position.Y][Position.Z];
-    }
-    else
-    {
-        return -15.f;
-    }
+#ifdef _VOXEL_DEBUG_
+    if(Position.X == 0 && Position.Y == 0 && Position.Z == 0)
+        printf("Setting (%i,%i,%i) of %f\n", 
+            localPoint.X + Position.X, 
+            localPoint.Y + Position.Y, 
+            localPoint.Z + Position.Z, 
+            Value
+        );
+#endif
+    (*values)[Position.X][Position.Y][Position.Z] = Value;
 }
 
-int VoxelChunk::GetMaterial(irr::core::vector3d<unsigned> Position)
+float VoxelChunk::GetValue(irr::core::vector3d<int> Position)
 {
-    if(status != EMPTY && status != FILLING)
-    {
-        return (*values)[Position.X][Position.Y][Position.Z];
-    }
-    else
-    {
-        return 0;
-    }
+#ifdef _VOXEL_DEBUG_
+    if(Position.X == 0 && Position.Y == 0 && Position.Z == 0)
+        printf("Getting (%i,%i,%i) of %f\n", 
+            localPoint.X + Position.X, 
+            localPoint.Y + Position.Y, 
+            localPoint.Z + Position.Z, 
+            (*values)[Position.X][Position.Y][Position.Z]  
+        );
+#endif
+    return (*values)[Position.X][Position.Y][Position.Z];
 }
 
-void VoxelChunk::UpdateVoxel(irr::core::vector3d<unsigned> position, float value, int material, bool subtract)
+void VoxelChunk::SetMaterial(irr::core::vector3d<int> Position, int Value)
+{
+#ifdef _VOXEL_DEBUG_
+    if(Position.X == 0 && Position.Y == 0 && Position.Z == 0)
+        printf("Setting (%i,%i,%i) of %i\n", 
+            localPoint.X + Position.X, 
+            localPoint.Y + Position.Y, 
+            localPoint.Z + Position.Z, 
+            Value
+        );
+#endif
+    (*materials)[Position.X][Position.Y][Position.Z] = Value;
+}
+
+int VoxelChunk::GetMaterial(irr::core::vector3d<int> Position)
+{
+#ifdef _VOXEL_DEBUG_
+    if(Position.X == 0 && Position.Y == 0 && Position.Z == 0)
+        printf("Getting (%i,%i,%i) of %i\n", 
+            localPoint.X + Position.X, 
+            localPoint.Y + Position.Y, 
+            localPoint.Z + Position.Z, 
+            (*materials)[Position.X][Position.Y][Position.Z]  
+        );
+#endif
+    return (*materials)[Position.X][Position.Y][Position.Z];
+}
+
+void VoxelChunk::UpdateVoxel(irr::core::vector3d<int> position, float value, int material, bool subtract)
 {
     if(subtract)
     {
@@ -98,38 +148,27 @@ Using noise tree, populates an array with values
 **/
 void VoxelChunk::FillChunk(anl::CImplicitXML & noiseTree) {
     double value;
-    int xPos = localPoint.X * (int)dimensions.X;
-    int yPos = localPoint.Y * (int)dimensions.Y;
-    int zPos = localPoint.Z * (int)dimensions.Z;
+
+    empty=false;
 
     bool solid;
 
     //TODO: This method could essentially generate a list of meshable voxels (see improvements for marchingcubes.cpp)
-
     try {
-        for(int y = dimensions.Y -1; y >= 0; y--) { //Trace DOWN y axis, first blocks found will be highest.
+        for(int y = (int)dimensions.Y -1; y >= 0; y--) { //Trace DOWN y axis, first blocks found will be highest.
             solid=true; //fresh layer, assume solid
-            for(unsigned x = 0; x < dimensions.X; x++) {
-                for(unsigned z = 0; z < dimensions.Z; z++) {
-                    
+            for(int x = 0; x < (int)dimensions.X; x++) {
+                for(int z = 0; z < (int)dimensions.Z; z++) {
+
                     value = noiseTree.get(
-                        (double) ((int)x + xPos) / 32.f, // (double) x_chunk, 
-                        (double) (y + yPos) / 32.f, // (double) y_chunk, 
-                        (double) ((int)z + zPos) / 32.f // (double) z_chunk
+                        (double) (x + localPoint.X) / 32.f, // (double) x_chunk, 
+                        (double) (y + localPoint.Y) / 32.f, // (double) y_chunk, 
+                        (double) (z + localPoint.Z) / 32.f // (double) z_chunk
                     );
-
-                    //printf("(%i,%i,%i)+(%i,%i,%i)=(%i,%i,%i)", x, y, z, xPos, yPos, zPos, x+xPos, y+yPos, z+zPos);
-
-                    //printf("%f\n", value);
-
-                    //printf("%f\n", value);
 
                     if(value > isolevel) {
                         empty = false; //a value has been found, block must be meshed
-                        //printf("this chunk isn't empty\n");
 
-                        //if there is no highest block in this column, set this column's highest value to y.
-                        //This effectively generates a height map, and vertical occlusion map for each chunk.
                         if(!(*heights)[x][z])
                         {
                             (*heights)[x][z] = y; 
@@ -138,8 +177,10 @@ void VoxelChunk::FillChunk(anl::CImplicitXML & noiseTree) {
                         solid = false; //a hole has been found, this layer is not solid
                     }
 
-                    (*values)[x][y][z] = value;
-                    (*materials)[x][y][z] = 0;
+                    parent->SetValue(irr::core::vector3d<int>(x + localPoint.X, y + localPoint.Y, z + localPoint.Z), value);
+
+                    parent->SetMaterial(irr::core::vector3d<int>(x + localPoint.X, y + localPoint.Y, z + localPoint.Z), floor(IRR.random->frand() * 63));
+                    //parent->SetMaterial(irr::core::vector3d<int>(x + localPoint.X, y + localPoint.Y, z + localPoint.Z), 0);
                 }
             }
             if(solid) obstruct = true; //if an entire layer is solid, chunk obstructs vertically
