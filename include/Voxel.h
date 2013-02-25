@@ -9,10 +9,10 @@
 #include <irrlicht.h>
 #include "boost/multi_array.hpp"
 #include "boost/array.hpp"
-#include "brush.h"
-#include "engine.h"
+#include "Engine.h"
 
 static irr::core::vector3d<unsigned> dimensions(16,16,16);
+static float isolevel = 0.5;
 
 typedef boost::multi_array<float, 3> Float3Array;
 typedef boost::multi_array<bool, 3> Bool3Array;
@@ -20,12 +20,12 @@ typedef boost::multi_array<unsigned, 3> Unsigned3Array;
 typedef boost::multi_array<int, 2> Int2Array;
 
 enum EChunkStatus {
-    EMPTY,      //This node has not yet been assigned data
-    FILLING,    //Currently assigning data to this node
-    FILLED,     //This node needs to be meshed
-    DIRTY,      //This node needs to be remeshed
-    MESHING,    //This node is currently meshing
-    CLEAN       //This node doesn't need
+    EMPTY,      //(0) This node has not yet been assigned data
+    FILLING,    //(1) Currently assigning data to this node
+    FILLED,     //(2) This node needs to be meshed
+    DIRTY,      //(3) This node needs to be remeshed
+    MESHING,    //(4) This node is currently meshing
+    CLEAN       //(5) This node doesn't need
 };
 
 struct VoxelData
@@ -40,13 +40,18 @@ struct VoxelData
         Value = _value;
         Material = _material;
     }
+
+    bool Solid()
+    {
+        return Value > isolevel;
+    }
 };
 
 struct VoxelReference
 {
 public:
     irr::core::vector3d<int> Chunk;
-    irr::core::vector3d<unsigned> Position;
+    irr::core::vector3d<int> Position;
     irr::core::vector3d<unsigned> Dimensions;
 
     VoxelReference(irr::core::vector3d<int> position)
@@ -61,7 +66,7 @@ public:
             (position.Z < 0 && z_ref.rem != 0)? z_ref.quot - 1 : z_ref.quot
         );
 
-        Position = irr::core::vector3d<unsigned>(
+        Position = irr::core::vector3d<int>(
             (position.X < 0 && x_ref.rem != 0)? (int)dimensions.X + x_ref.rem : x_ref.rem, 
             (position.Y < 0 && y_ref.rem != 0)? (int)dimensions.Y + y_ref.rem : y_ref.rem, 
             (position.Z < 0 && z_ref.rem != 0)? (int)dimensions.Z + z_ref.rem : z_ref.rem
@@ -76,12 +81,12 @@ public:
 
         //printf(" output c(%i,%i,%i)p(%i,%i,%i)\n",Chunk.X, Chunk.Y, Chunk.Z,Position.X, Position.Y, Position.Z);
 
-        assert(Position.X < Dimensions.X);
-        assert(Position.Y < Dimensions.Y);
-        assert(Position.Z < Dimensions.Z);
+        assert(Position.X < (int)Dimensions.X);
+        assert(Position.Y < (int)Dimensions.Y);
+        assert(Position.Z < (int)Dimensions.Z);
     }
 
-    VoxelReference(irr::core::vector3d<int> chunk, irr::core::vector3d<unsigned> position, irr::core::vector3d<unsigned> dimensions)
+    VoxelReference(irr::core::vector3d<int> chunk, irr::core::vector3d<int> position)
     {
         Chunk = chunk;
         Position = position;
@@ -102,6 +107,10 @@ public:
     std::vector<VoxelBrush> * vVoxels;
 };
 
+
+
+class VoxelSceneNode;
+
 class VoxelChunk
 {
 public:
@@ -110,9 +119,10 @@ public:
     Int2Array * heights; //Provides highest point in X,Z plane, returns null for empty colmun.
     Bool3Array * filled;
 
-    static const int isolevel = 0.5;
+    VoxelSceneNode * parent;
 
     irr::core::vector3d<int> localPoint;
+    irr::core::vector3d<int> chunkPos;
     int status;
 
     bool empty; //No visible cubes;
@@ -127,22 +137,24 @@ public:
 
         status = EMPTY;
 
-        empty = true;
+        empty = false;
         obstruct = false;
     };
-    void Initialize(irr::core::vector3d<unsigned> dimensions, irr::core::vector3d<int> position);
+    void Initialize(VoxelSceneNode * parent, irr::core::vector3d<int>);
 
-    float GetValue(irr::core::vector3d<unsigned> position);
-    int GetMaterial(irr::core::vector3d<unsigned> position);
-    bool GetFilled(irr::core::vector3d<unsigned> position);
-    int GetHeight(irr::core::vector2d<unsigned> position);
+    float GetValue(irr::core::vector3d<int> position);
+    void SetValue(irr::core::vector3d<int> position, float value);
 
-    void UpdateVoxel(irr::core::vector3d<unsigned> position, float value, int material, bool subtract);
+    int GetMaterial(irr::core::vector3d<int> position);
+    void SetMaterial(irr::core::vector3d<int> position, int material);
+
+    bool GetFilled(irr::core::vector3d<int> position);
+    int GetHeight(irr::core::vector2d<int> position);
+
+    void UpdateVoxel(irr::core::vector3d<int> position, float value, int material, bool subtract);
     void FillChunk(anl::CImplicitXML & noiseTree);
     void MeshChunk();
 };
-
-class VoxelSceneNode;
 
 /*
 * This should be extended to implement various voxel rendering techniques.
@@ -152,40 +164,23 @@ class ChunkMesh
 public:
     int status;
 
-    static const int isolevel = 0.5;
-
     bool Meshed;
 
-    irr::scene::SMeshBuffer * buffer;
-    irr::scene::SMeshBuffer * tempBuffer;
+    irr::scene::SMeshBufferTangents * buffer;
+    irr::scene::SMeshBufferTangents * tempBuffer;
     irr::core::vector3d<int> localPoint;
+    irr::core::vector3d<int> chunkPos;
+
     VoxelSceneNode * parent;
 
     Unsigned3Array * generatedPoints;
 
     ChunkMesh(){};
 
-    void Initialize(VoxelSceneNode * _parent, irr::core::vector3d<int> tl)
-    {
-        parent = _parent;
-        localPoint = irr::core::vector3d<int>(
-            tl.X * dimensions.X,
-            tl.Y * dimensions.Y,
-            tl.Z * dimensions.Z
-        );
-
-        buffer = new irr::scene::SMeshBuffer();
-
-        buffer->setBoundingBox(irr::core::aabbox3df(
-            localPoint.X, localPoint.Y, localPoint.Z, localPoint.X + dimensions.X, localPoint.Y + dimensions.Y, localPoint.Z + dimensions.Z
-        ));
-
-        status = DIRTY;
-        Meshed = false;
-    };
-
+    void Initialize(VoxelSceneNode * parent, irr::core::vector3d<int> tl);
     void GenerateMesh();
     void NaiveNormals();
     void GenerateSurface(irr::core::vector3d<int> renderBlock, float Values[8], int Materials[8]);
 };
+
 #endif

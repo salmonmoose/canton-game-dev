@@ -2,30 +2,44 @@ uniform sampler2D ShadowMap;
 
 uniform sampler2D topTex0;
 uniform sampler2D sideTex0;
-uniform sampler2D topTex1;
-uniform sampler2D sideTex1;
-uniform sampler2D topTex2;
-uniform sampler2D sideTex2;
-uniform sampler2D topTex3;
-uniform sampler2D sideTex3;
 
-varying vec4 vNormal;
+uniform vec4 mLightColor;
+
+varying vec3 vNormal;
 varying vec4 vColor;
+varying vec4 vTexCoord;
 
 varying vec4 diffuse,ambient;
 varying vec3 normal,lightDir,halfVector;
 
 varying vec4 ShadowCoord;
 
-varying vec2 texCoords;
 varying float shadowDist;
 
 void main()
 {
     vec4 shadow = vec4(1.0, 0.0, 1.0, 0);
 
-    vec4 ambientColor = vec4(0.25,0.25,0.5,0);
-    vec4 sunColor = vec4(1.0,0.75,0.25, 0);
+    vec4 ambientColor = vec4(0.5,0.5,0.75,0);
+    
+    /**
+    * Lights
+    */
+    vec3 n,halfV;
+    float NdotL,NdotHV;
+
+    vec4 color = ambientColor;
+    n = normalize(vNormal);
+
+    NdotL = max(dot(lightDir,-vNormal),0.0);
+
+    if (NdotL > 0.0) {
+        color += NdotL;
+        NdotHV = max(dot(vNormal, halfVector), 0.0);
+        color += gl_FrontMaterial.specular *
+            mLightColor *
+            pow(NdotHV, gl_FrontMaterial.shininess);
+    }
 
     vec4 shadowCoordinateWdivide = ShadowCoord / ShadowCoord.w ;
     
@@ -36,67 +50,65 @@ void main()
     float distanceFromLight = texture2D(ShadowMap,0.5 * shadowCoordinateWdivide.st + 0.5).z;
     
     if (ShadowCoord.w > 0.0)
-        shadow = distanceFromLight < shadowCoordinateWdivide.z ? ambientColor : sunColor ;
+    {
+        float offset = (distanceFromLight - shadowCoordinateWdivide.z);
+        //shadow = mix(ambientColor, mLightColor, offset);
+        shadow = distanceFromLight < shadowCoordinateWdivide.z ? color : mLightColor ;
+    }   
     
-    vec4 blend_weights = abs(vNormal);
+    vec3 blend_weights = abs(vNormal);
     blend_weights = (blend_weights) - 0.5f;//0.2679f;
     blend_weights = max(blend_weights, 0);
     blend_weights /= blend_weights.x + blend_weights.y + blend_weights.z;
 
+    vec2 coord_x =  vTexCoord.zy;
+    vec2 coord_y = -vTexCoord.zx;
+    vec2 coord_z =  vTexCoord.xy;
+
+    vec4 map_r_x = texture2D(sideTex0, (fract(coord_x) * 0.125 ) + gl_TexCoord[0].xy);
+    vec4 map_r_y = texture2D(topTex0,  (fract(coord_y) * 0.125 ) + gl_TexCoord[0].xy);
+    vec4 map_r_z = texture2D(sideTex0, (fract(coord_z) * 0.125 ) + gl_TexCoord[0].xy);
+    vec4 map_g_x = texture2D(sideTex0, (fract(coord_x) * 0.125 ) + gl_TexCoord[1].xy);
+    vec4 map_g_y = texture2D(topTex0,  (fract(coord_y) * 0.125 ) + gl_TexCoord[1].xy);
+    vec4 map_g_z = texture2D(sideTex0, (fract(coord_z) * 0.125 ) + gl_TexCoord[1].xy);
+    vec4 map_b_x = texture2D(sideTex0, (fract(coord_x) * 0.125 ) + gl_TexCoord[2].xy);
+    vec4 map_b_y = texture2D(topTex0,  (fract(coord_y) * 0.125 ) + gl_TexCoord[2].xy);
+    vec4 map_b_z = texture2D(sideTex0, (fract(coord_z) * 0.125 ) + gl_TexCoord[2].xy);
+
+    vec4 blended_color_r;
+    vec4 blended_color_g;
+    vec4 blended_color_b;
     vec4 blended_color;
-    float tex_scale = 1.0 / 32.0;
 
-    vec2 coord_x = -gl_TexCoord[1].zy * tex_scale;
-    vec2 coord_y = gl_TexCoord[1].zx * tex_scale;
-    vec2 coord_z = -gl_TexCoord[1].xy * tex_scale;
+if(true) {
+    blended_color_r = 
+        map_r_x.xyzw * blend_weights.xxxx +
+        map_r_y.xyzw * blend_weights.yyyy +
+        map_r_z.xyzw * blend_weights.zzzz;
 
-    //vec4 map0_x = vec4(1.0,1.0,1.0,0);
-    //vec4 map0_y = vec4(1.0,1.0,1.0,0);
-    //vec4 map0_z = vec4(1.0,1.0,1.0,0);
+    blended_color_g = 
+        map_g_x.xyzw * blend_weights.xxxx +
+        map_g_y.xyzw * blend_weights.yyyy +
+        map_g_z.xyzw * blend_weights.zzzz;
 
-    vec4 map0_x = texture2D(sideTex0, coord_x);
-    vec4 map0_y = texture2D(topTex0, coord_y);
-    vec4 map0_z = texture2D(sideTex0, coord_z);
+    blended_color_b =  
+        map_b_x.xyzw * blend_weights.xxxx +
+        map_b_y.xyzw * blend_weights.yyyy +
+        map_b_z.xyzw * blend_weights.zzzz;
+} else {
+    blended_color_r = map_r_y.xyzw * blend_weights.yyyy;
+    blended_color_g = map_g_y.xyzw * blend_weights.yyyy;
+    blended_color_b = map_b_y.xyzw * blend_weights.yyyy;
+}
 
-    vec4 map1_x = texture2D(sideTex1, coord_x);
-    vec4 map1_y = texture2D(topTex1, coord_y);
-    vec4 map1_z = texture2D(sideTex1, coord_z);
-
-    vec4 map2_x = texture2D(sideTex2, coord_x);
-    vec4 map2_y = texture2D(topTex2, coord_y);
-    vec4 map2_z = texture2D(sideTex2, coord_z);
-
-    vec4 map3_x = texture2D(sideTex3, coord_x);
-    vec4 map3_y = texture2D(topTex3, coord_y);
-    vec4 map3_z = texture2D(sideTex3, coord_z);
-
+if(true) {
     blended_color = 
-        map0_x.xyzw * blend_weights.xxxx +
-        map0_y.xyzw * blend_weights.yyyy +
-        map0_z.xyzw * blend_weights.zzzz;
+        blended_color_r * vColor.r +
+        blended_color_g * vColor.g +
+        blended_color_b * vColor.b;
+} else {
+    blended_color = blended_color_r;
+}
 
-    /**
-    * Lights
-    */
-    vec3 n,halfV;
-    float NdotL,NdotHV;
-
-    vec4 color = ambient;
-    n = normalize(normal);
-
-    NdotL = max(dot(n,lightDir),0.0);
-
-    if (NdotL > 0.0) {
-        color += NdotL;
-        //halfV = normalize(halfVector);
-        NdotHV = max(dot(n,halfV),0.0);
-        color += gl_FrontMaterial.specular *
-                gl_LightSource[0].specular *
-                pow(NdotHV, gl_FrontMaterial.shininess);
-    }
-
-    //gl_FragColor = color * blended_color;
-    gl_FragColor = shadow * color * blended_color;
-    //gl_FragColor = shadowTexture;
-    //gl_FragColor = shadow;
+    gl_FragColor = blended_color;
 }

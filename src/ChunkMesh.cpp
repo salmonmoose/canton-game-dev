@@ -11,6 +11,12 @@ static irr::core::vector3d<int> points[8] = {
 	irr::core::vector3d<int>(0,1,1)  //7
 };
 
+static irr::video::SColor colorList[3] = {
+    irr::video::SColor(255,255,0,0),
+    irr::video::SColor(255,0,255,0),
+    irr::video::SColor(255,0,0,255)
+};
+
 static unsigned int edges[12][2] = {
     {0,1},
     {1,2},
@@ -320,13 +326,33 @@ static int triTable[256][16] = {
     { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
 };
 
+void ChunkMesh::Initialize(VoxelSceneNode * _parent, irr::core::vector3d<int> position)
+{
+    parent = _parent;
+
+    chunkPos = position;
+
+    localPoint = irr::core::vector3d<int>(
+        position.X * (int)dimensions.X,
+        position.Y * (int)dimensions.Y,
+        position.Z * (int)dimensions.Z
+    );
+
+    buffer = new irr::scene::SMeshBufferTangents();
+
+    buffer->setBoundingBox(irr::core::aabbox3df(
+        localPoint.X, localPoint.Y, localPoint.Z, localPoint.X + dimensions.X, localPoint.Y + dimensions.Y, localPoint.Z + dimensions.Z
+    ));
+
+    status = DIRTY;
+    Meshed = false;
+};
+
 void ChunkMesh::GenerateMesh()
 {
 	generatedPoints = new Unsigned3Array(boost::extents[dimensions.X + 1][dimensions.Y + 1][dimensions.Z + 1]);
 
-    //printf("LocalPoint (%i,%i,%i)\n", localPoint.X, localPoint.Y, localPoint.Z);
-
-    tempBuffer = new irr::scene::SMeshBuffer;
+    tempBuffer = new irr::scene::SMeshBufferTangents;
 	
 	float Values[8];
 	int Materials[8];
@@ -351,13 +377,13 @@ void ChunkMesh::GenerateMesh()
                         z + localPoint.Z + points[i].Z
                     ));
 				}
-                
+
                 GenerateSurface(irr::core::vector3d<int>(x,y,z), Values, Materials);
 			}
 		}
 	}
 
-    NaiveNormals();
+//    NaiveNormals();
 
 	buffer = tempBuffer;
     Meshed = true;
@@ -369,14 +395,14 @@ void ChunkMesh::NaiveNormals()
 
     for (int i = 0; i < (int)tempBuffer->Indices.size(); i += 3) {
         tmpVec3D = (
-            tempBuffer->Vertices[tempBuffer->Indices[i + 1]].Pos - tempBuffer->Vertices[tempBuffer->Indices[i]].Pos
+            tempBuffer->Vertices[i + 1].Pos - tempBuffer->Vertices[i].Pos
         ).crossProduct(
-            tempBuffer->Vertices[tempBuffer->Indices[i]].Pos - tempBuffer->Vertices[tempBuffer->Indices[i + 2]].Pos
+            tempBuffer->Vertices[i].Pos - tempBuffer->Vertices[i + 2].Pos
         );
 
-        tempBuffer->Vertices[tempBuffer->Indices[i]].Normal   = tempBuffer->Vertices[tempBuffer->Indices[i]].Normal + tmpVec3D;
-        tempBuffer->Vertices[tempBuffer->Indices[i + 1]].Normal = tempBuffer->Vertices[tempBuffer->Indices[i + 1]].Normal + tmpVec3D;
-        tempBuffer->Vertices[tempBuffer->Indices[i + 2]].Normal = tempBuffer->Vertices[tempBuffer->Indices[i + 2]].Normal + tmpVec3D;
+        tempBuffer->Vertices[i].Normal = tmpVec3D;
+        tempBuffer->Vertices[i + 1].Normal = tmpVec3D;
+        tempBuffer->Vertices[i + 2].Normal = tmpVec3D;
     }
 
     for (int i = 0; i < (int)tempBuffer->Vertices.size(); i++)
@@ -391,22 +417,31 @@ void ChunkMesh::GenerateSurface(irr::core::vector3d<int> renderBlock, float Valu
     unsigned char p1,p2;
 	int _x, _y, _z;
 	float mu;
-	irr::core::vector3d<int> vertList[12];
 
-	for(int i = 0; i < 8; i++)
+    int atlasSize = 8;
+    float textureOffset = float(1.f / atlasSize);
+
+    irr::core::vector2df atlas2df(atlasSize, atlasSize);
+
+	irr::core::vector3df vertList[12];
+    irr::core::vector2df matList[12];
+
+    for(int i = 0; i < 8; i++)
 	{
 		if(Values[i] > isolevel) cubeIndex |= (1 << i);
 	}
-/*
-    printf("Position (%i,%i,%i) is %i\n", 
-        localPoint.X + (int) renderBlock.X,
-        localPoint.Y + (int) renderBlock.Y,
-        localPoint.Z + (int) renderBlock.Z,
-        cubeIndex
-    );
-*/
 
-	for(int i = 0; i < 12; i++)
+#ifdef _VOXEL_DEBUG_
+    if(renderBlock.X == 0 && renderBlock.Y == 0 && renderBlock.Z == 0)    
+        printf(
+            "Index = %i, Values = %f, %f, %f, %f, %f, %f, %f, %f\n",
+            cubeIndex,
+            Values[0], Values[1], Values[2], Values[3],
+            Values[4], Values[5], Values[6], Values[7]
+            );
+#endif
+
+    for(int i = 0; i < 12; i++)
 	{
 		p1 = edges[i][0];
 		p2 = edges[i][1];
@@ -417,44 +452,67 @@ void ChunkMesh::GenerateSurface(irr::core::vector3d<int> renderBlock, float Valu
 
    		if(edgeTable[cubeIndex] & (1 << i))
 		{
-			if(!(*generatedPoints)[_x][_y][_z])
-			{
-				mu = (isolevel - Values[p1]) / (Values[p2] - Values[p1]);
+			mu = (isolevel - Values[p1]) / (Values[p2] - Values[p1]);
 
-				(*generatedPoints)[_x][_y][_z] = tempBuffer->Vertices.size();
+            std::div_t material_ref = std::div(Materials[p1], atlasSize);
 
-                irr::core::vector3df tmpVec(
-                    localPoint.X + _x + (points[p1].X + mu * (points[p2].X - points[p1].X)),
-                    localPoint.Y + _y + (points[p1].Y + mu * (points[p2].Y - points[p1].Y)),
-                    localPoint.Z + _z + (points[p1].Z + mu * (points[p2].Z - points[p1].Z))
-                    );
+            matList[i] = irr::core::vector2df(
+                material_ref.quot * textureOffset,
+                material_ref.rem * textureOffset
+            );
 
-                //printf("Point at (%f,%f,%f)\n", tmpVec.X, tmpVec.Y, tmpVec.Z);
-
-				tempBuffer->Vertices.push_back(
-					irr::video::S3DVertex(
-						localPoint.X + _x + (points[p1].X + mu * (points[p2].X - points[p1].X)),
-                        localPoint.Y + _y + (points[p1].Y + mu * (points[p2].Y - points[p1].Y)),
-                        localPoint.Z + _z + (points[p1].Z + mu * (points[p2].Z - points[p1].Z)),
-                        0.f,
-                        0.f,
-                        0.f,
-						SColor(1.f,1.f,1.f,1.f),
-						0.f, 0.f
-					)
-				);
-			}
-
-			vertList[i] = irr::core::vector3d<int>(_x, _y, _z);
+            vertList[i] = irr::core::vector3df(
+                localPoint.X + _x + (points[p1].X + mu * (points[p2].X - points[p1].X)),
+                localPoint.Y + _y + (points[p1].Y + mu * (points[p2].Y - points[p1].Y)),
+                localPoint.Z + _z + (points[p1].Z + mu * (points[p2].Z - points[p1].Z))
+            );
 		}
 	}
 
-	for (int i = 0; triTable[cubeIndex][i] != -1; i++)
-	{
-		tempBuffer->Indices.push_back(
-			(*generatedPoints)[vertList[triTable[cubeIndex][i]].X][vertList[triTable[cubeIndex][i]].Y][vertList[triTable[cubeIndex][i]].Z]
-		);
-	}
+    for(int i = 0; triTable[cubeIndex][i] != -1; i+=3)
+    {
+        irr::core::vector3df normal(
+            (vertList[triTable[cubeIndex][i + 1]] - vertList[triTable[cubeIndex][i]]
+        ).crossProduct(
+            vertList[triTable[cubeIndex][i]] - vertList[triTable[cubeIndex][i+2]]
+        ));
+
+        //Pack R.U, R.V and G.U Coords into Tangent
+        irr::core::vector3df tangent(
+            matList[triTable[cubeIndex][i + 0]].X,
+            matList[triTable[cubeIndex][i + 0]].Y,
+            matList[triTable[cubeIndex][i + 1]].X
+        );
+
+        //Pack B.U, B.V and G.V Coords into Binormal
+        irr::core::vector3df binormal(
+            matList[triTable[cubeIndex][i + 2]].X,
+            matList[triTable[cubeIndex][i + 2]].Y,
+            matList[triTable[cubeIndex][i + 1]].Y
+        );
+        
+#ifdef _VOXEL_DEBUG_
+        printf(
+            "Texcoords: (%f,%f)-(%f,%f)-(%f,%f)\n",
+            tangent.X, tangent.Y, tangent.Z, binormal.Z, binormal.X, binormal.Y
+        );
+#endif
+
+        for(int j = 0; j < 3; j++)
+        {
+            tempBuffer->Indices.push_back(tempBuffer->Vertices.size());
+            tempBuffer->Vertices.push_back(
+                S3DVertexTangents(
+                    vertList[triTable[cubeIndex][i + j]],
+                    normal,
+                    colorList[j],
+                    atlas2df,
+                    tangent,
+                    binormal
+                )
+            );
+        }
+    }
 
 	tempBuffer->setDirty();
 }

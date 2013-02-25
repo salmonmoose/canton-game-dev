@@ -53,25 +53,21 @@ bool VoxelSceneNode::Initialize()
 	    ShaderCallback * shaderCallback = new ShaderCallback();
 
 	    terrainMaterial = IRR.gpu->addHighLevelShaderMaterialFromFiles(
-	        vsFileName, "vertexMain", video::EVST_VS_1_1,
-	        psFileName, "pixelMain", video::EPST_PS_1_1,
-	        shaderCallback, video::EMT_SOLID);
+	        vsFileName, "vertexMain", irr::video::EVST_VS_3_0,
+	        psFileName, "pixelMain", irr::video::EPST_PS_3_0,
+	        shaderCallback, irr::video::EMT_SOLID);
 
 	    shaderCallback->drop();
 	}
 
-	Material.setFlag(irr::video::EMF_BACK_FACE_CULLING, true);
+	Material.setFlag(irr::video::EMF_BACK_FACE_CULLING, false);
 	Material.setFlag(irr::video::EMF_WIREFRAME, false);
-	Material.setFlag(irr::video::EMF_LIGHTING, true);
+	Material.setFlag(irr::video::EMF_LIGHTING, false);
 
 	Material.MaterialType = (video::E_MATERIAL_TYPE) terrainMaterial;  
 
-    setMaterialTexture(1, IRR.driver->getTexture("./resources/grass.jpg"));
-    setMaterialTexture(2, IRR.driver->getTexture("./resources/dirt.jpg"));
-    setMaterialTexture(3, IRR.driver->getTexture("./resources/dirt.jpg"));
-    setMaterialTexture(4, IRR.driver->getTexture("./resources/clay.jpg"));
-    setMaterialTexture(5, IRR.driver->getTexture("./resources/sand.jpg"));
-    setMaterialTexture(6, IRR.driver->getTexture("./resources/void.jpg"));
+    setMaterialTexture(1, IRR.driver->getTexture("./resources/UV_mapper.jpg"));
+    setMaterialTexture(2, IRR.driver->getTexture("./resources/UV_mapper.jpg"));
 
 	dirty = true;
 
@@ -90,165 +86,197 @@ void VoxelSceneNode::OnRegisterSceneNode()
 	//ISceneNode::OnRegisterSceneNode();
 }
 
-void VoxelSceneNode::preRenderCalculationsIfNeeded()
+void VoxelSceneNode::preRenderFillChunks()
 {
-	irr::scene::ICameraSceneNode * camera = (irr::scene::ICameraSceneNode *)SceneManager->getSceneNodeFromName("playercam");
-	if (!camera)
-		return;
+	irr::core::vector3d<int> playerChunk = VoxelReference(
+        irr::core::vector3d<int>(
+            (int)IRR.mPlayer->getPosition().X,
+            (int)IRR.mPlayer->getPosition().Y,
+            (int)IRR.mPlayer->getPosition().Z
+        )
+    ).Chunk;
 
-	irr::core::aabbox3df bounding = camera->getViewFrustum()->getBoundingBox();
+    irr::core::vector3d<int> localSpace(5,0,5);
 
-	irr::core::vector3d<int> newAabboxStart(
-		(int)floor(bounding.MinEdge.X / dimensions.X),
-		(int)floor(bounding.MinEdge.Y / dimensions.Y),
-		(int)floor(bounding.MinEdge.Z / dimensions.Z)
-	);
+    irr::core::vector3d<int> chunkPos(0,0,0);
 
-	irr::core::vector3d<int> newAabboxEnd(
-		(int)ceil(bounding.MaxEdge.X / dimensions.X),
-		(int)ceil(bounding.MaxEdge.Y / dimensions.Y),
-		(int)ceil(bounding.MaxEdge.Z / dimensions.Z)
-	);
-
-	//printf("(%i,%i,%i)", newAabboxStart.X,newAabboxStart.Y,newAabboxStart.Z);
-	//printf("(%i,%i,%i)", newAabboxEnd.X,newAabboxEnd.Y,newAabboxEnd.Z);
-
-	//dirty = true;
-
-	if((newAabboxStart == aabboxStart && newAabboxEnd == aabboxEnd) && !dirty)
-	{
-		if(!dirty) 
+    //Loop through local space - generate blocks downwards from ship
+    for(int x = playerChunk.X - localSpace.X; x <= playerChunk.X + localSpace.X; x++)
+    {
+		for(int z = playerChunk.Z - localSpace.Z; z <= playerChunk.Z + localSpace.Z; z++)
 		{
-			//printf("clean\n");
-		} else {
-			//printf("box matches\n");
+            chunkPos.set(x,playerChunk.Y,z);
+
+            if(chunkMap.find(chunkPos) == chunkMap.end())
+            {
+                //printf("Initializing (%i,%i,%i) to queue\n", chunkPos.X, chunkPos.Y, chunkPos.Z);
+                chunkMap[chunkPos] = VoxelChunk();
+                chunkMap[chunkPos].Initialize(this, chunkPos);
+            }
+
+            if(chunkMap[chunkPos].status == EMPTY)
+            {
+                //printf("Adding (%i,%i,%i) to queue\n", chunkPos.X, chunkPos.Y, chunkPos.Z);
+                chunkMap[chunkPos].status = FILLING;
+                boost::threadpool::schedule(
+                    (*IRR.mThreadPool), 
+                    boost::threadpool::prio_task_func(1, boost::bind(&VoxelSceneNode::FillBackground, this, chunkPos))
+                );
+            }
 		}
-
-		//printf("aldready generated, why bother?\n");
-        //FIXME: this doesn't work the world may change, without the the viewport changing
-		return;
 	}
+}
 
-	aabboxStart = newAabboxStart;
-	aabboxEnd = newAabboxEnd;
+void VoxelSceneNode::preRenderMeshChunks()
+{
+    irr::core::vector3d<int> overDraw(1,0,1);
 
-	//printf("(%i,%i,%i)-(%i,%i,%i)\n", aabboxStart.X,aabboxStart.Y,aabboxStart.Z,aabboxEnd.X,aabboxEnd.Y,aabboxEnd.Z);
+    irr::core::aabbox3df bounding = IRR.camera->getViewFrustum()->getBoundingBox();
 
-	if((aabboxEnd.X - aabboxStart.X) * (aabboxEnd.Y - aabboxStart.Y) * (aabboxEnd.Z - aabboxStart.Z) > 10000)
-	{
-	    printf("too many buffers\n");
-	    return;
-	}
+    irr::core::vector3d<int> newAabboxStart(
+        (int)floor(bounding.MinEdge.X / dimensions.X) - overDraw.X,
+        (int)floor(bounding.MinEdge.Y / dimensions.Y) - overDraw.Y,
+        (int)floor(bounding.MinEdge.Z / dimensions.Z) - overDraw.Z
+    );
 
-	Mesh->MeshBuffers.clear();
+    irr::core::vector3d<int> newAabboxEnd(
+        (int)ceil(bounding.MaxEdge.X / dimensions.X) + overDraw.X,
+        (int)ceil(bounding.MaxEdge.Y / dimensions.Y) + overDraw.Y,
+        (int)ceil(bounding.MaxEdge.Z / dimensions.Z) + overDraw.Z
+    );
 
-	irr::core::aabbox3df aabbox;
-/*
-    aabboxStart.X = 0;
-    aabboxEnd.X = 0;
-    aabboxStart.Y = 2;
-    aabboxEnd.Y = 2;
-    aabboxStart.Z = 0;
-    aabboxEnd.Z = 0;
-*/
-    irr::core::vector3d<int> chunkPos;
+    if((newAabboxStart == aabboxStart && newAabboxEnd == aabboxEnd) && !dirty)
+    {
+        return;
+    }
+
+    aabboxStart = newAabboxStart;
+    aabboxEnd = newAabboxEnd;
+
+    Mesh->MeshBuffers.clear();
+
+    irr::core::aabbox3df aabbox;
+
+    irr::core::vector3d<int> chunkPos(0,0,0);
 
     dirty = false;
 
-	for(int z = aabboxStart.Z; z <= aabboxEnd.Z; z++)
-	{
-		for(int x = aabboxStart.X; x <= aabboxEnd.X; x++)
-		{
-			for(int y = aabboxEnd.Y; y >= aabboxStart.Y; y--)
-			{
-				chunkPos.set(x,y,z);
+    for(int z = aabboxEnd.Z; z >= aabboxStart.Z; z--)
+    {
+        for(int x = aabboxEnd.X; x >= aabboxStart.X; x--)
+        {
+            for(int y = aabboxEnd.Y; y >= aabboxStart.Y; y--)
+            {
+                chunkPos.set(x,y,z);
 
-                if(chunkMap.find(chunkPos) == chunkMap.end())
+                if(meshMap.find(chunkPos) == meshMap.end())
                 {
-                    chunkMap[chunkPos] = VoxelChunk();
-                    chunkMap[chunkPos].Initialize(dimensions, chunkPos);
-                    
                     meshMap[chunkPos] = ChunkMesh();
                     meshMap[chunkPos].Initialize(this, chunkPos);
-                    
                 }
 
-	            aabbox = irr::core::aabbox3df(((int)dimensions.X * x), ((int)dimensions.Y * y), ((int)dimensions.Z * z),((int)dimensions.X * x + (int)dimensions.X), ((int)dimensions.Y * y + (int)dimensions.Y), ((int)dimensions.Z * z + (int)dimensions.Z));
+                aabbox = irr::core::aabbox3df(
+                    ((int)dimensions.X * x), 
+                    ((int)dimensions.Y * y), 
+                    ((int)dimensions.Z * z),
+                    ((int)dimensions.X * x + (int)dimensions.X), 
+                    ((int)dimensions.Y * y + (int)dimensions.Y), 
+                    ((int)dimensions.Z * z + (int)dimensions.Z)
+                );
 
-	        	if(AABBoxInFrustum(camera->getViewFrustum(), aabbox))
-	        	{
-	        		if(meshMap[chunkPos].Meshed)
-	        		{
-	        			//printf("Adding Mesh buffer (%i,%i,%i)\n", chunkPos.X, chunkPos.Y, chunkPos.Z);
-	        			Mesh->addMeshBuffer(meshMap[chunkPos].buffer);
-	        		}
+                if(AABBoxInFrustum(IRR.camera->getViewFrustum(), aabbox))
+                {
+                    if(chunkMap.find(chunkPos) != chunkMap.end()) { //Apparently checking a value is enough to generate an object
+                        if(meshMap.find(chunkPos) == meshMap.end())
+                        {
+                            meshMap[chunkPos] = ChunkMesh();
+                            meshMap[chunkPos].Initialize(this, chunkPos);
+                        }
 
-	        		if((chunkMap[chunkPos].status == FILLED || chunkMap[chunkPos].status == DIRTY) && threads < MAXTHREADS && !chunkMap[chunkPos].empty)
-	        		{
-                        //printf("Meshing (%i,%i,%i)\n", chunkPos.X, chunkPos.Y, chunkPos.Z);
-	        			chunkMap[chunkPos].status = MESHING;
-	        			threads++;
-	        			std::thread meshThread(&VoxelSceneNode::MeshBackground, this, chunkPos);
-	        			//meshThread.detach();
-	        			meshThread.join();
-	        		}
-
-	        		//if(chunkMap[chunkPos].empty) { printf("empty\n"); }
-
-	        		if(chunkMap[chunkPos].status == EMPTY && threads < MAXTHREADS)
-	        		{
-	        			//printf("Filling (%i,%i,%i)\n", chunkPos.X, chunkPos.Y, chunkPos.Z);
-                        chunkMap[chunkPos].status = FILLING;
-	        			threads++;
-	        			std::thread fillThread(&VoxelSceneNode::FillBackground, this, chunkPos);
-	        			fillThread.detach();
-	        			//fillThread.join();
-	        		}
-
-	        		if(chunkMap[chunkPos].obstruct)
-	        		{
-	        			//printf("Obstructing Chunk, ending Y loop\n");
-	        			y = aabboxStart.Y;
-	        		}
-	        	}
-			}
-		}
-	}
+                        if(meshMap[chunkPos].Meshed)
+                        {
+                            Mesh->addMeshBuffer(meshMap[chunkPos].buffer);
+                        }
+                        if(!chunkMap[chunkPos].empty)
+                        {
+                            if(chunkMap[chunkPos].status == FILLED || chunkMap[chunkPos].status == DIRTY)
+                            {
+                                chunkMap[chunkPos].status = MESHING;
+                                boost::threadpool::schedule(
+                                    (*IRR.mThreadPool), 
+                                    boost::threadpool::prio_task_func(10, boost::bind(&VoxelSceneNode::MeshBackground, this, chunkPos))
+                                );
+                            }
+                        }
+                        if(chunkMap[chunkPos].obstruct)
+                        {
+                            y = aabboxStart.Y;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     Mesh->recalculateBoundingBox();
     Mesh->setDirty();
 }
 
-void VoxelSceneNode::FillBackground(irr::core::vector3d<int> chunkPos)
+void VoxelSceneNode::preRenderCalculationsIfNeeded()
 {
-	chunkMap[chunkPos].FillChunk(noiseTree);
-/*
-	for(int i = 0; i < 6; i++)
-	{
-		irr::core::vector3d<int> clean(chunkPos.X - Previous[i].X, chunkPos.Y - Previous[i].Y, chunkPos.Z - Previous[i].Z);
+    preRenderFillChunks();
+    preRenderMeshChunks();
+}
 
-        if(chunkMap[clean].status == CLEAN || chunkMap[clean].status == MESHING)
+void VoxelSceneNode::FillBackground(const irr::core::vector3d<int> chunkPos)
+{
+
+
+    /*printf("Background Filling (%i,%i,%i) (%i,%i,%i)\n", 
+        chunkPos.X, chunkPos.Y, chunkPos.Z,
+        chunkMap[chunkPos].localPoint.X,
+        chunkMap[chunkPos].localPoint.Y,
+        chunkMap[chunkPos].localPoint.Z
+        );
+        */
+    chunkMap[chunkPos].FillChunk(noiseTree);
+
+    //Recursively chunk meshes, depending on depth.
+    if(!chunkMap[chunkPos].obstruct)
+    {
+        //printf("Adding (%i,%i,%i) to queue\n", chunkPos.X, chunkPos.Y, chunkPos.Z);
+        irr::core::vector3d<int> down(chunkPos.X, chunkPos.Y - 1, chunkPos.Z);
+
+        if(chunkMap.find(down) == chunkMap.end())
         {
-            chunkMap[clean].status = DIRTY;
+            //printf("Initializing (%i,%i,%i) to queue\n", chunkPos.X, chunkPos.Y, chunkPos.Z);
+            chunkMap[down] = VoxelChunk();
+            chunkMap[down].Initialize(this, down);
         }
-	}
-*/
+
+        chunkMap[down].status = FILLING;
+
+        boost::threadpool::schedule(
+            (*IRR.mThreadPool), 
+            boost::threadpool::prio_task_func(1, boost::bind(&VoxelSceneNode::FillBackground, this, down))
+        );
+    }
+    else
+    {
+        //printf("This block obstructs, no point in going down\n");
+    }
 
 	dirty = true;
-	threads--;
 	chunkMap[chunkPos].status = FILLED;
 }
 
-void VoxelSceneNode::MeshBackground(irr::core::vector3d<int> chunkPos)
+void VoxelSceneNode::MeshBackground(const irr::core::vector3d<int> chunkPos)
 {
     meshMap[chunkPos].Initialize(this, chunkPos);
 	meshMap[chunkPos].GenerateMesh();
 
 	if(chunkMap[chunkPos].status == MESHING)
 		chunkMap[chunkPos].status = CLEAN;
-
-	dirty = true;
-	threads--;
 }
 
 //TODO: reimplement to cast a ray from postition in a direction
@@ -274,7 +302,7 @@ int VoxelSceneNode::GetAltitude(const irr::core::vector3d<int> & Position)
 
 	    if(chunkMapIterator != chunkMap.end())
 	    {
-	        height = chunkMapIterator->second.GetHeight(irr::core::vector2d<unsigned>(vr.Position.X, vr.Position.Z));
+	        height = chunkMapIterator->second.GetHeight(irr::core::vector2d<int>(vr.Position.X, vr.Position.Z));
 
 	        if(height >= 0)
 	        {
@@ -285,19 +313,39 @@ int VoxelSceneNode::GetAltitude(const irr::core::vector3d<int> & Position)
 
 	return -1;
 }
+void VoxelSceneNode::SetMaterial(irr::core::vector3d<int> Position, int value)
+{
+    VoxelReference vr(Position);
+
+    if(chunkMap.find(vr.Chunk) != chunkMap.end())
+    {
+        chunkMap[vr.Chunk].SetMaterial(vr.Position, value);
+    }
+}
+void VoxelSceneNode::SetValue(irr::core::vector3d<int> Position, float value)
+{
+    VoxelReference vr(Position);
+
+    if(chunkMap.find(vr.Chunk) != chunkMap.end())
+    {
+        chunkMap[vr.Chunk].SetValue(vr.Position, value);
+    }
+}
 
 float VoxelSceneNode::GetValue(irr::core::vector3d<int> Position)
 {
     VoxelReference vr(Position);
 
-    chunkMapIterator = chunkMap.find(vr.Chunk);
-
-    //printf("(%i,%i,%i)=(%i,%i,%i)+(%i,%i,%i)\n", Position.X, Position.Y, Position.Z, vr.Position.X, vr.Position.Y, vr.Position.Z, vr.Chunk.X, vr.Chunk.Y, vr.Chunk.Z);
-
-    if(chunkMapIterator != chunkMap.end())
+    if(chunkMap.find(vr.Chunk) != chunkMap.end())
     {
-        //return 1.f;
-        return chunkMapIterator->second.GetValue(vr.Position);
+        if(chunkMap[vr.Chunk].status != EMPTY && chunkMap[vr.Chunk].status != FILLING)
+        {
+            return chunkMap[vr.Chunk].GetValue(vr.Position);
+        }
+        else
+        {
+            return -15.f;
+        }
     }
     else
     {
@@ -309,15 +357,20 @@ int VoxelSceneNode::GetMaterial(irr::core::vector3d<int> Position)
 {
     VoxelReference vr(Position);
 
-    chunkMapIterator = chunkMap.find(vr.Chunk);
-
-    if(chunkMapIterator != chunkMap.end())
+    if(chunkMap.find(vr.Chunk) != chunkMap.end())
     {
-        return chunkMapIterator->second.GetMaterial(vr.Position);
+        if(chunkMap[vr.Chunk].status != EMPTY && chunkMap[vr.Chunk].status != FILLING)
+        {
+            return chunkMap[vr.Chunk].GetMaterial(vr.Position);
+        }
+        else
+        {
+            return -1;
+        }
     }
     else
     {
-        return 0;
+        return -2;
     }
 }
 
@@ -327,24 +380,18 @@ void VoxelSceneNode::UpdateVoxel(VoxelData & vd, bool subtract)
 
     chunkMapIterator = chunkMap.find(vr.Chunk);
 
-    if(chunkMapIterator != chunkMap.end())
+    if(chunkMap.find(vr.Chunk) == chunkMap.end())
     {
-        chunkMapIterator->second.UpdateVoxel(vr.Position, vd.Value, vd.Material, subtract);
-        chunkMapIterator->second.status = DIRTY;
-
-        if(vr.Position.X == 0)
-            chunkMap[irr::core::vector3d<int>(vr.Chunk.X - 1, vr.Chunk.Y, vr.Chunk.Z)].status = DIRTY;
-        if(vr.Position.X == dimensions.X -1)
-            chunkMap[irr::core::vector3d<int>(vr.Chunk.X + 1, vr.Chunk.Y, vr.Chunk.Z)].status = DIRTY;
-        if(vr.Position.Y == 0)
-            chunkMap[irr::core::vector3d<int>(vr.Chunk.X, vr.Chunk.Y - 1, vr.Chunk.Z)].status = DIRTY;
-        if(vr.Position.Y == dimensions.Y -1)
-            chunkMap[irr::core::vector3d<int>(vr.Chunk.X, vr.Chunk.Y + 1, vr.Chunk.Z)].status = DIRTY;
-        if(vr.Position.Z == 0)
-            chunkMap[irr::core::vector3d<int>(vr.Chunk.X, vr.Chunk.Y, vr.Chunk.Z - 1)].status = DIRTY;
-        if(vr.Position.Z == dimensions.Z -1)
-            chunkMap[irr::core::vector3d<int>(vr.Chunk.X, vr.Chunk.Y, vr.Chunk.Z + 1)].status = DIRTY;
+        //chunkMap[vr.Chunk] = VoxelChunk();
+        //chunkMap[vr.Chunk].Initialize(dimensions, vr.Chunk);
+        
+        //meshMap[vr.Chunk] = ChunkMesh();
+        //meshMap[vr.Chunk].Initialize(this, vr.Chunk);
+        
     }
+
+    chunkMap[vr.Chunk].UpdateVoxel(vr.Position, vd.Value, vd.Material, subtract);
+    chunkMap[vr.Chunk].status = DIRTY;
 }
 
 void VoxelSceneNode::AddBrush(irr::core::vector3df Position)

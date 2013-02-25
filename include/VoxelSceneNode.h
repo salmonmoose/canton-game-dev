@@ -66,6 +66,8 @@ public:
     bool isReadOnlyMaterials() const { return true; };
 
     void preRenderCalculationsIfNeeded();
+    void preRenderFillChunks();
+    void preRenderMeshChunks();
 
     irr::scene::IShadowVolumeSceneNode * addShadowVolumeSceneNode(const irr::scene::IMesh *, irr::s32, bool, irr::f32){ return 0; };
 
@@ -73,7 +75,10 @@ public:
     void AddBrush(irr::core::vector3df);
     void RemoveBrush(irr::core::vector3df);
     float GetValue(irr::core::vector3d<int>);
+    void SetValue(irr::core::vector3d<int>, float);
+    void SetValue(int,int,int,float);
 
+    void SetMaterial(irr::core::vector3d<int>, int);
     int GetMaterial(irr::core::vector3d<int>);
 
     const irr::video::SMaterial & getMaterial(irr::u32) const;
